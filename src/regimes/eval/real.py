@@ -152,22 +152,47 @@ class LMEJudge:
         hypotheses_path: str,
         references_path: str,
         run_dir: str,
-    ) -> list[dict[str, Any]]:  # pragma: no cover — network + subprocess path
-        root = Path(self.lme_checkout)
-        eval_py = root / "third_party/longmemeval/src/evaluation/evaluate_qa.py"
-        hyp_path = Path(hypotheses_path)
-        ref_path = Path(references_path)
-        run_dir_p = Path(run_dir)
+    ) -> list[dict[str, Any]]:
+        # Subprocess runs with cwd=<LME checkout>. Resolve every path
+        # the subprocess receives to absolute BEFORE handing it over —
+        # caller-supplied paths are typically relative to the regimes
+        # repo (e.g. "runs/loop_001/sub_1/hypotheses.jsonl") and would
+        # FileNotFoundError when resolved against the LME cwd.
+        root = Path(self.lme_checkout).resolve()
+        eval_py = (root / "third_party/longmemeval/src/evaluation/evaluate_qa.py").resolve()
+        hyp_path = Path(hypotheses_path).resolve()
+        ref_path = Path(references_path).resolve()
+        run_dir_p = Path(run_dir).resolve()
         log_path = run_dir_p / "eval.log"
-        with open(log_path, "w") as logf:
-            subprocess.run(
-                [
-                    sys.executable, str(eval_py),
-                    self.name, str(hyp_path), str(ref_path),
-                ],
-                stdout=logf, stderr=subprocess.STDOUT,
+        cmd = [sys.executable, str(eval_py), self.name, str(hyp_path), str(ref_path)]
+        try:
+            result = subprocess.run(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 cwd=str(root), check=True,
+                text=True,
             )
+            log_path.write_text(
+                f"$ {' '.join(cmd)}\n"
+                f"[cwd] {root}\n\n"
+                f"--- stdout ---\n{result.stdout}\n"
+                f"--- stderr ---\n{result.stderr}\n"
+            )
+        except subprocess.CalledProcessError as e:
+            # Capture both streams so the failure is debuggable without
+            # re-running the subprocess manually.
+            log_path.write_text(
+                f"$ {' '.join(cmd)}\n"
+                f"[cwd] {root}\n"
+                f"[exit] {e.returncode}\n\n"
+                f"--- stdout ---\n{e.stdout or ''}\n"
+                f"--- stderr ---\n{e.stderr or ''}\n"
+            )
+            raise RuntimeError(
+                f"LMEJudge subprocess exit={e.returncode}; "
+                f"stderr tail: {(e.stderr or '').strip()[-400:]}"
+            ) from e
         results_path = hyp_path.with_name(hyp_path.name + f".eval-results-{self.name}")
         return _parse_per_question_results(results_path)
 
@@ -329,6 +354,18 @@ class RealEval:
                 hyp = self.reader.answer(
                     context=ctx_text, question=inst["question"], question_id=qid,
                 )
+                # Don't let an empty context vanish silently into an
+                # empty hypothesis. If the agent's chain didn't reach
+                # context.assembled, surface that as the question's
+                # error so it appears in the Outcome.error field and in
+                # the regime histogram (instead of looking like a
+                # legitimate "I don't know" from the reader).
+                if not ctx_text and not (trace.context.meta or {}).get("score_error"):
+                    errors[qid] = (
+                        "ContextAssemblyFailure: agent.retrieve returned "
+                        "empty context; "
+                        f"n_events_in_agent_trace={len(trace.events)}"
+                    )
             except Exception as e:  # noqa: BLE001 — runtime path; carried to outcome
                 trace = None
                 hyp = ""

@@ -18,7 +18,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from activegraph import Event, FrozenClock, Graph, IDGen, Runtime, clear_registry, register
+from activegraph import Event, FrozenClock, Graph, IDGen, Runtime
 
 # Importing this module registers the four agent behaviors into the
 # activegraph global registry as a side effect. We capture the snapshot
@@ -82,14 +82,11 @@ from activegraph import get_registry
 _AGENT_BEHAVIORS_SNAPSHOT = [b for b in get_registry() if b.name.startswith("agent.")]
 
 
-def _install_agent_behaviors() -> None:
-    """Clear the registry and re-register the four agent behaviors. This is
-    how we guarantee a clean slate before each retrieve. The loop's
-    promoted transforms live in `regimes.agent.transforms._PIPELINE`,
-    not in the registry — promotion does NOT add a new @behavior."""
-    clear_registry()
-    for b in _AGENT_BEHAVIORS_SNAPSHOT:
-        register(b)
+def _agent_behaviors() -> list:
+    """Snapshot of the four agent behaviors. Callers pass this directly
+    to `Runtime(graph, behaviors=...)` so the agent's runtime is
+    independent of global-registry state."""
+    return list(_AGENT_BEHAVIORS_SNAPSHOT)
 
 
 def ingest(
@@ -174,8 +171,15 @@ def retrieve(
         frozen_t=frozen_t,
     )
 
-    _install_agent_behaviors()
-    rt = Runtime(graph)
+    # Pass agent behaviors EXPLICITLY to Runtime so we don't depend on
+    # the global behavior registry. The previous design did
+    # `clear_registry() + register(_AGENT_BEHAVIORS_SNAPSHOT)` and
+    # relied on `Runtime(graph)` resolving them from the global at
+    # `_ensure_registry()` time — fragile when any caller (e.g. the
+    # regimes loop, a test runner, a hot-reloader) clobbers the global
+    # between install and run. With behaviors= the agent's runtime is
+    # self-contained: it sees the snapshot we hand it, full stop.
+    rt = Runtime(graph, behaviors=_AGENT_BEHAVIORS_SNAPSHOT)
 
     # Seed the chain with the real package emit path.
     seed = Event(
