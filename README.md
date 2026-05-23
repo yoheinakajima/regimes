@@ -143,15 +143,99 @@ ordered list of `(name, fn)` entries that the single
 discard = never called. Each `turns.transformed` event records
 `applied_transforms` in its payload.
 
+## The eval wrapper (`regimes.eval`)
+
+A single Outcome dataclass is the contract between any eval backend and
+the loop's diagnose step. Every field diagnose needs to classify a
+failure into a regime is on Outcome — `answer_session_ids`,
+`selected_turn_ids`, `ranked`, `scores`, `decisions`, `truncated`,
+`applied_transforms`. Helpers (`gold_selected()`, `gold_ranked_top_k(k)`,
+`gold_max_score()`) compute the standard regime-detection inputs cheaply.
+
+```
+RealEval(reader=AnthropicReader(),       # claude-sonnet-4-5, T=0, tool-free
+         judge=LMEJudge(lme_checkout=..),# shells to LME upstream evaluate_qa.py
+         signal="embedding",             # match rag-dense
+         token_budget=2500)              # match rag-dense-turn cell
+   .run_on_split(instances, run_dir=...)
+   -> EvalResult(outcomes: list[Outcome], aggregate: dict, run_dir: str)
+```
+
+Construction-time validation: `AnthropicReader` requires
+`ANTHROPIC_API_KEY` + `anthropic`; `LMEJudge` requires the LME checkout,
+the `third_party/longmemeval` submodule initialized, and `OPENAI_API_KEY`.
+Missing any of those → `activegraph.ConfigurationError` (caller-fixable).
+
+For tests, `FakeReader` + `FakeJudge` produce deterministic verdicts via
+a structural gold-overlap rule, so the full wrapper runs on the synthetic
+fixture with no keys / no network.
+
+Artifacts written to `run_dir`: `hypotheses.jsonl`, `references.json`,
+`aggregate.json`. Plus `eval.log` and the upstream per-question results
+when LMEJudge is in use.
+
 ## Milestones
 
 - [x] **1. Split established + reported.** `config/split.json` committed.
       Loader + invariants in `regimes.split`. 8 tests.
 - [x] **2. Runtime-native agent on the published `activegraph` package.**
-      Four behaviors emitting through the real event log; FrozenClock +
-      seeded IDGen + stable run_id; re-ingest byte-equality property
-      test passes. 15 tests total. *Step-4 PAUSE POINT — see report.*
+      Four-behavior chain emitting through the real event log;
+      FrozenClock + seeded IDGen + stable run_id; re-ingest byte-equality
+      property test passes. Embedding scoring path wired alongside
+      lexical, gated by `where={"signal": ...}`. 25 tests.
+- [x] **Eval wrapper (`regimes.eval.RealEval`).** Outcome / EvalResult
+      contract; AnthropicReader + LMEJudge for the real path;
+      FakeReader + FakeJudge for unit tests. 11 wrapper tests, full
+      pipeline runs on synthetic fixture with no keys. **36 tests total.**
+      *Pause: the next gate is the real baseline number, which the user
+      runs on their machine.*
 - [ ] 3. Loop skeleton + four gates on MockEval.
 - [ ] 4. Attribution via fork-and-diff (`runtime.fork()`).
 - [ ] 5. Stop condition + named-wall output.
-- [ ] 6. RealEval wired (note: untestable without dataset + API keys).
+- [ ] 6. RealEval live-judge comparison vs rag-dense (user's machine).
+
+## How to run the real-judge baseline (on your machine)
+
+```bash
+# 1) Real LME data + the upstream judge submodule
+cd activegraph-longmemeval
+make setup && make data
+git submodule update --init --recursive
+
+# 2) Build the real OPTIMIZE/CONFIRM split against real LME data
+cd /path/to/regimes
+python scripts/build_split.py --source ../activegraph-longmemeval/data/longmemeval_s_cleaned.json
+
+# 3) Wire keys
+export ANTHROPIC_API_KEY=...
+export OPENAI_API_KEY=...
+
+# 4) Run the agent + reader + LME judge on OPTIMIZE
+python -c "
+import json
+from regimes.eval import RealEval, AnthropicReader, LMEJudge
+from regimes.split import load_split
+from regimes.agent import OpenAIEmbedder, set_embedder
+
+set_embedder(OpenAIEmbedder())  # match rag-dense's text-embedding-3-small
+
+s = load_split('config/split.json')
+by_id = {x['question_id']: x for x in json.load(open('../activegraph-longmemeval/data/longmemeval_s_cleaned.json'))}
+opt = [by_id[q] for q in s.optimize]
+
+ev = RealEval(
+    reader=AnthropicReader(),
+    judge=LMEJudge(lme_checkout='../activegraph-longmemeval'),
+    signal='embedding', token_budget=2500,
+)
+res = ev.run_on_split(opt, run_dir='runs/baseline_optimize')
+print('overall:', res.aggregate['overall_accuracy'])
+print('per_type:', res.aggregate['per_type_accuracy'])
+print('mean_ctx_tok:', res.aggregate['mean_context_tokens'])
+"
+```
+
+The comparison target is **rag-dense turn = 0.920 overall, mean_ctx_tok
+2398** from `paper/results_tables.md` (LME dataset `s`, n=50). The
+loop's headline at the end of milestone 5 will be **agent vs rag-dense
+on CONFIRM**, before → after promoted transforms.

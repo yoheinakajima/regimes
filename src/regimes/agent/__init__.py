@@ -19,9 +19,18 @@ from regimes.agent.agent import (
     DEFAULT_MAX_DOC_FREQ_FRACTION,
     DEFAULT_MIN_SESSION_COOCCURRENCE,
     DEFAULT_MIN_TOKEN_LENGTH,
+    DEFAULT_SIGNAL,
     DEFAULT_TOKEN_BUDGET,
     ingest,
     retrieve,
+)
+from regimes.agent.embedders import (
+    Embedder,
+    HashEmbedder,
+    OpenAIEmbedder,
+    get_embedder,
+    reset_embedder,
+    set_embedder,
 )
 
 __all__ = [
@@ -30,7 +39,14 @@ __all__ = [
     "DEFAULT_MAX_DOC_FREQ_FRACTION",
     "DEFAULT_MIN_SESSION_COOCCURRENCE",
     "DEFAULT_MIN_TOKEN_LENGTH",
+    "DEFAULT_SIGNAL",
     "DEFAULT_TOKEN_BUDGET",
+    "Embedder",
+    "HashEmbedder",
+    "OpenAIEmbedder",
+    "get_embedder",
     "ingest",
     "retrieve",
+    "reset_embedder",
+    "set_embedder",
 ]

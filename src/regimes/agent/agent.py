@@ -72,8 +72,9 @@ class RetrieveTrace:
 
 # ----- the snapshot of "default agent behaviors" ----------------------------
 
-# Importing `regimes.agent.behaviors` pushed our four @behavior decorations
-# into activegraph's global _REGISTRY. Snapshot them once so we can
+# Importing `regimes.agent.behaviors` pushed our five @behavior decorations
+# into activegraph's global _REGISTRY (lexical scorer, embedding scorer,
+# transform pipeline, expand, assemble). Snapshot them once so we can
 # restore them on every retrieve call (callers might have called
 # clear_registry() between calls).
 from activegraph import get_registry
@@ -128,11 +129,15 @@ def ingest(
     return graph, stats
 
 
+DEFAULT_SIGNAL = "embedding"  # match the rag-dense comparison target
+
+
 def retrieve(
     instance: dict[str, Any],
     *,
     question: str | None = None,
     question_date: str | None = None,
+    signal: str = DEFAULT_SIGNAL,
     token_budget: int = DEFAULT_TOKEN_BUDGET,
     min_token_length: int = DEFAULT_MIN_TOKEN_LENGTH,
     min_session_cooccurrence: int = DEFAULT_MIN_SESSION_COOCCURRENCE,
@@ -149,6 +154,12 @@ def retrieve(
       - `runtime.run_until_idle()` — real scheduler drives the chain
       - returns events read from `graph.events`
     """
+    if signal not in ("lexical", "embedding"):
+        from activegraph import ConfigurationError
+        raise ConfigurationError(
+            f"signal must be 'lexical' or 'embedding', got {signal!r}"
+        )
+
     # Default the question fields from the instance shape if not given —
     # for the synthetic fixture and LME instances alike.
     q_text = question if question is not None else instance["question"]
@@ -174,6 +185,7 @@ def retrieve(
             "question_id": q_id,
             "question": q_text,
             "question_date": q_date,
+            "signal": signal,
             "token_budget": token_budget,
             "min_token_length": min_token_length,
         },
@@ -184,11 +196,20 @@ def retrieve(
     graph.emit(seed)
     rt.run_until_idle()
 
-    # Pluck the assembled context off the event log.
+    # Pluck the assembled context and the upstream events that carry
+    # data the loop's diagnose step reads (ranked + post-transform scores
+    # + applied transforms).
     assembled: Event | None = None
+    expanded_ev: Event | None = None
+    transformed_ev: Event | None = None
     for ev in reversed(graph.events):
         if ev.type == E.CONTEXT_ASSEMBLED and ev.payload.get("question_id") == q_id:
             assembled = ev
+        if ev.type == E.TURNS_EXPANDED and ev.payload.get("question_id") == q_id:
+            expanded_ev = ev
+        if ev.type == E.TURNS_TRANSFORMED and ev.payload.get("question_id") == q_id:
+            transformed_ev = ev
+        if assembled and expanded_ev and transformed_ev:
             break
 
     if assembled is None:
@@ -206,12 +227,20 @@ def retrieve(
             text=p["text"],
             truncated=p["truncated"],
             meta={
+                "signal": signal,
                 "n_selected_turns": len(p["selected_turn_ids"]),
                 "n_seeds": p["n_seeds"],
                 "n_expanded": p["n_expanded"],
                 "token_budget": p["token_budget"],
                 "running_tokens": p["running_tokens"],
                 "selected_turn_ids": p["selected_turn_ids"],
+                "decisions": p.get("decisions", []),
+                "ranked": expanded_ev.payload["ranked"] if expanded_ev else [],
+                "scores": transformed_ev.payload["scores"] if transformed_ev else {},
+                "applied_transforms": (
+                    transformed_ev.payload.get("applied_transforms", [])
+                    if transformed_ev else []
+                ),
                 **ingest_stats,
             },
         )

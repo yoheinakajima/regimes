@@ -27,14 +27,20 @@ from activegraph import behavior
 
 from regimes.agent import events as E
 from regimes.agent import transforms
-from regimes.agent.signals import score_lexical
+from regimes.agent.embedders import get_embedder
+from regimes.agent.signals import score_embedding, score_lexical
 
 
-# ----- 1) Scoring ------------------------------------------------------------
+# ----- 1a) Lexical scoring (gated where signal=="lexical") -------------------
 
-@behavior(name="agent.score_lexical", on=[E.QUESTION_ASKED])
-def behavior_score(event, graph, ctx) -> None:
-    """Read corpus through ctx.view, score every turn, emit turns.scored."""
+@behavior(
+    name="agent.score_lexical",
+    on=[E.QUESTION_ASKED],
+    where={"signal": "lexical"},
+)
+def behavior_score_lexical(event, graph, ctx) -> None:
+    """IDF-overlap scoring. Fires only when the question.asked payload
+    has signal="lexical"."""
     payload = event.payload
     question = payload["question"]
     question_id = payload["question_id"]
@@ -50,6 +56,46 @@ def behavior_score(event, graph, ctx) -> None:
             "question": question,
             "question_date": payload.get("question_date", ""),
             "signal": "lexical",
+            "scorer_model": "lexical-idf-overlap",
+            "scores": scores,
+            "token_budget": token_budget,
+            "min_token_length": min_token_length,
+        },
+    )
+
+
+# ----- 1b) Embedding scoring (gated where signal=="embedding") ---------------
+
+@behavior(
+    name="agent.score_embedding",
+    on=[E.QUESTION_ASKED],
+    where={"signal": "embedding"},
+)
+def behavior_score_embedding(event, graph, ctx) -> None:
+    """Cosine-similarity scoring against the configured Embedder.
+
+    Default embedder is HashEmbedder (deterministic, no network); the
+    real-baseline path swaps in OpenAIEmbedder(text-embedding-3-small)
+    to match LME's rag-dense pin. The active embedder's model name is
+    recorded in the emitted event for audit.
+    """
+    payload = event.payload
+    question = payload["question"]
+    question_id = payload["question_id"]
+    min_token_length = payload["min_token_length"]
+    token_budget = payload["token_budget"]
+
+    embedder = get_embedder()
+    scores = score_embedding(ctx.view, question, embedder=embedder)
+
+    graph.emit(
+        E.TURNS_SCORED,
+        {
+            "question_id": question_id,
+            "question": question,
+            "question_date": payload.get("question_date", ""),
+            "signal": "embedding",
+            "scorer_model": embedder.model,
             "scores": scores,
             "token_budget": token_budget,
             "min_token_length": min_token_length,
