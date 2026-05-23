@@ -139,13 +139,39 @@ def test_assemble_internal_does_not_fire_when_gold_not_selected():
 
 
 def test_budget_truncation_fires_with_decision_record():
+    # Budget-truncation now REQUIRES well-ranked evidence — a
+    # never-retrieved case that happens to leave a budget-drop trail
+    # in decisions is signal-gap, not budget-truncation. Provide
+    # ranked so the well-ranked check passes.
     o = mk(
         truncated=True,
+        ranked=("s1#0",),
+        scores={"s1#0": 0.9},
         decisions=(
             {"turn_id": "s1#0", "included": False, "reason": "budget"},
         ),
     )
     assert detect_budget_truncation(o)
+
+
+def test_budget_truncation_does_not_fire_when_gold_not_well_ranked():
+    """Tightening guard: an evidence turn ranked at position 126 that
+    appears in decisions[reason='budget'] is NOT budget-truncation —
+    the signal never surfaced it within the seed window. This was the
+    eac54add leak.
+    """
+    ranked = tuple(f"distractor#{i}" for i in range(150))
+    ranked = (*ranked[:126], "s1#0", *ranked[126:])
+    scores = {t: 1.0 - i / 200 for i, t in enumerate(ranked)}
+    o = mk(
+        truncated=True,
+        ranked=ranked,
+        scores=scores,
+        decisions=(
+            {"turn_id": "s1#0", "included": False, "reason": "budget"},
+        ),
+    )
+    assert not detect_budget_truncation(o)
 
 
 def test_budget_truncation_requires_truncated_flag():
@@ -352,14 +378,19 @@ def test_register_regime_appends_to_taxonomy_and_priority():
             "new-regime", detector,
             optimizable=False, seam_reachable=False,
             description="test",
-            priority_after="assembly-crowding",
+            priority_after="assemble-internal",
         )
         assert "new-regime" in REGIMES()
-        # Give scores containing gold so scoring-error doesn't pre-empt.
-        o = mk(qid="q_new", correct=False, scores={"s1#0": 0.5})
-        # Detector fires; new-regime classified. We inserted after
-        # assembly-crowding (before retrieval-signal-gap), so new-regime
-        # wins as long as no higher-priority built-in matches.
+        # Build an outcome that wouldn't match any built-in detector:
+        # gold in scores AND in top-K (so signal-gap doesn't fire) AND
+        # selected AND correct=False AND coverage=1.0 — that fires
+        # assemble-internal. With new-regime inserted AFTER
+        # assemble-internal in priority, assemble-internal wins. So
+        # we instead test the "no built-in matches" case by giving
+        # the outcome a shape no builtin fires on: gold not in scores
+        # would trigger scoring-error; instead use a no-gold-session
+        # outcome that bypasses all retrieval regimes.
+        o = mk(qid="q_new", correct=False, gold=())
         result = classify(o)
         assert result.name == "new-regime"
     finally:

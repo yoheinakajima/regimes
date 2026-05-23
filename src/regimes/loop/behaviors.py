@@ -34,7 +34,78 @@ from regimes.loop import events as E
 from regimes.loop import gates as _gates
 from regimes.loop.attribute import attribute as _attribute
 from regimes.loop.hypothesize import DraftedTransform, StubAuthor
-from regimes.loop.regimes import classify, format_histogram, histogram, is_seam_reachable
+from regimes.loop.regimes import (
+    WELL_RANKED_K,
+    classify,
+    format_histogram,
+    histogram,
+    is_seam_reachable,
+)
+
+
+def _outcome_summary(o, *, well_ranked_k: int = WELL_RANKED_K) -> dict[str, Any]:
+    """Self-justifying per-question summary for persistence.
+
+    Carries the EVIDENCE-LEVEL signals the detectors used to assign
+    the regime label — so every label in the report is auditable
+    against the same numbers the detector saw. The earlier summary
+    only held qid/correct/regime, which made labels unverifiable
+    (e.g. an eac54add classified as budget-truncation looked the
+    same on disk as a legitimate one even though the underlying
+    signals disagreed).
+
+    Fields:
+      gold_evidence_turn_ids       — the evidence turns from the
+                                     dataset's per-turn markers
+      evidence_rank_positions      — {turn_id -> 0-indexed rank in
+                                     `ranked`}; missing entries mean
+                                     the evidence didn't appear in
+                                     the ranking at all
+      evidence_in_scores           — at least one evidence turn was
+                                     scored
+      evidence_max_score           — best score on any evidence turn
+      evidence_well_ranked         — evidence turns in top-K
+      evidence_selected            — evidence turns that survived
+                                     into selected_turn_ids
+      evidence_dropped_at_budget   — evidence turns in decisions with
+                                     included=False, reason='budget'
+      evidence_coverage            — fraction of well-ranked evidence
+                                     in selected, the key signal for
+                                     the crowding vs assemble-internal
+                                     split; None when no well-ranked
+                                     evidence exists
+    """
+    regime_name = classify(o).name if not o.correct else "correct"
+    evidence_ranks = o.evidence_rank_positions() if o.has_evidence_turn_ids() else {}
+    well_ranked = list(o.evidence_ranked_top_k(well_ranked_k)) \
+        if o.has_evidence_turn_ids() else []
+    selected_evidence = list(o.evidence_selected()) \
+        if o.has_evidence_turn_ids() else []
+    dropped_evidence = list(o.evidence_dropped_at_budget()) \
+        if o.has_evidence_turn_ids() else []
+    coverage: float | None = None
+    if well_ranked:
+        n_in_sel = sum(1 for t in well_ranked if t in o.selected_turn_ids)
+        coverage = n_in_sel / len(well_ranked)
+    return {
+        "question_id": o.question_id,
+        "question_type": o.question_type,
+        "correct": o.correct,
+        "regime": regime_name,
+        "truncated": o.truncated,
+        "n_selected": len(o.selected_turn_ids),
+        "score_error": bool(o.score_error),
+        # ---- evidence-level signals (the detector's actual inputs) ----
+        "gold_evidence_turn_ids": list(o.gold_evidence_turn_ids),
+        "evidence_rank_positions": evidence_ranks,
+        "evidence_in_scores": o.evidence_in_scores() if o.has_evidence_turn_ids() else False,
+        "evidence_max_score": o.evidence_max_score() if o.has_evidence_turn_ids() else 0.0,
+        "evidence_well_ranked": well_ranked,
+        "evidence_selected": selected_evidence,
+        "evidence_dropped_at_budget": dropped_evidence,
+        "evidence_coverage": coverage,
+        "well_ranked_k": well_ranked_k,
+    }
 
 
 # ===========================================================================
@@ -103,21 +174,12 @@ def behavior_run_baseline(event, graph, ctx) -> None:  # noqa: ARG001
     result = lctx.eval_backend.run_on_split(lctx.instances)
     lctx.baseline = result
     lctx.last_result = result
-    # Carry an event-payload-safe summary of the baseline. Per-question
-    # outcome fingerprints (qid + correct + regime) are needed downstream;
-    # the FULL EvalResult lives in the context for behaviors that need it.
-    outcomes_summary = [
-        {
-            "question_id": o.question_id,
-            "question_type": o.question_type,
-            "correct": o.correct,
-            "truncated": o.truncated,
-            "n_selected": len(o.selected_turn_ids),
-            "score_error": bool(o.score_error),
-            "regime": classify(o).name if not o.correct else "correct",
-        }
-        for o in result.outcomes
-    ]
+    # Self-justifying summary: each per-question record carries the
+    # evidence-level signals the detector used to assign the regime
+    # label — so every label in the persisted report can be checked
+    # against its basis. (Previously only qid/correct/regime were
+    # persisted, which made labels unauditable.)
+    outcomes_summary = [_outcome_summary(o) for o in result.outcomes]
     graph.emit(
         E.BASELINE_RECORDED,
         {
@@ -504,18 +566,7 @@ def behavior_rebaseline(event, graph, ctx) -> None:  # noqa: ARG001
     # Update the "baseline used by diagnose" via the existing slot; the
     # original baseline is preserved on lctx for attribution.
     lctx.baseline = base_for_round
-    outcomes_summary = [
-        {
-            "question_id": o.question_id,
-            "question_type": o.question_type,
-            "correct": o.correct,
-            "truncated": o.truncated,
-            "n_selected": len(o.selected_turn_ids),
-            "score_error": bool(o.score_error),
-            "regime": classify(o).name if not o.correct else "correct",
-        }
-        for o in base_for_round.outcomes
-    ]
+    outcomes_summary = [_outcome_summary(o) for o in base_for_round.outcomes]
     graph.emit(
         E.BASELINE_RECORDED,
         {

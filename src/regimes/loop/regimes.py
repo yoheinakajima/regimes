@@ -207,12 +207,31 @@ def detect_assemble_internal(o: Outcome) -> bool:
 
 
 def detect_budget_truncation(o: Outcome) -> bool:
-    """The agent CONSIDERED a gold-session turn and dropped it at the
-    budget wall. Most actionable regime: a transform that filters
+    """The agent retrieved gold WELL and then dropped it at the budget
+    wall. Most actionable regime: a transform that filters
     likely-irrelevant high-scoring filler frees budget for the gold
-    turn. Detected via the explicit decisions log entry."""
+    turn.
+
+    REQUIRES well-ranked evidence. An evidence turn at rank 126 that
+    appears in decisions[reason='budget'] is NOT budget-truncation —
+    the signal never surfaced it within the seed window in the first
+    place, so a score-transform can't put it back. That case is
+    retrieval-signal-gap. This was the eac54add leak: rank-126
+    evidence got iterated past during assembly, hit a budget wall,
+    and the old (well-ranked-agnostic) detector promoted it into the
+    optimizable bucket.
+    """
     if not o.truncated:
         return False
+    # Tightening: require well-ranked evidence. Without it, we're
+    # looking at a signal-gap case that happened to leave a budget-
+    # drop trail in decisions, not a real budget-truncation regime.
+    if o.has_evidence_turn_ids():
+        if not o.evidence_ranked_top_k(WELL_RANKED_K):
+            return False
+    else:
+        if not o.gold_ranked_top_k(WELL_RANKED_K):
+            return False
     return _gold_dropped_at_budget(o)
 
 
@@ -336,31 +355,29 @@ _BUILTIN: list[Regime] = [
 
 
 # Priority for classify():
-#   1. scoring-error first — without scores there's no retrieval regime
-#      to classify against.
-#   2. budget-truncation next when the agent EXPLICITLY recorded a gold
-#      turn dropped at the budget wall (most specific actionable
-#      signal; refines crowding).
-#   3. assembly-crowding when well-ranked gold was mostly excluded
-#      (poor coverage).
-#   4. retrieval-signal-gap when no gold turn ranked well (mutually
-#      exclusive with crowding by construction — crowding requires
-#      well-ranked gold).
-#   5. assemble-internal only when retrieval AND assembly succeeded
-#      (coverage >= floor) and the answer is still wrong. This is now
-#      a NARROW bucket, not the catch-all it used to be.
-#   6. unclassified — anything left.
+#   1. scoring-error — without scores there's no retrieval regime.
+#   2. retrieval-signal-gap — gold never well-ranked. THIS COMES BEFORE
+#      budget-truncation AND assembly-crowding so a never-retrieved
+#      case can't leak into the optimizable bucket via overlapping
+#      detection. The optimizable regimes both require well-ranked
+#      evidence in their detectors, so this is also a defense-in-depth
+#      invariant: any future detector loosening still can't accidentally
+#      classify a never-retrieved case as recoverable.
+#   3. budget-truncation — well-ranked evidence dropped at the budget
+#      wall (specific actionable signal).
+#   4. assembly-crowding — well-ranked evidence, poor coverage.
+#   5. assemble-internal — well-ranked evidence, good coverage, answer
+#      still wrong. A narrow bucket now, not the catch-all it used to be.
+#   6. unclassified.
 #
-# The previous order ran assemble-internal at slot 2, which let its
-# permissive "any gold turn selected" detector pre-empt every
-# actionable regime. The new order is also the order detectors should
-# be specified in PER-OUTCOME mutually-exclusive logic:
-# scoring-error → budget vs not → coverage low vs high → no well-ranked → other.
+# Each transition in the order represents a "this case definitively is
+# not the prior regime" filter; classifier short-circuits at the first
+# match.
 PRIORITY: tuple[str, ...] = (
     "scoring-error",
+    "retrieval-signal-gap",
     "budget-truncation",
     "assembly-crowding",
-    "retrieval-signal-gap",
     "assemble-internal",
     "unclassified",
 )
