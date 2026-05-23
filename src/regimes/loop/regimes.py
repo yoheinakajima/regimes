@@ -93,9 +93,10 @@ def _gold_sids(o: Outcome) -> set[str]:
 
 
 def _gold_in_scores(o: Outcome) -> bool:
-    """At least one turn from a gold session appears in the scores dict.
-    Score value (incl. zero) doesn't matter for this check — what
-    matters is whether the scoring step *produced* an entry."""
+    """At least one gold turn appears in the scores dict. Prefers
+    evidence-turn IDs when present; falls back to session-level."""
+    if o.has_evidence_turn_ids():
+        return o.evidence_in_scores()
     gold = _gold_sids(o)
     if not gold:
         return False
@@ -107,9 +108,12 @@ def _gold_in_scores(o: Outcome) -> bool:
 
 
 def _gold_dropped_at_budget(o: Outcome) -> bool:
-    """A gold-session turn appears in `decisions` with included=False
-    and reason='budget'. The agent considered it but the budget wall
-    killed the include."""
+    """A gold turn appears in `decisions` with included=False and
+    reason='budget'. Prefers evidence-turn-level when present —
+    distinguishes "evidence turn dropped at budget" from "a high-
+    scoring non-evidence gold-session turn dropped at budget"."""
+    if o.has_evidence_turn_ids():
+        return bool(o.evidence_dropped_at_budget())
     gold = _gold_sids(o)
     if not gold:
         return False
@@ -150,13 +154,27 @@ def detect_scoring_error(o: Outcome) -> bool:
 def _well_ranked_gold_coverage(o: Outcome) -> tuple[int, int]:
     """Return (n_well_ranked_gold_selected, n_well_ranked_gold_total).
 
-    "Well-ranked gold" = gold-session turns appearing in the top
-    WELL_RANKED_K of `ranked`. "Selected" = also appearing in
-    selected_turn_ids. The pair drives the assembly-crowding /
-    assemble-internal split: coverage = selected / total, computed
-    against the well-ranked gold turns (NOT the whole gold set —
-    a gold turn ranked at position 200 was never seed-eligible and
-    its non-inclusion isn't an assembly failure)."""
+    "Well-ranked gold" = gold turns appearing in the top WELL_RANKED_K
+    of `ranked`. "Selected" = also appearing in selected_turn_ids.
+
+    Prefers evidence-turn granularity when the Outcome carries it —
+    so a gold session whose evidence turn ranks at 126 (out of the
+    well-ranked window) does NOT count as "well-ranked gold" just
+    because OTHER non-evidence turns from the same session ranked at
+    positions 2,3. Session-level reasoning was the bug that bucketed
+    eac54add as budget-truncation: high-scoring non-evidence
+    gold-session turns got tried and dropped at the budget, falsely
+    matching the budget-truncation detector. Evidence-level coverage
+    excludes those non-evidence turns from the well-ranked set."""
+    if o.has_evidence_turn_ids():
+        well_ranked = set(o.evidence_ranked_top_k(WELL_RANKED_K))
+        if not well_ranked:
+            return (0, 0)
+        selected_set = set(o.selected_turn_ids)
+        n_selected = len(well_ranked & selected_set)
+        return (n_selected, len(well_ranked))
+    # Session-level fallback (synthetic fixture, datasets without
+    # per-turn evidence markers).
     well_ranked = set(o.gold_ranked_top_k(WELL_RANKED_K))
     if not well_ranked:
         return (0, 0)
@@ -220,12 +238,21 @@ def detect_assembly_crowding(o: Outcome) -> bool:
 
 def detect_retrieval_signal_gap(o: Outcome) -> bool:
     """Gold turn is in the scores dict (so scoring ran) but NO gold
-    turn ranked within the top WELL_RANKED_K. The scoring signal
+    EVIDENCE turn ranked within the top WELL_RANKED_K. The signal
     didn't surface gold; a score-transform can re-weight existing
     scores but can't invent signal — fixing this needs a signal
-    change (different embedder / additional scorer / etc.)."""
+    change (different embedder / additional scorer / etc.).
+
+    Evidence-turn granularity is critical here. eac54add's gold
+    session has high-scoring NON-evidence turns at ranks 2,3,11 and
+    the actual evidence turn at rank 126. Session-level reasoning
+    would see "gold in top-20" and return False (no signal gap);
+    evidence-level reasoning correctly returns True (the evidence
+    turn itself is far outside the well-ranked window)."""
     if not o.answer_session_ids or not _gold_in_scores(o):
         return False
+    if o.has_evidence_turn_ids():
+        return not bool(o.evidence_ranked_top_k(WELL_RANKED_K))
     return not bool(o.gold_ranked_top_k(WELL_RANKED_K))
 
 
