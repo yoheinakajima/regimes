@@ -194,36 +194,106 @@ class LMEJudge:
                 f"stderr tail: {(e.stderr or '').strip()[-400:]}"
             ) from e
         results_path = hyp_path.with_name(hyp_path.name + f".eval-results-{self.name}")
-        return _parse_per_question_results(results_path)
+        return _parse_per_question_results(results_path, hyp_path=hyp_path)
 
 
-def _parse_per_question_results(path: Path) -> list[dict[str, Any]]:  # pragma: no cover
+def _parse_per_question_results(
+    path: Path,
+    *,
+    hyp_path: Path | None = None,
+) -> list[dict[str, Any]]:
     """Parse LME's upstream per-question results file.
 
-    Upstream evaluate_qa.py writes one JSON record per line of the form
-    `{question_id, autoeval_label, ...}` where autoeval_label is "1" or
-    "0" (correct / wrong). We normalize to {question_id, correct, label,
-    raw}.
+    Upstream `evaluate_qa.py` writes one record per question; the
+    on-disk format observed in the wild is a JSON ARRAY of pretty-
+    printed records (NOT JSON-lines). Each record carries at minimum
+    `question`, `answer`, `hypothesis`, `autoeval_label` (a JSON
+    boolean); it does NOT carry `question_id` reliably. Earlier
+    versions of LME's harness wrote JSON-lines with `autoeval_label`
+    as "0"/"1" strings — we accept both formats.
+
+    Joining back to question_id:
+      1. If records carry `question_id` (or `qid`), use it.
+      2. Else, pair by position with `hyp_path`'s hypotheses.jsonl —
+         upstream preserves input order, so record[i] corresponds to
+         hypothesis line i. Verified empirically by matching the
+         `hypothesis` field on each record to the hypothesis we sent
+         in (which the upstream echoes back).
+
+    Returns one dict per question:
+        {question_id, correct, label, raw}
     """
+    text = Path(path).read_text()
+    records: list[dict[str, Any]] = []
+
+    # Try whole-file JSON first (array or object); fall back to JSONL.
+    try:
+        parsed = json.loads(text)
+        if isinstance(parsed, list):
+            records = [r for r in parsed if isinstance(r, dict)]
+        elif isinstance(parsed, dict):
+            # Some upstreams wrap the list under a key like "results".
+            for key in ("results", "evaluations", "items"):
+                if key in parsed and isinstance(parsed[key], list):
+                    records = [r for r in parsed[key] if isinstance(r, dict)]
+                    break
+            if not records:
+                records = [parsed]
+    except json.JSONDecodeError:
+        for line in text.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                rec = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(rec, dict):
+                records.append(rec)
+
+    # Build the positional fallback: hypotheses.jsonl in submission order.
+    hyp_qids: list[str] = []
+    if hyp_path is not None and Path(hyp_path).exists():
+        for raw_line in Path(hyp_path).read_text().splitlines():
+            raw_line = raw_line.strip()
+            if not raw_line:
+                continue
+            try:
+                h = json.loads(raw_line)
+            except json.JSONDecodeError:
+                continue
+            qid = h.get("question_id") or h.get("qid")
+            if qid is not None:
+                hyp_qids.append(str(qid))
+
     out: list[dict[str, Any]] = []
-    for raw_line in Path(path).read_text().splitlines():
-        line = raw_line.strip()
-        if not line:
-            continue
-        try:
-            rec = json.loads(line)
-        except json.JSONDecodeError:
-            continue
+    for i, rec in enumerate(records):
         qid = rec.get("question_id") or rec.get("qid")
-        label = str(rec.get("autoeval_label", rec.get("label", "")))
-        correct = label in ("1", "true", "True", "correct", "yes")
+        if qid is None and i < len(hyp_qids):
+            qid = hyp_qids[i]
+        raw_label = rec.get("autoeval_label", rec.get("label", rec.get("correct")))
+        correct = _coerce_truthy_label(raw_label)
         out.append({
             "question_id": qid,
             "correct": correct,
-            "label": label,
+            "label": str(raw_label),
             "raw": rec,
         })
     return out
+
+
+def _coerce_truthy_label(value: Any) -> bool:
+    """Upstream writes `autoeval_label` as a JSON boolean in current
+    LME, but older variants emitted "0"/"1" strings or "correct"/"wrong"
+    strings. Normalize all of them to one Python bool. Anything else
+    (None, empty, unrecognized) → False."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return value != 0
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "correct", "y", "t"}
+    return False
 
 
 @dataclass
