@@ -59,6 +59,13 @@ class Outcome:
     # ---- auditability ------------------------------------------------------
     run_id: str = ""
     error: str | None = None      # populated if agent / reader raised
+    # Carried from the agent's behavior.failed event when the scoring step
+    # itself blew up (e.g. embedder BadRequestError on a too-long input).
+    # Distinct from `error` because the agent can crash inside scoring and
+    # still emit downstream events with empty scores; diagnose looks here
+    # to classify the failure as scoring-error rather than a retrieval
+    # regime.
+    score_error: str = ""
 
     # ---- derived helpers (cheap, no I/O) ----------------------------------
 

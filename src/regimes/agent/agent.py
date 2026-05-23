@@ -212,12 +212,28 @@ def retrieve(
         if assembled and expanded_ev and transformed_ev:
             break
 
+    # Scoring-step failures surface as behavior.failed events on
+    # agent.score_lexical / agent.score_embedding. The loop's
+    # scoring-error regime detector reads this; we lift it onto the meta
+    # dict so a downstream Outcome can carry it without re-scanning the
+    # event log.
+    score_error_msg = ""
+    for ev in graph.events:
+        if ev.type == "behavior.failed":
+            beh = ev.payload.get("behavior", "")
+            if beh in ("agent.score_embedding", "agent.score_lexical"):
+                etype = ev.payload.get("exception_type", "Error")
+                msg = ev.payload.get("message", "")
+                score_error_msg = f"{beh}:{etype}: {msg}"
+                break
+
     if assembled is None:
         # The chain didn't reach assembly. The graph still holds the events
         # we did get — return an empty context with the trace, the loop's
         # failure-model handler turns this into a logged event upstream.
         ctx = AssembledContext(text="", truncated=True, meta={
             "error": "context.assembled missing",
+            "score_error": score_error_msg,
             "n_events": len(graph.events),
             **ingest_stats,
         })
@@ -241,6 +257,7 @@ def retrieve(
                     transformed_ev.payload.get("applied_transforms", [])
                     if transformed_ev else []
                 ),
+                "score_error": score_error_msg,
                 **ingest_stats,
             },
         )

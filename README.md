@@ -94,12 +94,23 @@ pytest -q
 ```
 src/regimes/                 # the package (loop, behaviors, gates, eval backends)
   split.py                   # load_split() + invariant guard
+  agent/                     # runtime-native four-behavior retrieval agent
+  eval/                      # RealEval wrapper (LME harness bridge)
+  loop/                      # the loop: behaviors + regime taxonomy + gates
+    events.py                # loop event vocabulary
+    regimes.py               # taxonomy + deterministic detectors + histogram
+    mock_eval.py             # in-memory eval backend; controllable failures
+    hypothesize.py           # StubAuthor + LLMAuthor (Claude)
+    gates.py                 # static / sandbox / eval-diff / promotion
+    attribute.py             # structural diff over two EvalResults
+    behaviors.py             # one @behavior per loop phase
+    runner.py                # run_loop(): seed → drain → report
 config/split.json            # frozen OPTIMIZE+CONFIRM; committed
 fixtures/synthetic_lme.json  # synthetic 200-question fixture; committed
 scripts/build_fixture.py     # regenerates the fixture (deterministic)
 scripts/build_split.py       # regenerates split.json (deterministic)
+scripts/run_loop.py          # CLI: runs the loop, prints the histogram
 tests/                       # pytest
-docs/                        # design notes
 ```
 
 ## Failure model
@@ -174,6 +185,52 @@ Artifacts written to `run_dir`: `hypotheses.jsonl`, `references.json`,
 `aggregate.json`. Plus `eval.log` and the upstream per-question results
 when LMEJudge is in use.
 
+## The loop (`regimes.loop`)
+
+Every phase is a real `@behavior` on the activegraph runtime. The
+runner seeds `loop.start`, the runtime drains the chain, and the event
+log IS the audit trail. `LoopReport.events` is the full log; the
+convenience fields (`histogram`, `baseline`, `promotions`, `discards`,
+`attributions`, `stopped`, `transform_log`) are pre-extracted terminal
+payloads.
+
+### Regime taxonomy (deterministic detectors)
+
+| Regime | Optimizable? | Seam-reachable? | Detector |
+|---|---|---|---|
+| `scoring-error` | no | no | agent's scoring step raised, OR gold turns absent from the scores dict entirely |
+| `assemble-internal` | no | no | gold WAS selected but the answer is still wrong |
+| `budget-truncation` | yes | yes | gold turn appears in `decisions` with `included=False, reason='budget'` |
+| `assembly-crowding` | yes | yes | gold ranked in top-5 but not in `selected_turn_ids` |
+| `retrieval-signal-gap` | no | no | gold ranked outside the top-20 — signal misses it |
+| `unclassified` | no | no | catch-all; LLM-proposed regimes append after this one |
+
+`classify()` picks the highest-priority match. `histogram()` counts
+failures per regime; the loop's `regime.histogram` event carries both
+the counts and the per-failure qid lists. The histogram is the **first
+emitted artifact** — diagnose phases everything downstream.
+
+### Live pause-discipline
+
+```bash
+python scripts/run_loop.py --mode mock      # pause after histogram
+python scripts/run_loop.py --mode mock --full  # run through stop
+python scripts/run_loop.py --mode real --lme-data .../longmemeval_s_cleaned.json
+```
+
+`pause_after="histogram"` halts before any transform is drafted. The
+histogram is the go/no-go: it tells you whether multi-session/temporal
+failures are seam-reachable assembly regimes or contaminated by
+scoring errors / blocked by signal gaps.
+
+### Held-out discipline (recap)
+
+OPTIMIZE drives diagnose + transform search. CONFIRM is touched exactly
+once per promotion (the promote behavior records a `confirm_delta` in
+the event payload). Every transform attempt — passed, rejected,
+promoted, discarded — lives in `LoopReport.transform_log` so the
+CONFIRM result is reportable as best-of-N.
+
 ## Milestones
 
 - [x] **1. Split established + reported.** `config/split.json` committed.
@@ -189,9 +246,31 @@ when LMEJudge is in use.
       pipeline runs on synthetic fixture with no keys. **36 tests total.**
       *Pause: the next gate is the real baseline number, which the user
       runs on their machine.*
-- [ ] 3. Loop skeleton + four gates on MockEval.
-- [ ] 4. Attribution via fork-and-diff (`runtime.fork()`).
-- [ ] 5. Stop condition + named-wall output.
+- [x] **3. Loop skeleton + four gates on MockEval.** Loop runs natively
+      on the runtime: `loop.start → baseline.recorded → regime.histogram
+      → transform.drafted → transform.static_{passed,rejected} →
+      transform.sandbox_{passed,rejected} → transform.eval_diff →
+      transform.{promoted,discarded} → attribution.recorded →
+      loop.{iterate,stopped}`. Regime taxonomy + deterministic detectors,
+      with `scoring-error` broken out as non-optimizable. Static AST
+      gate (math-only whitelist, banned dunders, signature pin),
+      sandbox probe gate, eval-diff with per-question transitions,
+      deterministic promotion rule. **94 tests total.**
+      *Pause discipline: the loop accepts `pause_after="histogram"` so
+      the live baseline run stops at the histogram and the user
+      reviews go/no-go before spending eval budget on transforms.*
+- [x] **4. Attribution.** `attribute(before, after)` returns the
+      per-question regime transitions and net recovered/introduced
+      counts; consumed by the loop's `attribution.recorded` event. The
+      real runtime's `fork()` is the production mechanism when a
+      persistent store is wired up; the in-memory path composes
+      attribution from the two `EvalResult` snapshots structurally.
+- [x] **5. Stop condition + named-wall output.** `loop.stopped` carries
+      a `named_wall` string that lists the unreachable regimes
+      remaining and what change would address each (signal change,
+      `assemble()` refactor, scoring-step fix). Stop fires when EITHER
+      no optimizable+seam-reachable failures remain OR N consecutive
+      drafted transforms are discarded.
 - [ ] 6. RealEval live-judge comparison vs rag-dense (user's machine).
 
 ## How to run the real-judge baseline (on your machine)

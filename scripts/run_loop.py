@@ -1,0 +1,175 @@
+"""Run the regimes loop and report the regime histogram.
+
+Two modes:
+
+  --mock      Run against the in-repo synthetic fixture using MockEval.
+              No keys, no network. Used for CI + design demos. Produces
+              an EvalResult derived from the synthetic instances; each
+              MockInstance can be configured for a specific regime.
+
+  --real      Run against the real LME data + AnthropicReader + LMEJudge.
+              Requires: ANTHROPIC_API_KEY, OPENAI_API_KEY, the LME
+              checkout (`activegraph-longmemeval/`), and the
+              `regimes[eval]` extra installed.
+
+By default we PAUSE at the histogram: the histogram is the go/no-go
+checkpoint before spending eval budget on transforms. Use
+`--full` to run all phases through stop.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO / "src"))
+
+from regimes.loop import MockEval, MockInstance, run_loop  # noqa: E402
+from regimes.split import load_split  # noqa: E402
+
+
+def _build_mock_instances() -> list[MockInstance]:
+    """A small fixture mix used to exercise the histogram in --mock
+    mode. Carries one of each main regime plus a couple of correct
+    answers so per-type accuracy is non-trivial."""
+    return [
+        MockInstance("q_ok1", "multi-session", False, ("s1",), True,
+                     scores={"s1#0": 1.0}, selected_turn_ids=("s1#0",)),
+        MockInstance("q_ok2", "single-session-user", False, ("s2",), True,
+                     scores={"s2#0": 0.9}, selected_turn_ids=("s2#0",)),
+        MockInstance("q_ok3", "knowledge-update", False, ("s3",), True,
+                     scores={"s3#0": 0.95}, selected_turn_ids=("s3#0",)),
+        MockInstance(
+            "q_se", "multi-session", False, ("sX",), False,
+            scores={},
+            score_error="agent.score_embedding:BadRequestError: input too long",
+        ),
+        MockInstance(
+            "q_ac1", "multi-session", False, ("sG_ac",), False,
+            scores={"sG_ac#0": 0.6, "sN#0": 0.95},
+            ranked=("sN#0", "sG_ac#0"),
+            selected_turn_ids=("sN#0",), truncated=True,
+        ),
+        MockInstance(
+            "q_bt1", "temporal-reasoning", False, ("sG_bt",), False,
+            scores={"sG_bt#0": 0.8, "sM#0": 0.9},
+            ranked=("sM#0", "sG_bt#0"),
+            selected_turn_ids=("sM#0",), truncated=True,
+            decisions=(
+                {"turn_id": "sG_bt#0", "included": False, "reason": "budget"},
+            ),
+        ),
+        MockInstance(
+            "q_sg", "temporal-reasoning", False, ("sG_sg",), False,
+            scores={"sG_sg#0": 0.01,
+                    **{f"oN{j}#0": 0.5 for j in range(25)}},
+            ranked=tuple(f"oN{j}#0" for j in range(25)) + ("sG_sg#0",),
+            selected_turn_ids=tuple(f"oN{j}#0" for j in range(5)),
+        ),
+    ]
+
+
+def main() -> int:
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--mode", choices=("mock", "real"), default="mock")
+    p.add_argument(
+        "--full", action="store_true",
+        help="Run all phases through stop (default: pause after histogram).",
+    )
+    p.add_argument("--run-dir", default="runs/loop_001",
+                   help="Where to write the report.")
+    p.add_argument("--split", default="config/split.json")
+    p.add_argument("--lme-checkout", default=str(REPO.parent / "activegraph-longmemeval"))
+    p.add_argument("--lme-data", default=None,
+                   help="Path to longmemeval_s_cleaned.json (real mode only).")
+    p.add_argument("--signal", default="embedding")
+    p.add_argument("--token-budget", type=int, default=2500)
+    args = p.parse_args()
+
+    pause_after = None if args.full else "histogram"
+    run_dir = Path(args.run_dir)
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    if args.mode == "mock":
+        instances = _build_mock_instances()
+        backend = MockEval()
+        rep = run_loop(eval_backend=backend, instances=instances,
+                       pause_after=pause_after)
+    else:
+        # Real path: build a RealEval, feed it the OPTIMIZE instances.
+        if not args.lme_data:
+            sys.stderr.write(
+                "--lme-data is required in --mode real "
+                "(point at longmemeval_s_cleaned.json)\n"
+            )
+            return 2
+        from regimes.agent import OpenAIEmbedder, set_embedder  # noqa: WPS433
+        from regimes.eval import AnthropicReader, LMEJudge, RealEval  # noqa: WPS433
+        set_embedder(OpenAIEmbedder())
+        s = load_split(args.split)
+        by_id = {x["question_id"]: x for x in json.load(open(args.lme_data))}
+        opt = [by_id[q] for q in s.optimize]
+        backend = RealEval(
+            reader=AnthropicReader(),
+            judge=LMEJudge(lme_checkout=args.lme_checkout),
+            signal=args.signal, token_budget=args.token_budget,
+        )
+        # RealEval needs run_dir on its run_on_split. Wrap it.
+        class _RD:
+            def __init__(self, ev, base): self.ev, self.base, self.n = ev, base, 0
+            def run_on_split(self, insts):
+                self.n += 1
+                return self.ev.run_on_split(insts, run_dir=self.base / f"sub_{self.n}")
+        wrapped = _RD(backend, run_dir)
+        rep = run_loop(eval_backend=wrapped, instances=opt,
+                       pause_after=pause_after)
+
+    # --- print + persist ---
+    print()
+    if rep.histogram is not None:
+        print(rep.histogram["formatted"])
+    print()
+    if rep.baseline is not None:
+        b = rep.baseline
+        print(f"baseline overall_accuracy = {b['overall_accuracy']:.4f}")
+        print("baseline per_type_accuracy:")
+        for t in sorted(b["per_type_accuracy"]):
+            print(f"  {t:30s}  {b['per_type_accuracy'][t]:.4f}")
+        print()
+    if rep.stopped is not None:
+        print(f"stopped: {rep.stopped['reason']}")
+        if rep.stopped.get("named_wall"):
+            print(f"  wall: {rep.stopped['named_wall']}")
+        if rep.stopped.get("remaining_regimes"):
+            print(f"  remaining: {rep.stopped['remaining_regimes']}")
+        print()
+    if rep.transform_log:
+        print("transform attempts (best-of-N audit):")
+        for r in rep.transform_log:
+            print(f"  {r['status']:18s} {r['name']:24s} "
+                  f"target={r['target_regime']:20s} "
+                  f"reasons={r.get('reasons', '')}")
+        print()
+
+    payload = {
+        "iteration_id": rep.iteration_id,
+        "histogram": rep.histogram,
+        "baseline": rep.baseline,
+        "stopped": rep.stopped,
+        "promotions": rep.promotions,
+        "discards": rep.discards,
+        "attributions": rep.attributions,
+        "transform_log": rep.transform_log,
+        "n_events": len(rep.events),
+    }
+    out_path = run_dir / "report.json"
+    out_path.write_text(json.dumps(payload, indent=2, default=str) + "\n")
+    print(f"report → {out_path}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -403,6 +403,7 @@ class RealEval:
                 applied_transforms=tuple(meta.get("applied_transforms", ())),
                 run_id=(trace.run_id if trace is not None else ""),
                 error=errors.get(qid),
+                score_error=str(meta.get("score_error", "")),
             )
             outcomes.append(o)
 
