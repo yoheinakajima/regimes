@@ -110,12 +110,48 @@ Everything that happens during a loop run (a transform crashing in sandbox,
 an eval failing, a gate rejecting) is a **logged event** with the error
 carried in the payload, and the loop continues.
 
+## The runtime-native agent
+
+`regimes.agent` is a retrieval system implemented as four behaviors on
+the real `activegraph` runtime — this is what the regimes loop optimizes
+(not LME's plain-function retrieval).
+
+```
+question.asked
+  -> @behavior(on=["question.asked"])   agent.score_lexical    -> turns.scored
+  -> @behavior(on=["turns.scored"])     agent.transform_pipeline -> turns.transformed
+  -> @behavior(on=["turns.transformed"]) agent.expand_temporal  -> turns.expanded
+  -> @behavior(on=["turns.expanded"])   agent.assemble         -> context.assembled
+```
+
+Real package APIs throughout:
+- ingest emits via `graph.add_object(type="turn", ...)` and
+  `graph.add_relation(type="temporal_next", ...)` / `type="cooccurrence"`,
+- behaviors are decorated with `@activegraph.behavior(...)` and registered
+  through the package's `_REGISTRY`,
+- behaviors emit follow-up events via `bgraph.emit(type, payload)`,
+- the runtime is `activegraph.Runtime(graph)` and the chain is driven
+  by `runtime.run_until_idle()`.
+
+Determinism is wired by `FrozenClock`, fresh `IDGen()` per ingest, and a
+stable `run_id`; re-ingest equality and full-log byte-equality across
+runs are property-tested.
+
+The score-transform seam is `regimes.agent.transforms` (a configurable
+ordered list of `(name, fn)` entries that the single
+`agent.transform_pipeline` behavior walks). Promotion = `transforms.promote(...)`;
+discard = never called. Each `turns.transformed` event records
+`applied_transforms` in its payload.
+
 ## Milestones
 
 - [x] **1. Split established + reported.** `config/split.json` committed.
       Loader + invariants in `regimes.split`. 8 tests.
-- [ ] 2. Loop skeleton on the runtime, events flowing on MockEval.
-- [ ] 3. Four gates (compile / sandbox / eval-diff / promotion) on MockEval.
-- [ ] 4. Attribution via fork-and-diff.
+- [x] **2. Runtime-native agent on the published `activegraph` package.**
+      Four behaviors emitting through the real event log; FrozenClock +
+      seeded IDGen + stable run_id; re-ingest byte-equality property
+      test passes. 15 tests total. *Step-4 PAUSE POINT — see report.*
+- [ ] 3. Loop skeleton + four gates on MockEval.
+- [ ] 4. Attribution via fork-and-diff (`runtime.fork()`).
 - [ ] 5. Stop condition + named-wall output.
 - [ ] 6. RealEval wired (note: untestable without dataset + API keys).
