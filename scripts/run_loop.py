@@ -28,6 +28,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
 from regimes.loop import MockEval, MockInstance, run_loop  # noqa: E402
+from regimes.loop.hypothesize import build_real_author  # noqa: E402
 from regimes.split import load_split  # noqa: E402
 
 
@@ -124,8 +125,12 @@ def main() -> int:
                 self.n += 1
                 return self.ev.run_on_split(insts, run_dir=self.base / f"sub_{self.n}")
         wrapped = _RD(backend, run_dir)
+        # Real mode authors transforms with Claude. `BEHAVIORDRAFTS_MODEL`
+        # overrides the model id; ANTHROPIC_API_KEY must be present (the
+        # constructor raises ConfigurationError otherwise — caller-fixable).
+        author = build_real_author()
         rep = run_loop(eval_backend=wrapped, instances=opt,
-                       pause_after=pause_after)
+                       author=author, pause_after=pause_after)
 
     # --- print + persist ---
     print()

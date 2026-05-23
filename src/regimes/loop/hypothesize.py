@@ -146,14 +146,29 @@ class StubAuthor:
 # ---------------------------------------------------------------------------
 
 
+DEFAULT_LLM_MODEL = "claude-sonnet-4-5"
+
+
+def build_real_author(model: str | None = None) -> "LLMAuthor":
+    """Construct an LLMAuthor for the --mode real path.
+
+    Reads `BEHAVIORDRAFTS_MODEL` from the environment if `model` is None;
+    falls back to `DEFAULT_LLM_MODEL`. Raises `ConfigurationError` (via
+    LLMAuthor.__post_init__) if `ANTHROPIC_API_KEY` or the `anthropic`
+    package is missing.
+    """
+    name = model or os.environ.get("BEHAVIORDRAFTS_MODEL") or DEFAULT_LLM_MODEL
+    return LLMAuthor(name=name)
+
+
 @dataclass
 class LLMAuthor:
     """Real authoring path. Not exercised in the in-container test suite
     (no API key); covered by integration tests on the user's machine."""
 
-    name: str = "claude-sonnet-4-5"
+    name: str = DEFAULT_LLM_MODEL
     temperature: float = 0.2
-    max_tokens: int = 1024
+    max_tokens: int = 2048
     _client: object | None = None
 
     def __post_init__(self) -> None:
@@ -180,36 +195,19 @@ class LLMAuthor:
         *,
         dominant_regime: str,
         failures: Iterable[Outcome],
-    ) -> DraftedTransform:  # pragma: no cover — network path
+    ) -> DraftedTransform:
         cli = self._ensure_client()
-        sample = list(failures)[:5]
-        sample_str = "\n".join(
-            f"- {o.question_id} ({o.question_type}): truncated={o.truncated}, "
-            f"selected={len(o.selected_turn_ids)}, gold_top5="
-            f"{bool(o.gold_ranked_top_k(5))}"
-            for o in sample
-        )
-        prompt = (
-            f"You are authoring a score-transform to address the "
-            f"'{dominant_regime}' regime.\n\n"
-            f"Signature (REQUIRED, exact):\n  {TRANSFORM_SIGNATURE}\n\n"
-            "Constraints:\n"
-            "  - Pure Python; ONLY the `math` module may be imported.\n"
-            "  - No filesystem, network, subprocess, or attribute access "
-            "on builtins.\n"
-            "  - Return a dict over the SAME turn_ids as the input scores.\n\n"
-            f"Failing outcomes (sample):\n{sample_str}\n\n"
-            "Reply with a single ```python``` block containing only the "
-            "function. No prose."
-        )
-        resp = cli.messages.create(
+        sample = list(failures)[:8]
+        sample_str = _format_failure_signals(sample)
+        prompt = _build_author_prompt(dominant_regime, sample_str)
+        resp = cli.messages.create(  # pragma: no cover — network path
             model=self.name,
             max_tokens=self.max_tokens,
             temperature=self.temperature,
             messages=[{"role": "user", "content": prompt}],
         )
         text = ""
-        for block in resp.content:
+        for block in resp.content:  # pragma: no cover — network path
             if getattr(block, "type", None) == "text":
                 text = block.text
                 break
@@ -221,6 +219,76 @@ class LLMAuthor:
             author=self.name,
             rationale=text[:200],
         )
+
+
+def _format_failure_signals(failures: list[Outcome]) -> str:
+    """Per-failure evidence signals the author needs to reason about the
+    budget-truncation regime: which evidence turns were well-ranked but
+    dropped at the budget wall, and the competing turns that won the
+    budget."""
+    if not failures:
+        return "(no failures)"
+    blocks: list[str] = []
+    for o in failures:
+        well_ranked = list(o.evidence_ranked_top_k(5)) \
+            if o.has_evidence_turn_ids() else []
+        dropped = list(o.evidence_dropped_at_budget()) \
+            if o.has_evidence_turn_ids() else []
+        selected = list(o.selected_turn_ids)
+        # Identify the "budget winners": the non-evidence turns that
+        # competed for and won the budget allocation. These are the
+        # selected turns that aren't evidence — they're what evictions
+        # would target if we down-weight competitors.
+        evid = set(o.gold_evidence_turn_ids)
+        budget_winners = [t for t in selected if t not in evid]
+        # Top-of-rank scores: what the agent saw when it ranked.
+        top_ranked = list(o.ranked[:6])
+        score_view = {t: round(o.scores.get(t, 0.0), 4) for t in top_ranked}
+        evid_scores = {
+            t: round(o.scores.get(t, 0.0), 4) for t in o.gold_evidence_turn_ids
+        }
+        rank_of = o.evidence_rank_positions() if o.has_evidence_turn_ids() else {}
+        blocks.append(
+            f"- qid={o.question_id} type={o.question_type} "
+            f"truncated={o.truncated} n_selected={len(selected)}\n"
+            f"    gold_evidence_turn_ids={list(o.gold_evidence_turn_ids)}\n"
+            f"    evidence_ranks={rank_of}\n"
+            f"    evidence_well_ranked_top5={well_ranked}\n"
+            f"    evidence_dropped_at_budget={dropped}\n"
+            f"    evidence_scores={evid_scores}\n"
+            f"    budget_winners (selected non-evidence)={budget_winners}\n"
+            f"    top_ranked_scores={score_view}"
+        )
+    return "\n".join(blocks)
+
+
+def _build_author_prompt(dominant_regime: str, signals_block: str) -> str:
+    return (
+        f"You are authoring a Python score-transform to address the "
+        f"'{dominant_regime}' retrieval regime.\n\n"
+        f"Signature (REQUIRED, exact):\n  {TRANSFORM_SIGNATURE}\n\n"
+        "The transform is called once per question, AFTER scoring, BEFORE\n"
+        "the assembly step that walks `scores` in descending order and\n"
+        "drops candidates once a token budget is exceeded. Your job is to\n"
+        "REWEIGHT scores so that:\n"
+        "  - evidence turns currently DROPPED AT THE BUDGET WALL survive\n"
+        "    the cut on the failing questions below, AND\n"
+        "  - turns that other questions rely on (the budget winners that\n"
+        "    ARE evidence for some question) are NOT evicted in the\n"
+        "    process.\n\n"
+        "Constraints:\n"
+        "  - Pure Python; ONLY the `math` module may be imported.\n"
+        "  - No filesystem, network, subprocess, no attribute access on\n"
+        "    builtins (no getattr/setattr/__class__/etc.).\n"
+        "  - Return a dict over the SAME turn_ids as the input scores.\n"
+        "  - You do not know which turns are evidence at call time — you\n"
+        "    only have the score dict, the graph, and the question. Reason\n"
+        "    over score shape (relative ranks, gaps, distribution).\n\n"
+        f"Per-question failure signals (the cases you must move):\n"
+        f"{signals_block}\n\n"
+        "Reply with a single ```python``` block containing only the\n"
+        "function. No prose."
+    )
 
 
 def _extract_code(text: str) -> str:  # pragma: no cover — network path
