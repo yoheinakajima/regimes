@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+build/
+dist/
+.venv/
+.env
+
+# real LME dataset never lives in the regimes repo; it stays in the
+# external longmemeval checkout the loop shells out to
+data/
+runs/

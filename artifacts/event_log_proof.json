@@ -1,0 +1,589 @@
+{
+  "question_id": "knowledge_update_q000",
+  "n_events": 42,
+  "n_turns_ingested": 15,
+  "n_temporal_edges": 12,
+  "n_cooccurrence_edges": 0,
+  "run_id": "regimes-agent-determ",
+  "events": [
+    {
+      "id": "evt_001",
+      "type": "object.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "object"
+      ]
+    },
+    {
+      "id": "evt_002",
+      "type": "object.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "object"
+      ]
+    },
+    {
+      "id": "evt_003",
+      "type": "object.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "object"
+      ]
+    },
+    {
+      "id": "evt_004",
+      "type": "object.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "object"
+      ]
+    },
+    {
+      "id": "evt_005",
+      "type": "object.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "object"
+      ]
+    },
+    {
+      "id": "evt_006",
+      "type": "object.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "object"
+      ]
+    },
+    {
+      "id": "evt_007",
+      "type": "object.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "object"
+      ]
+    },
+    {
+      "id": "evt_008",
+      "type": "object.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "object"
+      ]
+    },
+    {
+      "id": "evt_009",
+      "type": "object.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "object"
+      ]
+    },
+    {
+      "id": "evt_010",
+      "type": "object.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "object"
+      ]
+    },
+    {
+      "id": "evt_011",
+      "type": "object.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "object"
+      ]
+    },
+    {
+      "id": "evt_012",
+      "type": "object.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "object"
+      ]
+    },
+    {
+      "id": "evt_013",
+      "type": "object.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "object"
+      ]
+    },
+    {
+      "id": "evt_014",
+      "type": "object.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "object"
+      ]
+    },
+    {
+      "id": "evt_015",
+      "type": "object.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "object"
+      ]
+    },
+    {
+      "id": "evt_016",
+      "type": "object.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "object"
+      ]
+    },
+    {
+      "id": "evt_017",
+      "type": "relation.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "relation",
+        "source",
+        "target"
+      ]
+    },
+    {
+      "id": "evt_018",
+      "type": "relation.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "relation",
+        "source",
+        "target"
+      ]
+    },
+    {
+      "id": "evt_019",
+      "type": "relation.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "relation",
+        "source",
+        "target"
+      ]
+    },
+    {
+      "id": "evt_020",
+      "type": "relation.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "relation",
+        "source",
+        "target"
+      ]
+    },
+    {
+      "id": "evt_021",
+      "type": "relation.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "relation",
+        "source",
+        "target"
+      ]
+    },
+    {
+      "id": "evt_022",
+      "type": "relation.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "relation",
+        "source",
+        "target"
+      ]
+    },
+    {
+      "id": "evt_023",
+      "type": "relation.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "relation",
+        "source",
+        "target"
+      ]
+    },
+    {
+      "id": "evt_024",
+      "type": "relation.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "relation",
+        "source",
+        "target"
+      ]
+    },
+    {
+      "id": "evt_025",
+      "type": "relation.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "relation",
+        "source",
+        "target"
+      ]
+    },
+    {
+      "id": "evt_026",
+      "type": "relation.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "relation",
+        "source",
+        "target"
+      ]
+    },
+    {
+      "id": "evt_027",
+      "type": "relation.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "relation",
+        "source",
+        "target"
+      ]
+    },
+    {
+      "id": "evt_028",
+      "type": "relation.created",
+      "actor": "ingest",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "id",
+        "relation",
+        "source",
+        "target"
+      ]
+    },
+    {
+      "id": "evt_029",
+      "type": "question.asked",
+      "actor": "caller",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "min_token_length",
+        "question",
+        "question_date",
+        "question_id",
+        "token_budget"
+      ]
+    },
+    {
+      "id": "evt_030",
+      "type": "behavior.started",
+      "actor": "runtime",
+      "caused_by": "evt_029",
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "behavior",
+        "event_id",
+        "triggering_event_type",
+        "triggering_object_id"
+      ]
+    },
+    {
+      "id": "evt_031",
+      "type": "turns.scored",
+      "actor": "agent.score_lexical",
+      "caused_by": "evt_029",
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "min_token_length",
+        "question",
+        "question_date",
+        "question_id",
+        "scores",
+        "signal",
+        "token_budget"
+      ]
+    },
+    {
+      "id": "evt_032",
+      "type": "behavior.completed",
+      "actor": "runtime",
+      "caused_by": "evt_029",
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "behavior",
+        "event_id",
+        "events_emitted",
+        "objects_created",
+        "patches_applied",
+        "patches_proposed",
+        "relations_created"
+      ]
+    },
+    {
+      "id": "evt_033",
+      "type": "behavior.started",
+      "actor": "runtime",
+      "caused_by": "evt_031",
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "behavior",
+        "event_id",
+        "triggering_event_type",
+        "triggering_object_id"
+      ]
+    },
+    {
+      "id": "evt_034",
+      "type": "turns.transformed",
+      "actor": "agent.transform_pipeline",
+      "caused_by": "evt_031",
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "applied_transforms",
+        "min_token_length",
+        "question",
+        "question_date",
+        "question_id",
+        "scores",
+        "token_budget",
+        "transform_errors"
+      ]
+    },
+    {
+      "id": "evt_035",
+      "type": "behavior.completed",
+      "actor": "runtime",
+      "caused_by": "evt_031",
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "behavior",
+        "event_id",
+        "events_emitted",
+        "objects_created",
+        "patches_applied",
+        "patches_proposed",
+        "relations_created"
+      ]
+    },
+    {
+      "id": "evt_036",
+      "type": "behavior.started",
+      "actor": "runtime",
+      "caused_by": "evt_034",
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "behavior",
+        "event_id",
+        "triggering_event_type",
+        "triggering_object_id"
+      ]
+    },
+    {
+      "id": "evt_037",
+      "type": "turns.expanded",
+      "actor": "agent.expand_temporal",
+      "caused_by": "evt_034",
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "expansion_map",
+        "question_id",
+        "ranked",
+        "scores",
+        "token_budget"
+      ]
+    },
+    {
+      "id": "evt_038",
+      "type": "behavior.completed",
+      "actor": "runtime",
+      "caused_by": "evt_034",
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "behavior",
+        "event_id",
+        "events_emitted",
+        "objects_created",
+        "patches_applied",
+        "patches_proposed",
+        "relations_created"
+      ]
+    },
+    {
+      "id": "evt_039",
+      "type": "behavior.started",
+      "actor": "runtime",
+      "caused_by": "evt_037",
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "behavior",
+        "event_id",
+        "triggering_event_type",
+        "triggering_object_id"
+      ]
+    },
+    {
+      "id": "evt_040",
+      "type": "context.assembled",
+      "actor": "agent.assemble",
+      "caused_by": "evt_037",
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "decisions",
+        "n_expanded",
+        "n_seeds",
+        "question_id",
+        "running_tokens",
+        "selected_turn_ids",
+        "text",
+        "token_budget",
+        "truncated"
+      ]
+    },
+    {
+      "id": "evt_041",
+      "type": "behavior.completed",
+      "actor": "runtime",
+      "caused_by": "evt_037",
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "behavior",
+        "event_id",
+        "events_emitted",
+        "objects_created",
+        "patches_applied",
+        "patches_proposed",
+        "relations_created"
+      ]
+    },
+    {
+      "id": "evt_042",
+      "type": "runtime.idle",
+      "actor": "runtime",
+      "caused_by": null,
+      "frame_id": null,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "payload_keys": [
+        "snapshot"
+      ]
+    }
+  ]
+}
