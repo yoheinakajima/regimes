@@ -363,6 +363,56 @@ class FakeJudge:
 # ============================================================================
 
 
+def _extract_evidence_turn_ids(instance: dict) -> tuple[str, ...]:
+    """Pull the per-turn evidence markers from an LME instance.
+
+    LongMemEval marks evidence two ways depending on dataset variant:
+      a) Per-turn `has_answer: true` on individual haystack turns —
+         the standard `longmemeval_s` format on HuggingFace.
+      b) Top-level `answer_evidences` list of {session_id, turn_idx}
+         (or similar) — older / oracle variants.
+    We accept both and dedupe. Returns turn_ids in the agent's
+    `{session_id}#{turn_idx}` shape so they match selected_turn_ids
+    and the entries in `ranked`/`scores`.
+
+    Empty when the instance carries no per-turn evidence markers
+    (e.g. the synthetic fixture); detectors then fall back to
+    session-level reasoning."""
+    out: list[str] = []
+
+    # Variant (a): has_answer flag on haystack turns.
+    sids = instance.get("haystack_session_ids") or []
+    sessions = instance.get("haystack_sessions") or []
+    for sid, sess in zip(sids, sessions):
+        for t_idx, turn in enumerate(sess or []):
+            if isinstance(turn, dict) and turn.get("has_answer"):
+                out.append(f"{sid}#{t_idx}")
+
+    # Variant (b): top-level answer_evidences. Accept several common
+    # field-name shapes for the turn index.
+    evidences = instance.get("answer_evidences") or []
+    if isinstance(evidences, list):
+        for ev in evidences:
+            if isinstance(ev, dict):
+                sid = ev.get("session_id") or ev.get("sid")
+                ti = ev.get("turn_idx")
+                if ti is None:
+                    ti = ev.get("turn_id")
+                if ti is None:
+                    ti = ev.get("idx")
+                if sid is not None and ti is not None:
+                    out.append(f"{sid}#{ti}")
+
+    # Dedupe, preserve insertion order.
+    seen: set[str] = set()
+    deduped: list[str] = []
+    for tid in out:
+        if tid not in seen:
+            seen.add(tid)
+            deduped.append(tid)
+    return tuple(deduped)
+
+
 def _canonical_qtype(qid: str, instance: dict | None) -> str:
     """Question_type without the _abs suffix; sourced from instance when
     available, otherwise inferred from the qid (synthetic-fixture form
@@ -449,6 +499,7 @@ class RealEval:
                 "answer": inst.get("answer", ""),
                 "question_type": _canonical_qtype(qid, inst),
                 "answer_session_ids": list(inst.get("answer_session_ids", [])),
+                "gold_evidence_turn_ids": list(_extract_evidence_turn_ids(inst)),
                 "is_abstention": qid.endswith("_abs"),
             })
 
@@ -491,6 +542,7 @@ class RealEval:
                 question_type=ref["question_type"],
                 is_abstention=ref["is_abstention"],
                 answer_session_ids=tuple(ref["answer_session_ids"]),
+                gold_evidence_turn_ids=tuple(ref.get("gold_evidence_turn_ids", ())),
                 correct=bool(verdict["correct"]),
                 judge_label=str(verdict.get("label", "")),
                 judge_raw=verdict.get("raw"),

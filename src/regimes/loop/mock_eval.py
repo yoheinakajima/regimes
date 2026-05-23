@@ -64,6 +64,7 @@ class MockInstance:
     running_tokens: int = 0
     question: str = ""
     question_date: str = ""
+    gold_evidence_turn_ids: tuple[str, ...] = ()
     # Simulator hook for transform-flipping (see module docstring).
     gold_score_threshold: float = float("inf")
     candidate_turn_ids: tuple[str, ...] = ()
@@ -177,6 +178,7 @@ class MockEval:
             question_type=mi.question_type,
             is_abstention=mi.is_abstention,
             answer_session_ids=mi.answer_session_ids,
+            gold_evidence_turn_ids=mi.gold_evidence_turn_ids,
             correct=correct,
             judge_label="mock-1" if correct else "mock-0",
             judge_raw=None,
@@ -204,6 +206,7 @@ def _from_dict(d: dict[str, Any]) -> MockInstance:
         is_abstention=bool(d.get("is_abstention", False)),
         answer_session_ids=tuple(d.get("answer_session_ids", ())),
         correct_baseline=bool(d.get("correct_baseline", False)),
+        gold_evidence_turn_ids=tuple(d.get("gold_evidence_turn_ids", ())),
         scores=dict(d.get("scores", {})),
         ranked=tuple(d.get("ranked", ())),
         selected_turn_ids=tuple(d.get("selected_turn_ids", ())),

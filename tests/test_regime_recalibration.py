@@ -80,7 +80,15 @@ class CaseSpec:
     qid: str
     question_type: str
     gold_session_ids: tuple[str, ...]
-    gold_positions: tuple[int, ...]    # 0-indexed positions in `ranked`
+    # Positions (0-indexed in `ranked`) of EVIDENCE turns — the actual
+    # has_answer=true turns the dataset marks. Detectors reason about
+    # these, NOT just any turn from the gold session.
+    evidence_positions: tuple[int, ...]
+    # Positions of NON-evidence gold-session turns (high-scoring filler
+    # from the same session). These exist in real LME data: the gold
+    # session contains both evidence turns and conversational filler.
+    # The detector must see through them — that's the core fix.
+    non_evidence_gold_positions: tuple[int, ...]
     total_turns: int
     selected_positions: tuple[int, ...]  # which positions in ranked are selected
     truncated: bool = True
@@ -89,19 +97,23 @@ class CaseSpec:
 
 
 def _build_outcome(c: CaseSpec) -> Outcome:
-    """Synthesize an Outcome whose ranked tuple has gold-session turns
-    at exactly `gold_positions`. Selected = the turns at
-    `selected_positions` within ranked."""
+    """Synthesize an Outcome whose ranked tuple has evidence turns at
+    `evidence_positions` and non-evidence gold-session turns at
+    `non_evidence_gold_positions`. Evidence turns get marker IDs that
+    are listed on `gold_evidence_turn_ids`; non-evidence gold-session
+    turns share the gold session ID but are NOT in evidence."""
+    sid = c.gold_session_ids[0]
     ranked: list[str] = []
-    g_iter = iter(sorted(c.gold_positions))
-    next_gold = next(g_iter, None)
-    gold_seq = 0
+    evidence_tids: list[str] = []
+    ev_set = set(c.evidence_positions)
+    ne_set = set(c.non_evidence_gold_positions)
     for pos in range(c.total_turns):
-        if pos == next_gold:
-            sid = c.gold_session_ids[gold_seq % len(c.gold_session_ids)]
-            ranked.append(f"{sid}#{pos}")
-            gold_seq += 1
-            next_gold = next(g_iter, None)
+        if pos in ev_set:
+            tid = f"{sid}#evidence{pos}"
+            ranked.append(tid)
+            evidence_tids.append(tid)
+        elif pos in ne_set:
+            ranked.append(f"{sid}#filler{pos}")
         else:
             ranked.append(f"distractor_{pos}#0")
     scores = {t: 1.0 - i / max(1, c.total_turns) for i, t in enumerate(ranked)}
@@ -111,6 +123,7 @@ def _build_outcome(c: CaseSpec) -> Outcome:
         question_type=c.question_type,
         is_abstention=False,
         answer_session_ids=c.gold_session_ids,
+        gold_evidence_turn_ids=tuple(evidence_tids),
         correct=False,
         scores=scores,
         ranked=tuple(ranked),
@@ -130,11 +143,14 @@ CASES: tuple[CaseSpec, ...] = (
         qid="gpt4_a1b77f9c",
         question_type="multi-session",
         gold_session_ids=("gold_a1b77",),
-        # "gold evidence ranked 4,5,6,8,12,16 of ~498"
-        gold_positions=(4, 5, 6, 8, 12, 16),
+        # "gold evidence ranked 4,5,6,8,12,16 of ~498" — all six are
+        # actual evidence turns; no non-evidence filler complicates
+        # this case.
+        evidence_positions=(4, 5, 6, 8, 12, 16),
+        non_evidence_gold_positions=(),
         total_turns=498,
         # "only 1 of 6 evidence turns survived into the assembled context"
-        selected_positions=(4,),     # 1 of the 6 gold turns in ranked
+        selected_positions=(4,),     # the evidence turn at rank 4
         truncated=True,
         expected_regime="assembly-crowding",
     ),
@@ -143,23 +159,41 @@ CASES: tuple[CaseSpec, ...] = (
         question_type="temporal-reasoning",
         gold_session_ids=("gold_eac54add",),
         # "the single gold evidence turn ranked 126 of 476"
-        gold_positions=(126,),
+        evidence_positions=(126,),
+        # The gold session also contains high-scoring non-evidence
+        # turns at ranks 2,3,11 — this is the realistic LME profile
+        # that broke session-level reasoning. The agent selects these
+        # high-scoring non-evidence turns and the detector falsely
+        # reads "gold was retrieved well", classifying as
+        # budget-truncation or assemble-internal. Evidence-level
+        # reasoning must see through this and classify as signal-gap.
+        non_evidence_gold_positions=(2, 3, 11),
         total_turns=476,
-        # "never scored high enough to be seeded" → not in selected
-        selected_positions=(),
+        # Agent selects the non-evidence filler at positions 2,3.
+        # The actual evidence (position 126) is never seeded.
+        selected_positions=(2, 3),
         truncated=True,
+        # And the budget log even shows one non-evidence gold-session
+        # turn dropped at the budget wall — session-level
+        # _gold_dropped_at_budget would falsely fire here.
+        decisions=(
+            {"turn_id": "gold_eac54add#filler11", "included": False,
+             "reason": "budget"},
+        ),
         expected_regime="retrieval-signal-gap",
     ),
     CaseSpec(
         qid="b46e15ed",
         question_type="multi-session",
         gold_session_ids=("gold_b46e15ed",),
-        # "some gold turns ranked 2,3,11, one ranked 166"
-        gold_positions=(2, 3, 11, 166),
+        # "some gold turns ranked 2,3,11, one ranked 166" — all four
+        # are evidence turns (bimodal evidence distribution).
+        evidence_positions=(2, 3, 11, 166),
+        non_evidence_gold_positions=(),
         total_turns=480,
         # "Mixed crowding + signal-gap" — dominantly crowding because
-        # most well-ranked gold (2,3,11) is excluded. Only the top
-        # ranked one survives.
+        # most well-ranked evidence (2,3,11) is excluded. Only the
+        # top-ranked one survives.
         selected_positions=(2,),
         truncated=True,
         expected_regime="assembly-crowding",
@@ -217,14 +251,24 @@ def test_assemble_internal_no_longer_fires_on_minority_gold_selected():
 
 
 def test_signal_gap_fires_when_no_gold_in_well_ranked_window():
-    """eac54add: a real signal gap. Single gold turn far outside the
-    well-ranked window. Detector must produce signal-gap, not
-    assemble-internal (which was the original bug)."""
+    """eac54add: a real signal gap. The evidence turn is far outside
+    the well-ranked window even though non-evidence turns from the
+    gold session score high. Detector must use EVIDENCE-level
+    granularity to reach signal-gap."""
     c = CASES[1]
     o = _build_outcome(c)
-    # Gold IS in scores (rank 126 exists in the ranked tuple).
-    # Gold is NOT in top-WELL_RANKED_K.
-    assert not o.gold_ranked_top_k(WELL_RANKED_K)
+    # Session-level helper sees the filler turns at ranks 2,3,11 —
+    # would falsely indicate "gold well-ranked".
+    assert o.gold_ranked_top_k(WELL_RANKED_K), (
+        "fixture sanity: session-level helper should see filler "
+        "turns at high ranks (this is the session/evidence conflation "
+        "that the detector must see through)"
+    )
+    # Evidence-level helper correctly returns empty — the actual
+    # evidence at rank 126 is not in the well-ranked window.
+    assert not o.evidence_ranked_top_k(WELL_RANKED_K)
+    # Therefore the detector classifies as signal-gap, not crowding
+    # or assemble-internal.
     assert classify(o).name == "retrieval-signal-gap"
 
 
@@ -234,12 +278,13 @@ def test_coverage_threshold_at_floor_resolves_to_assemble_internal():
     reads as "agent did the retrieval; failure is reasoning". The
     boundary needs to be pinned because it's the meaningful difference
     between an optimizable and a non-optimizable regime."""
-    # 2 of 4 well-ranked gold selected → coverage 0.5 → assemble-internal.
+    # 2 of 4 well-ranked evidence selected → coverage 0.5 → assemble-internal.
     c = CaseSpec(
         qid="boundary",
         question_type="multi-session",
         gold_session_ids=("g",),
-        gold_positions=(0, 1, 2, 3),
+        evidence_positions=(0, 1, 2, 3),
+        non_evidence_gold_positions=(),
         total_turns=100,
         selected_positions=(0, 1),
         expected_regime="assemble-internal",
@@ -247,12 +292,13 @@ def test_coverage_threshold_at_floor_resolves_to_assemble_internal():
     o = _build_outcome(c)
     assert classify(o).name == "assemble-internal"
 
-    # 1 of 4 well-ranked gold selected → coverage 0.25 → assembly-crowding.
+    # 1 of 4 well-ranked evidence selected → coverage 0.25 → assembly-crowding.
     c2 = CaseSpec(
         qid="boundary2",
         question_type="multi-session",
         gold_session_ids=("g",),
-        gold_positions=(0, 1, 2, 3),
+        evidence_positions=(0, 1, 2, 3),
+        non_evidence_gold_positions=(),
         total_turns=100,
         selected_positions=(0,),
         expected_regime="assembly-crowding",
@@ -287,3 +333,175 @@ def test_priority_reorder_assembly_crowding_beats_assemble_internal():
     crowding_idx = PRIORITY.index("assembly-crowding")
     internal_idx = PRIORITY.index("assemble-internal")
     assert crowding_idx < internal_idx
+
+
+# ---------------------------------------------------------------------------
+# Evidence-level vs session-level — the killer test for the second
+# round of detector bugs.
+# ---------------------------------------------------------------------------
+
+
+def test_eac54add_does_not_misclassify_as_budget_truncation():
+    """Session-level reasoning falsely classified eac54add as
+    budget-truncation because the gold SESSION had non-evidence turns
+    ranked high enough to be considered AND one was logged in decisions
+    with reason='budget'. The actual evidence turn (rank 126) was
+    never even seeded. With evidence-turn granularity the detector
+    must see signal-gap, not budget-truncation."""
+    case = next(c for c in CASES if c.qid == "eac54add")
+    o = _build_outcome(case)
+    regime = classify(o)
+    assert regime.name != "budget-truncation", (
+        "eac54add classified as budget-truncation — the session-level "
+        "conflation regressed (non-evidence gold-session turns being "
+        "dropped at budget falsely matches budget-truncation)."
+    )
+    assert regime.name == "retrieval-signal-gap"
+
+
+def test_evidence_level_signals_carry_through_outcome():
+    """The Outcome must carry per-evidence-turn signals — not just
+    session-level. Pin the required helpers/fields here so a future
+    schema change can't silently drop them and re-introduce the
+    session-vs-evidence conflation."""
+    case = next(c for c in CASES if c.qid == "eac54add")
+    o = _build_outcome(case)
+    assert hasattr(o, "gold_evidence_turn_ids")
+    assert o.has_evidence_turn_ids()
+    # Each evidence helper must exist and return evidence-specific data.
+    assert hasattr(o, "evidence_ranked_top_k")
+    assert hasattr(o, "evidence_selected")
+    assert hasattr(o, "evidence_in_scores")
+    assert hasattr(o, "evidence_dropped_at_budget")
+    # And they must produce the right values for the eac54add profile:
+    # - evidence at rank 126 → not in top-20
+    assert o.evidence_ranked_top_k(20) == ()
+    # - evidence not selected (only non-evidence filler was)
+    assert o.evidence_selected() == ()
+    # - evidence IS in scores (gold was scored, just not surfaced)
+    assert o.evidence_in_scores()
+    # - the budget-drop log records a non-evidence turn, not the
+    #   evidence turn itself
+    assert o.evidence_dropped_at_budget() == ()
+
+
+# ---------------------------------------------------------------------------
+# Non-uniformity guard: the user's 11 real failures must NOT all land
+# in one regime. Acceptance test for "detector is discriminating".
+# ---------------------------------------------------------------------------
+
+
+def _build_eleven_realistic_failures() -> list[Outcome]:
+    """Synthesize 11 failures mirroring the rank/selection profiles
+    of the user's actual baseline run. Per their hand-analysis:
+      - 1 signal-gap (eac54add profile: evidence ranked >100)
+      - several crowding (gpt4_a1b77f9c profile: evidence in top-K,
+        most excluded under truncation)
+      - a few assemble-internal (evidence in top-K AND mostly
+        selected, but reader still wrong)
+      - the remainder mixed.
+
+    The exact split doesn't matter for the guard — what matters is
+    that the histogram spans at least two regimes."""
+    extras: list[Outcome] = []
+    # The three pinned cases first.
+    for c in CASES:
+        extras.append(_build_outcome(c))
+    # Two more in signal-gap shape (evidence buried far down,
+    # non-evidence gold-session turns ranking high).
+    for i, qid in enumerate(("sig_gap_q1", "sig_gap_q2")):
+        extras.append(_build_outcome(CaseSpec(
+            qid=qid, question_type="multi-session",
+            gold_session_ids=(f"gs_{i}",),
+            evidence_positions=(200 + i,),
+            non_evidence_gold_positions=(1, 4, 7),
+            total_turns=400,
+            selected_positions=(1, 4),
+            truncated=True,
+        )))
+    # Two more crowding (evidence well-ranked, mostly excluded).
+    for i, qid in enumerate(("crowd_q1", "crowd_q2")):
+        extras.append(_build_outcome(CaseSpec(
+            qid=qid, question_type="multi-session",
+            gold_session_ids=(f"gc_{i}",),
+            evidence_positions=(3, 4, 9, 14),
+            non_evidence_gold_positions=(),
+            total_turns=300,
+            selected_positions=(3,),
+            truncated=True,
+        )))
+    # Two assemble-internal (evidence mostly selected, answer wrong).
+    for i, qid in enumerate(("ai_q1", "ai_q2")):
+        extras.append(_build_outcome(CaseSpec(
+            qid=qid, question_type="multi-session",
+            gold_session_ids=(f"ga_{i}",),
+            evidence_positions=(0, 1, 2),
+            non_evidence_gold_positions=(),
+            total_turns=200,
+            selected_positions=(0, 1, 2),
+            truncated=False,
+        )))
+    # Two budget-truncation (evidence well-ranked, in decisions with
+    # reason='budget' explicitly).
+    for i, qid in enumerate(("bt_q1", "bt_q2")):
+        extras.append(_build_outcome(CaseSpec(
+            qid=qid, question_type="multi-session",
+            gold_session_ids=(f"gb_{i}",),
+            evidence_positions=(2, 4),
+            non_evidence_gold_positions=(),
+            total_turns=300,
+            selected_positions=(2,),
+            truncated=True,
+            decisions=(
+                {"turn_id": f"gb_{i}#evidence4", "included": False,
+                 "reason": "budget"},
+            ),
+        )))
+    return extras[:11]
+
+
+def test_eleven_failure_distribution_spans_multiple_regimes():
+    """Acceptance test: the recalibrated detectors must produce a
+    non-uniform distribution on a realistic mix of failures. The
+    previous two bugs (assemble-internal catch-all, budget-truncation
+    catch-all) both presented as uniform 11/11 distribution into one
+    bucket. We assert the histogram spans ≥2 regimes.
+
+    The stronger acceptance — ideally signal-gap + crowding both
+    present — is also asserted, since those are the two seam-relevant
+    regimes the loop's transform action space depends on
+    distinguishing."""
+    outs = _build_eleven_realistic_failures()
+    assert len(outs) == 11
+    rows = histogram(outs)
+    by_regime = {r.regime: r.count for r in rows if r.count > 0}
+
+    # Non-uniformity: at least 2 distinct buckets occupied.
+    assert len(by_regime) >= 2, (
+        f"11 failures collapsed into a single bucket: {by_regime}. "
+        f"This is the symptom shape of detector non-discrimination."
+    )
+
+    # And no single regime owns more than 80% — a softer check that
+    # catches "almost everything bucketed in one regime" near-misses.
+    max_share = max(by_regime.values()) / len(outs)
+    assert max_share <= 0.80, (
+        f"one regime owns {max_share:.0%} of failures: {by_regime}. "
+        f"Detector is barely discriminating."
+    )
+
+    # Both signal-gap and crowding (or budget-truncation) present —
+    # these are the two regimes the loop's action space differentiates
+    # treatment for. The detector must surface both when the data has
+    # both.
+    assert by_regime.get("retrieval-signal-gap", 0) >= 1, (
+        f"signal-gap missing despite signal-gap fixtures: {by_regime}"
+    )
+    crowding = (
+        by_regime.get("assembly-crowding", 0)
+        + by_regime.get("budget-truncation", 0)
+    )
+    assert crowding >= 1, (
+        f"no crowding/budget-truncation despite crowding fixtures: "
+        f"{by_regime}"
+    )
