@@ -272,6 +272,9 @@ def _parse_per_question_results(
         if qid is None and i < len(hyp_qids):
             qid = hyp_qids[i]
         raw_label = rec.get("autoeval_label", rec.get("label", rec.get("correct")))
+        # Current LME nests the verdict: autoeval_label = {"model": ..., "label": true}
+        if isinstance(raw_label, dict):
+            raw_label = raw_label.get("label", raw_label.get("value"))
         correct = _coerce_truthy_label(raw_label)
         out.append({
             "question_id": qid,
