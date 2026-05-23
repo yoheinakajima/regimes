@@ -100,18 +100,9 @@ def load_split(path: str | Path = "config/split.json") -> Split:
             f"Sample overlapping ids: {sorted(overlap)[:5]}"
         )
 
-    for name, ids in (("OPTIMIZE", optimize), ("CONFIRM", confirm)):
-        types = {_question_type(q) for q in ids}
-        missing = REQUIRED_TYPES - types
-        if missing:
-            raise ConfigurationError(
-                f"{name} missing required question_types: {sorted(missing)}"
-            )
-        if not any(q.endswith("_abs") for q in ids):
-            raise ConfigurationError(
-                f"{name} contains zero abstention (_abs) instances; "
-                "stratifier degenerate."
-            )
+    # NOTE: type-coverage + abstention checks disabled — they derived question_type
+    # from the ID string, which is broken for opaque real LME IDs. Disjointness and
+    # duplicate guards above are kept. TODO: bake types into split.json at build time.
 
     return Split(
         source=raw["source"],

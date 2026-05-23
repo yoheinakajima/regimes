@@ -35,6 +35,31 @@ from typing import Protocol, runtime_checkable
 
 from activegraph import ConfigurationError
 
+# text-embedding-3-small accepts up to 8192 tokens; clamp with margin.
+_EMBED_MAX_TOKENS = 8000
+_TIKTOKEN_ENC = None
+
+
+def _truncate_for_embedding(text: str) -> str:
+    """Clamp text to the embedding model's token limit so the API call
+    cannot 400 on overlong input. Uses tiktoken if available; falls back
+    to a conservative character clamp otherwise."""
+    global _TIKTOKEN_ENC
+    if _TIKTOKEN_ENC is None:
+        try:
+            import tiktoken
+            _TIKTOKEN_ENC = tiktoken.get_encoding("cl100k_base")
+        except Exception:
+            _TIKTOKEN_ENC = False  # mark unavailable
+    if _TIKTOKEN_ENC:
+        toks = _TIKTOKEN_ENC.encode(text)
+        if len(toks) <= _EMBED_MAX_TOKENS:
+            return text
+        return _TIKTOKEN_ENC.decode(toks[:_EMBED_MAX_TOKENS])
+    # fallback: ~4 chars/token, conservative
+    max_chars = _EMBED_MAX_TOKENS * 4
+    return text if len(text) <= max_chars else text[:max_chars]
+
 
 @runtime_checkable
 class Embedder(Protocol):
@@ -139,7 +164,8 @@ class OpenAIEmbedder:
             new_texts = [t for _, t in to_fetch]
             new_vecs: list[list[float]] = []
             for j in range(0, len(new_texts), self._batch_size):
-                resp = cli.embeddings.create(model=self.model, input=new_texts[j : j + self._batch_size])
+                batch = [_truncate_for_embedding(t) for t in new_texts[j : j + self._batch_size]]
+                resp = cli.embeddings.create(model=self.model, input=batch)
                 for d in resp.data:
                     vec = list(d.embedding)
                     n = math.sqrt(sum(x * x for x in vec))

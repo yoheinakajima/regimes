@@ -22,6 +22,14 @@ dev = [
     "ruff>=0.4",
     "pip-tools>=7.4",
 ]
+# Live-baseline path: real Anthropic reader + OpenAI embedder + LME judge.
+# Installed when running RealEval against the upstream LME harness. Pulled
+# out of the default dependencies because the loop, the agent, and every
+# test runs without them via FakeReader / FakeJudge / HashEmbedder.
+eval = [
+    "openai>=1.40",
+    "anthropic>=0.34",
+]
 
 [project.scripts]
 regimes = "regimes.cli:main"

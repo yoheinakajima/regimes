@@ -59,6 +59,24 @@ class Outcome:
     # ---- auditability ------------------------------------------------------
     run_id: str = ""
     error: str | None = None      # populated if agent / reader raised
+    # Carried from the agent's behavior.failed event when the scoring step
+    # itself blew up (e.g. embedder BadRequestError on a too-long input).
+    # Distinct from `error` because the agent can crash inside scoring and
+    # still emit downstream events with empty scores; diagnose looks here
+    # to classify the failure as scoring-error rather than a retrieval
+    # regime.
+    score_error: str = ""
+
+    # The specific evidence turn_ids within the gold sessions, as
+    # marked by the LongMemEval dataset (`has_answer: true` on each
+    # haystack turn, or the top-level `answer_evidences` list).
+    # Detectors use these when present to distinguish "the evidence
+    # turn was retrieved/selected/dropped" from "any non-evidence turn
+    # from the gold session was retrieved/selected/dropped". When the
+    # dataset doesn't mark evidence at turn level (e.g. the synthetic
+    # fixture), this stays empty and detectors fall back to
+    # session-level helpers.
+    gold_evidence_turn_ids: tuple[str, ...] = ()
 
     # ---- derived helpers (cheap, no I/O) ----------------------------------
 
@@ -83,6 +101,86 @@ class Outcome:
             if sid in gold:
                 out.append(tid)
         return tuple(out)
+
+    # ---- evidence-turn-level helpers (prefer these over session-level) ----
+    #
+    # The session-level helpers above conflate "the actual evidence
+    # turn was retrieved" with "any non-evidence turn from the same
+    # session was retrieved". In LongMemEval the gold session usually
+    # has multiple turns, only a subset of which are evidence; the
+    # agent reliably picks at least one non-evidence turn that ranks
+    # high, which makes session-level detectors classify every failure
+    # into whichever regime they prioritize first.
+    #
+    # When `gold_evidence_turn_ids` is populated, these evidence-level
+    # helpers reason about specific turns. The detectors prefer these
+    # and fall back to session-level only when evidence-turn IDs are
+    # absent (e.g. the synthetic fixture).
+
+    def has_evidence_turn_ids(self) -> bool:
+        return bool(self.gold_evidence_turn_ids)
+
+    def evidence_selected(self) -> tuple[str, ...]:
+        """The evidence turns that made it into selected_turn_ids."""
+        if not self.gold_evidence_turn_ids:
+            return ()
+        sel = set(self.selected_turn_ids)
+        return tuple(t for t in self.gold_evidence_turn_ids if t in sel)
+
+    def evidence_ranked_top_k(self, k: int) -> tuple[str, ...]:
+        """Evidence turns appearing in the top-k of the ranking."""
+        if not self.gold_evidence_turn_ids:
+            return ()
+        top = set(self.ranked[:k])
+        return tuple(t for t in self.gold_evidence_turn_ids if t in top)
+
+    def evidence_in_scores(self) -> bool:
+        """At least one evidence turn appears in the scores dict."""
+        if not self.gold_evidence_turn_ids:
+            return False
+        return any(t in self.scores for t in self.gold_evidence_turn_ids)
+
+    def evidence_dropped_at_budget(self) -> tuple[str, ...]:
+        """Evidence turns the agent considered and dropped at the budget
+        wall — i.e. they appear in `decisions` with included=False and
+        reason='budget'. Used by budget-truncation detection at
+        evidence-turn granularity (so a high-scoring NON-evidence turn
+        from the gold session being dropped at the budget doesn't get
+        misread as the evidence being dropped)."""
+        if not self.gold_evidence_turn_ids:
+            return ()
+        evid = set(self.gold_evidence_turn_ids)
+        out = []
+        for d in self.decisions:
+            tid = str(d.get("turn_id", ""))
+            if (
+                tid in evid
+                and not d.get("included", False)
+                and d.get("reason") == "budget"
+            ):
+                out.append(tid)
+        return tuple(out)
+
+    def evidence_max_score(self) -> float:
+        """Highest post-transform score on any evidence turn."""
+        if not self.gold_evidence_turn_ids:
+            return 0.0
+        best = 0.0
+        for tid in self.gold_evidence_turn_ids:
+            s = self.scores.get(tid)
+            if s is not None and s > best:
+                best = s
+        return best
+
+    def evidence_rank_positions(self) -> dict[str, int]:
+        """{evidence_turn_id -> 0-indexed rank in `ranked`}. Missing if
+        not present in ranked. Used for diagnostics / reporting."""
+        if not self.gold_evidence_turn_ids:
+            return {}
+        rank_of = {tid: i for i, tid in enumerate(self.ranked)}
+        return {t: rank_of[t] for t in self.gold_evidence_turn_ids if t in rank_of}
+
+    # ---- session-level helpers (legacy fallback when no evidence-turn IDs) -
 
     def gold_max_score(self) -> float:
         """Highest post-transform score given to any gold-session turn.

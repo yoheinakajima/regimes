@@ -45,9 +45,12 @@ def all_instances():
 
 @pytest.fixture(scope="module")
 def optimize_instances(all_instances):
-    s = load_split(SPLIT)
-    by_id = {x["question_id"]: x for x in all_instances}
-    return [by_id[q] for q in s.optimize]
+    # NOTE: config/split.json now points at the real LME corpus (opaque
+    # IDs not in the synthetic fixture), so we can't drive RealEval
+    # tests through load_split anymore. Sample the synthetic fixture
+    # directly — the tests below validate the eval WRAPPER, not the
+    # split mechanics; split has its own test module.
+    return all_instances[:24]
 
 
 def _make_eval(signal: str = "embedding") -> RealEval:
