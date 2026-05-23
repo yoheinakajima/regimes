@@ -76,13 +76,55 @@ def test_scoring_error_no_gold_sessions_does_not_fire():
 # ---------------------------------------------------------------------------
 
 
-def test_assemble_internal_fires_when_gold_selected_but_wrong():
-    o = mk(selected_turn_ids=("s1#0", "other#0"), correct=False)
+def test_assemble_internal_fires_when_well_ranked_gold_mostly_selected_but_wrong():
+    """New (coverage-based) semantics: assemble-internal requires
+    well-ranked gold turns to be MOSTLY selected (coverage >= floor).
+    Just "any gold-session turn selected" no longer triggers — that
+    was the catch-all bug that bucketed every failure here."""
+    o = mk(
+        ranked=("s1#0", "s1#1", "other#0"),
+        selected_turn_ids=("s1#0", "s1#1"),
+        scores={"s1#0": 0.9, "s1#1": 0.85, "other#0": 0.5},
+        correct=False,
+    )
+    # 2 of 2 well-ranked gold turns selected → coverage 1.0 → assemble-internal.
     assert detect_assemble_internal(o)
 
 
 def test_assemble_internal_does_not_fire_when_correct():
-    o = mk(selected_turn_ids=("s1#0",), correct=True)
+    o = mk(
+        ranked=("s1#0",),
+        selected_turn_ids=("s1#0",),
+        scores={"s1#0": 0.9},
+        correct=True,
+    )
+    assert not detect_assemble_internal(o)
+
+
+def test_assemble_internal_does_not_fire_on_partial_coverage():
+    """The headline bug fix: 1 of 6 well-ranked gold turns selected
+    (coverage 0.17) must NOT classify as assemble-internal — it's
+    assembly-crowding. Pre-fix this test would have failed."""
+    # gold ranked at positions 4,5,6,8,12,16 (six turns from gold session
+    # s1), only one of them in selected.
+    ranked = (
+        "other#0", "other#1", "other#2", "other#3",
+        "s1#0", "s1#1", "s1#2",
+        "other#4",
+        "s1#3",
+        "other#5", "other#6", "other#7",
+        "s1#4",
+        "other#8", "other#9", "other#10",
+        "s1#5",
+    )
+    scores = {t: 1.0 - i / 100 for i, t in enumerate(ranked)}
+    o = mk(
+        ranked=ranked,
+        selected_turn_ids=("s1#0",),  # 1 of 6 selected
+        scores=scores,
+        truncated=True,
+        correct=False,
+    )
     assert not detect_assemble_internal(o)
 
 
@@ -199,15 +241,45 @@ def test_classify_priority_scoring_error_beats_others():
     assert classify(o).name == "scoring-error"
 
 
-def test_classify_priority_assemble_internal_beats_signal_gap():
-    # Gold selected but wrong — assemble-internal. Provide scores so the
-    # scoring-error detector doesn't pre-empt on gold-absent-from-scores.
-    o = mk(
-        selected_turn_ids=("s1#0",),
-        scores={"s1#0": 0.9},
-        correct=False,
+def test_classify_assemble_internal_and_signal_gap_are_mutually_exclusive():
+    """Under the coverage-based detector these regimes can never both
+    match — assemble-internal requires well-ranked gold (non-empty
+    top-K intersection); signal-gap requires the opposite. They can't
+    pre-empt each other by construction."""
+    # Well-ranked, mostly selected → assemble-internal.
+    o_internal = mk(
+        ranked=("s1#0",), selected_turn_ids=("s1#0",),
+        scores={"s1#0": 0.9}, correct=False,
     )
-    assert classify(o).name == "assemble-internal"
+    assert classify(o_internal).name == "assemble-internal"
+    # Gold ranked far down → signal-gap, NOT assemble-internal.
+    ranked = tuple(f"other#{i}" for i in range(25)) + ("s1#0",)
+    scores = {t: 0.5 for t in ranked}
+    scores["s1#0"] = 0.01
+    o_gap = mk(ranked=ranked, scores=scores, selected_turn_ids=("other#0",),
+               correct=False)
+    assert classify(o_gap).name == "retrieval-signal-gap"
+
+
+def test_classify_priority_assembly_crowding_beats_assemble_internal():
+    """The headline reordering: with 1 of 6 well-ranked gold turns
+    selected, the failure must NOT classify as assemble-internal even
+    though one gold turn is in selected_turn_ids. assembly-crowding
+    wins."""
+    ranked = (
+        "other#0", "other#1", "other#2", "other#3",
+        "s1#0", "s1#1", "s1#2",
+        "other#4",
+        "s1#3",
+        "other#5", "other#6", "other#7",
+        "s1#4",
+        "other#8", "other#9", "other#10",
+        "s1#5",
+    )
+    scores = {t: 1.0 - i / 100 for i, t in enumerate(ranked)}
+    o = mk(ranked=ranked, selected_turn_ids=("s1#0",), scores=scores,
+           truncated=True, correct=False)
+    assert classify(o).name == "assembly-crowding"
 
 
 def test_classify_priority_budget_truncation_beats_assembly_crowding():
@@ -240,7 +312,11 @@ def test_histogram_counts_failures_per_regime():
         mk("q_ok", correct=True, scores={"s1#0": 0.9}, selected_turn_ids=("s1#0",)),
         mk("q_se", score_error="x"),
         mk("q_se2", score_error="y"),
-        mk("q_ai", scores={"s1#0": 0.9}, selected_turn_ids=("s1#0",), correct=False),
+        # q_ai: gold ranked well AND mostly selected, but answer wrong.
+        # Under the new coverage detector this is the assemble-internal
+        # case — the agent retrieved correctly but the answer is wrong.
+        mk("q_ai", scores={"s1#0": 0.9}, ranked=("s1#0",),
+           selected_turn_ids=("s1#0",), correct=False),
     ])
     counts = {r.regime: r.count for r in rows}
     assert counts["scoring-error"] == 2

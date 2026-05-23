@@ -321,14 +321,16 @@ def test_diagnose_does_not_collapse_failures_to_assemble_internal_when_real():
         # multi-session, gold selected and correct
         _outcome_for("q01", "multi-session", correct=True,
                     selected=["s1#0"], gold_sids=["s1"],
-                    scores={"s1#0": 0.9}),
-        # temporal, gold selected but wrong → assemble-internal
+                    scores={"s1#0": 0.9}, ranked=["s1#0"]),
+        # temporal, gold well-ranked and mostly selected, but wrong →
+        # assemble-internal (coverage-based detector requires gold in
+        # top-K to be present and >= floor selected).
         _outcome_for("q02", "temporal-reasoning", correct=False,
                     selected=["s2#0"], gold_sids=["s2"],
-                    scores={"s2#0": 0.9}),
+                    scores={"s2#0": 0.9}, ranked=["s2#0"]),
         _outcome_for("q03", "temporal-reasoning", correct=False,
                     selected=["s3#0"], gold_sids=["s3"],
-                    scores={"s3#0": 0.85}),
+                    scores={"s3#0": 0.85}, ranked=["s3#0"]),
         # temporal, gold ranked top-5 but not selected → assembly-crowding
         _outcome_for("q04", "temporal-reasoning", correct=False,
                     selected=["other#0"], gold_sids=["s4"],

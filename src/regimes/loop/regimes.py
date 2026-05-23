@@ -38,9 +38,35 @@ from regimes.eval.types import Outcome
 #
 # These are part of the detector contract. Bumping them changes diagnose
 # output and therefore the histogram — treat as a versioned schema.
+#
+# WELL_RANKED_K: the rank window we consider "the agent retrieved gold
+# successfully". 20 matches the order of magnitude where the assembler
+# can still seed a gold turn under a 2500-token budget; gold ranked
+# outside this window never gets considered by the seed phase.
+#
+# ASSEMBLE_COVERAGE_FLOOR: the fraction of well-ranked gold turns that
+# must be in selected_turn_ids before we call it assemble-internal
+# (i.e. "the agent got the retrieval right; failure is downstream").
+# Coverage below this floor with well-ranked gold present means the
+# assembler/budget dropped material the score signal had surfaced —
+# assembly-crowding (refined to budget-truncation when the decisions
+# log records the explicit budget drop).
+#
+# The earlier detectors used TOP_K=5 (too narrow — gold at ranks 8-16
+# wasn't "well-ranked") and called any gold-session turn in selected
+# "assemble-internal" without measuring coverage. That collapsed every
+# real failure into the assemble-internal catch-all because the agent
+# usually picks at least one gold-session turn (often a non-evidence
+# turn that happens to rank high), and verdicts were wrong, so the
+# binary check matched.
 
-TOP_K = 5      # "ranked near the top" window for assembly-crowding
-SIGNAL_GAP_K = 20  # "ranked outside near-top" window for signal-gap
+WELL_RANKED_K = 20
+ASSEMBLE_COVERAGE_FLOOR = 0.5
+
+# Kept as legacy aliases for any external callers / tests that import
+# them; the detectors below use WELL_RANKED_K throughout.
+TOP_K = WELL_RANKED_K
+SIGNAL_GAP_K = WELL_RANKED_K
 
 
 # ----- Regime descriptor ---------------------------------------------------
@@ -121,14 +147,45 @@ def detect_scoring_error(o: Outcome) -> bool:
     return False
 
 
+def _well_ranked_gold_coverage(o: Outcome) -> tuple[int, int]:
+    """Return (n_well_ranked_gold_selected, n_well_ranked_gold_total).
+
+    "Well-ranked gold" = gold-session turns appearing in the top
+    WELL_RANKED_K of `ranked`. "Selected" = also appearing in
+    selected_turn_ids. The pair drives the assembly-crowding /
+    assemble-internal split: coverage = selected / total, computed
+    against the well-ranked gold turns (NOT the whole gold set —
+    a gold turn ranked at position 200 was never seed-eligible and
+    its non-inclusion isn't an assembly failure)."""
+    well_ranked = set(o.gold_ranked_top_k(WELL_RANKED_K))
+    if not well_ranked:
+        return (0, 0)
+    selected_set = set(o.selected_turn_ids)
+    n_selected = len(well_ranked & selected_set)
+    return (n_selected, len(well_ranked))
+
+
 def detect_assemble_internal(o: Outcome) -> bool:
-    """Gold-session turns made it INTO selected_turn_ids but the verdict
-    is still wrong. The retrieval system did its job; whatever produced
-    the wrong answer happened downstream of `assemble()` (reader misread
-    the context, prompt formatting, judge call). A score-transform can't
-    fix this — the relevant content was already in front of the reader.
+    """The agent retrieved gold WELL — gold turns ranked in the top
+    WELL_RANKED_K AND most of them made it into selected_turn_ids —
+    but the answer is still wrong. The failure is downstream of
+    assemble() (reader misread the context, prompt formatting, judge
+    call). A score-transform cannot fix this.
+
+    The previous implementation was `bool(o.gold_selected()) and not
+    o.correct` — any gold-session turn in selected_turn_ids would
+    match. That conflated "the assembler kept the gold material"
+    with "the assembler kept any turn from the gold session", and
+    bucketed every real failure (assembly-crowding, budget-truncation,
+    signal-gap) into this catch-all whenever the agent's seed phase
+    happened to pick even one gold-session turn.
     """
-    return bool(o.gold_selected()) and not o.correct
+    if not o.answer_session_ids or not _gold_in_scores(o):
+        return False
+    n_sel, n_total = _well_ranked_gold_coverage(o)
+    if n_total == 0:
+        return False  # no well-ranked gold → signal-gap territory
+    return (n_sel / n_total) >= ASSEMBLE_COVERAGE_FLOOR and not o.correct
 
 
 def detect_budget_truncation(o: Outcome) -> bool:
@@ -142,26 +199,34 @@ def detect_budget_truncation(o: Outcome) -> bool:
 
 
 def detect_assembly_crowding(o: Outcome) -> bool:
-    """Gold-session turn was ranked in the top-K but never made it into
-    selected_turn_ids. The agent scored it well but didn't select it —
-    typically because higher-scoring non-gold turns ate the seed budget
-    before gold could be considered (which differs from budget-truncation,
-    where gold WAS considered and decisions records the drop)."""
-    if not o.answer_session_ids:
-        return False
-    in_topk = bool(o.gold_ranked_top_k(TOP_K))
-    selected = bool(o.gold_selected())
-    return in_topk and not selected
+    """Gold turns were ranked WELL by the signal (in top WELL_RANKED_K)
+    but most were NOT selected into the assembled context. The signal
+    did its job; the assembler/budget evicted material the loop's
+    score-transform action space can re-promote.
 
-
-def detect_retrieval_signal_gap(o: Outcome) -> bool:
-    """Gold turn is in the scores dict (so scoring ran) but ranked
-    outside the SIGNAL_GAP_K window. The scoring signal didn't surface
-    gold — fixing this needs a better signal, not a score re-weighting.
+    Coverage threshold: with well-ranked gold present, fewer than
+    ASSEMBLE_COVERAGE_FLOOR of them made it through to
+    selected_turn_ids. (At exactly the floor, assemble-internal wins —
+    "more than half of well-ranked gold was kept" reads as "agent did
+    the retrieval, reasoning is the failure".)
     """
     if not o.answer_session_ids or not _gold_in_scores(o):
         return False
-    return not bool(o.gold_ranked_top_k(SIGNAL_GAP_K))
+    n_sel, n_total = _well_ranked_gold_coverage(o)
+    if n_total == 0:
+        return False  # gold never ranked well → signal-gap territory
+    return (n_sel / n_total) < ASSEMBLE_COVERAGE_FLOOR
+
+
+def detect_retrieval_signal_gap(o: Outcome) -> bool:
+    """Gold turn is in the scores dict (so scoring ran) but NO gold
+    turn ranked within the top WELL_RANKED_K. The scoring signal
+    didn't surface gold; a score-transform can re-weight existing
+    scores but can't invent signal — fixing this needs a signal
+    change (different embedder / additional scorer / etc.)."""
+    if not o.answer_session_ids or not _gold_in_scores(o):
+        return False
+    return not bool(o.gold_ranked_top_k(WELL_RANKED_K))
 
 
 def detect_unclassified(o: Outcome) -> bool:  # noqa: ARG001
@@ -185,16 +250,6 @@ _BUILTIN: list[Regime] = [
         ),
     ),
     Regime(
-        name="assemble-internal",
-        detector=detect_assemble_internal,
-        optimizable=False,
-        seam_reachable=False,
-        description=(
-            "Gold was selected into the context but the answer is still "
-            "wrong; the issue is downstream of assemble()."
-        ),
-    ),
-    Regime(
         name="budget-truncation",
         detector=detect_budget_truncation,
         optimizable=True,
@@ -210,9 +265,10 @@ _BUILTIN: list[Regime] = [
         optimizable=True,
         seam_reachable=True,
         description=(
-            "Gold ranked near top but never selected; non-gold turns "
-            "consumed the seed/budget. Transforms can re-weight to "
-            "promote gold."
+            "Gold ranked well but most well-ranked gold turns were "
+            "excluded from selected_turn_ids — fewer than "
+            "ASSEMBLE_COVERAGE_FLOOR made it through. Transforms can "
+            "re-weight scores to promote gold past competing filler."
         ),
     ),
     Regime(
@@ -221,9 +277,22 @@ _BUILTIN: list[Regime] = [
         optimizable=False,
         seam_reachable=False,
         description=(
-            "Gold turn scored too low to surface near the top; the "
-            "signal itself misses it. Score-transforms can re-weight "
-            "but not invent signal — fix is a signal change."
+            "No gold turn ranked within the top WELL_RANKED_K; the "
+            "signal itself misses gold. Score-transforms can re-weight "
+            "existing scores but not invent signal — fix is a signal "
+            "change."
+        ),
+    ),
+    Regime(
+        name="assemble-internal",
+        detector=detect_assemble_internal,
+        optimizable=False,
+        seam_reachable=False,
+        description=(
+            "Well-ranked gold was MOSTLY selected into the context "
+            "(coverage >= ASSEMBLE_COVERAGE_FLOOR) but the answer is "
+            "still wrong. Failure is downstream of assemble() — reader, "
+            "prompt format, judge — not addressable by a score-transform."
         ),
     ),
     Regime(
@@ -239,18 +308,33 @@ _BUILTIN: list[Regime] = [
 ]
 
 
-# Priority for classify(): scoring-error must rule out first
-# (everything downstream sees garbage scores otherwise);
-# assemble-internal must rule out next (gold was selected, so it
-# definitively isn't a retrieval regime); the actionable optimizable
-# regimes follow in specificity order; seam-unreachable retrieval-signal-gap
-# comes last because it's the broadest "low-ranked gold" bucket.
+# Priority for classify():
+#   1. scoring-error first — without scores there's no retrieval regime
+#      to classify against.
+#   2. budget-truncation next when the agent EXPLICITLY recorded a gold
+#      turn dropped at the budget wall (most specific actionable
+#      signal; refines crowding).
+#   3. assembly-crowding when well-ranked gold was mostly excluded
+#      (poor coverage).
+#   4. retrieval-signal-gap when no gold turn ranked well (mutually
+#      exclusive with crowding by construction — crowding requires
+#      well-ranked gold).
+#   5. assemble-internal only when retrieval AND assembly succeeded
+#      (coverage >= floor) and the answer is still wrong. This is now
+#      a NARROW bucket, not the catch-all it used to be.
+#   6. unclassified — anything left.
+#
+# The previous order ran assemble-internal at slot 2, which let its
+# permissive "any gold turn selected" detector pre-empt every
+# actionable regime. The new order is also the order detectors should
+# be specified in PER-OUTCOME mutually-exclusive logic:
+# scoring-error → budget vs not → coverage low vs high → no well-ranked → other.
 PRIORITY: tuple[str, ...] = (
     "scoring-error",
-    "assemble-internal",
     "budget-truncation",
     "assembly-crowding",
     "retrieval-signal-gap",
+    "assemble-internal",
     "unclassified",
 )
 
