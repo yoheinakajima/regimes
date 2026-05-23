@@ -28,11 +28,12 @@ import pytest
 from regimes.eval import LMEJudge, RealEval
 from regimes.eval.types import Outcome
 from regimes.loop import run_loop
-from regimes.split import load_split
 
 REPO = Path(__file__).resolve().parents[1]
 FIXTURE = REPO / "fixtures" / "synthetic_lme.json"
-SPLIT = REPO / "config" / "split.json"
+# NOTE: deliberately not loading config/split.json — it was repointed at
+# the real LME corpus and its IDs aren't in the synthetic fixture. These
+# tests just sample the first N instances from the fixture directly.
 
 
 # ===========================================================================
@@ -63,11 +64,8 @@ class ContextEchoReader:
 
 
 def _instances() -> list[dict]:
-    s = load_split(SPLIT)
-    all_insts = json.loads(FIXTURE.read_text())
-    by_id = {x["question_id"]: x for x in all_insts}
     # 5 is enough to demonstrate the property; the original bug hit all 50.
-    return [by_id[q] for q in s.optimize[:5]]
+    return json.loads(FIXTURE.read_text())[:5]
 
 
 @dataclass
