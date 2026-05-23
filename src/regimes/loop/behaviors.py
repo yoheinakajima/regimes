@@ -134,6 +134,12 @@ class LoopContext:
     current_fn: Any = None
     current_name: str = ""
     current_target: str = ""
+    # The source string of the currently-drafted transform. Carried on
+    # ctx so each transform_log entry can record the actual code the
+    # author produced (the audit trail otherwise loses authored code
+    # past the TRANSFORM_DRAFTED event).
+    current_source: str = ""
+    current_author: str = ""
     halted: bool = False
 
     def __post_init__(self):
@@ -274,6 +280,8 @@ def behavior_hypothesize(event, graph, ctx) -> None:  # noqa: ARG001
     failing = [o for o in lctx.baseline.outcomes if not o.correct]
     drafted = lctx.author.draft(dominant_regime=target, failures=failing)
     lctx.current_target = target
+    lctx.current_source = drafted.source
+    lctx.current_author = drafted.author
     graph.emit(
         E.TRANSFORM_DRAFTED,
         {
@@ -298,7 +306,8 @@ def behavior_static_gate(event, graph, ctx) -> None:  # noqa: ARG001
     res = _gates.static_gate(src)
     if not res.passed:
         _log_transform(lctx, name, event.payload["target_regime"], "static_rejected",
-                       reasons=list(res.reasons))
+                       reasons=list(res.reasons), source=src,
+                       author=lctx.current_author)
         graph.emit(
             E.TRANSFORM_STATIC_REJECTED,
             {
@@ -338,7 +347,8 @@ def behavior_sandbox_gate(event, graph, ctx) -> None:  # noqa: ARG001
     res = _gates.sandbox_gate(fn, probes=probes)
     if not res.passed:
         _log_transform(lctx, name, lctx.current_target, "sandbox_rejected",
-                       reasons=list(res.reasons))
+                       reasons=list(res.reasons), source=lctx.current_source,
+                       author=lctx.current_author)
         graph.emit(
             E.TRANSFORM_SANDBOX_REJECTED,
             {
@@ -417,7 +427,8 @@ def behavior_promote(event, graph, ctx) -> None:  # noqa: ARG001
     decision = _gates.promotion_decision(diff)
     if not decision.eligible:
         _log_transform(lctx, name, target, "discarded", reasons=list(decision.reasons),
-                       overall_delta=diff.overall_delta, target_delta=diff.target_delta)
+                       overall_delta=diff.overall_delta, target_delta=diff.target_delta,
+                       source=lctx.current_source, author=lctx.current_author)
         lctx.consecutive_discards += 1
         graph.emit(
             E.TRANSFORM_DISCARDED,
@@ -449,7 +460,8 @@ def behavior_promote(event, graph, ctx) -> None:  # noqa: ARG001
         )
     _log_transform(lctx, name, target, "promoted",
                    overall_delta=diff.overall_delta, target_delta=diff.target_delta,
-                   confirm_delta=confirm_delta)
+                   confirm_delta=confirm_delta, source=lctx.current_source,
+                   author=lctx.current_author)
     graph.emit(
         E.TRANSFORM_PROMOTED,
         {
