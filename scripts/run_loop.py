@@ -32,6 +32,28 @@ from regimes.loop.hypothesize import build_real_author  # noqa: E402
 from regimes.split import load_split  # noqa: E402
 
 
+def _build_mock_confirm_instances() -> list[MockInstance]:
+    """A small held-out CONFIRM fixture used in --mode mock to exercise
+    the loop's CONFIRM gate. Disjoint from OPTIMIZE. One instance is
+    flippable by stub_topk_boost so confirm_delta is a non-zero number
+    in the mock report — proof that confirm_instances are threaded all
+    the way through to the promotion gate."""
+    return [
+        MockInstance("qc_ok1", "multi-session", False, ("sc1",), True,
+                     scores={"sc1#0": 1.0}, selected_turn_ids=("sc1#0",)),
+        MockInstance("qc_ok2", "knowledge-update", False, ("sc2",), True,
+                     scores={"sc2#0": 0.92}, selected_turn_ids=("sc2#0",)),
+        MockInstance(
+            "qc_ac1", "multi-session", False, ("sGc_ac",), False,
+            scores={"sGc_ac#0": 0.6, "sNc#0": 0.95},
+            ranked=("sNc#0", "sGc_ac#0"),
+            selected_turn_ids=("sNc#0",), truncated=True,
+            gold_score_threshold=0.7,
+            candidate_turn_ids=("sGc_ac#0",),
+        ),
+    ]
+
+
 def _build_mock_instances() -> list[MockInstance]:
     """A small fixture mix used to exercise the histogram in --mock
     mode. Carries one of each main regime plus a couple of correct
@@ -53,6 +75,12 @@ def _build_mock_instances() -> list[MockInstance]:
             scores={"sG_ac#0": 0.6, "sN#0": 0.95},
             ranked=("sN#0", "sG_ac#0"),
             selected_turn_ids=("sN#0",), truncated=True,
+            # Annotated so stub_topk_boost flips this instance to correct
+            # (sG_ac#0 0.6 * 1.25 = 0.75 >= threshold). Makes mock --full
+            # produce a real promotion, which is what exercises the CONFIRM
+            # held-out gate end-to-end.
+            gold_score_threshold=0.7,
+            candidate_turn_ids=("sG_ac#0",),
         ),
         MockInstance(
             "q_bt1", "temporal-reasoning", False, ("sG_bt",), False,
@@ -96,11 +124,15 @@ def main() -> int:
 
     if args.mode == "mock":
         instances = _build_mock_instances()
+        confirm = _build_mock_confirm_instances()
         backend = MockEval()
         rep = run_loop(eval_backend=backend, instances=instances,
+                       confirm_instances=confirm,
                        pause_after=pause_after)
     else:
-        # Real path: build a RealEval, feed it the OPTIMIZE instances.
+        # Real path: build a RealEval, feed it the OPTIMIZE instances
+        # for hypothesize/eval-diff and the CONFIRM instances for the
+        # promotion gate's held-out check.
         if not args.lme_data:
             sys.stderr.write(
                 "--lme-data is required in --mode real "
@@ -113,6 +145,7 @@ def main() -> int:
         s = load_split(args.split)
         by_id = {x["question_id"]: x for x in json.load(open(args.lme_data))}
         opt = [by_id[q] for q in s.optimize]
+        confirm = [by_id[q] for q in s.confirm]
         backend = RealEval(
             reader=AnthropicReader(),
             judge=LMEJudge(lme_checkout=args.lme_checkout),
@@ -130,6 +163,7 @@ def main() -> int:
         # constructor raises ConfigurationError otherwise — caller-fixable).
         author = build_real_author()
         rep = run_loop(eval_backend=wrapped, instances=opt,
+                       confirm_instances=confirm,
                        author=author, pause_after=pause_after)
 
     # --- print + persist ---
