@@ -1,0 +1,16 @@
+{
+  "version": "regimes-eval-real-v1",
+  "n": 50,
+  "overall_accuracy": 0.76,
+  "per_type_accuracy": {
+    "knowledge-update": 1.0,
+    "multi-session": 0.8461538461538461,
+    "single-session-assistant": 1.0,
+    "single-session-preference": 0.6666666666666666,
+    "single-session-user": 1.0,
+    "temporal-reasoning": 0.35714285714285715
+  },
+  "n_truncated": 50,
+  "n_errors": 0,
+  "mean_context_tokens": 2493.8
+}
