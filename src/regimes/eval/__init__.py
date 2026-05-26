@@ -24,6 +24,7 @@ from regimes.eval.real import (
     FakeJudge,
     AnthropicReader,
     LMEJudge,
+    build_real_reader,
 )
 
 __all__ = [
@@ -36,4 +37,5 @@ __all__ = [
     "FakeJudge",
     "AnthropicReader",
     "LMEJudge",
+    "build_real_reader",
 ]

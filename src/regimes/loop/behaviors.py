@@ -18,6 +18,13 @@ the seed event's payload — but Python callables don't survive the
 JSON-shaped payload contract. So we hold them in a process-level
 context dict keyed by `iteration_id`. The loop runner sets the entry
 before emitting `loop.start` and clears it on exit.
+
+Target-agnostic phase 1: each behavior reaches the LongMemEval-specific
+bits (outcome_summary, name_wall, the gate functions, the install/
+revert seam) via `lctx.target.*` rather than direct module imports. The
+default target is `LongMemEvalTarget`, built by the runner from the
+caller's `eval_backend` + `author` — so existing callers see no change
+beyond the indirection.
 """
 
 from __future__ import annotations
@@ -28,84 +35,17 @@ from typing import Any
 
 from activegraph import behavior, get_registry
 
-from regimes.agent import transforms as _agent_transforms
 from regimes.eval.types import EvalResult
 from regimes.loop import events as E
-from regimes.loop import gates as _gates
 from regimes.loop.attribute import attribute as _attribute
-from regimes.loop.hypothesize import DraftedTransform, StubAuthor
-from regimes.loop.regimes import (
-    WELL_RANKED_K,
-    classify,
-    format_histogram,
-    histogram,
-    is_seam_reachable,
-)
+from regimes.loop.gates import EvalDiff
+from regimes.target import Target
 
 
-def _outcome_summary(o, *, well_ranked_k: int = WELL_RANKED_K) -> dict[str, Any]:
-    """Self-justifying per-question summary for persistence.
-
-    Carries the EVIDENCE-LEVEL signals the detectors used to assign
-    the regime label — so every label in the report is auditable
-    against the same numbers the detector saw. The earlier summary
-    only held qid/correct/regime, which made labels unverifiable
-    (e.g. an eac54add classified as budget-truncation looked the
-    same on disk as a legitimate one even though the underlying
-    signals disagreed).
-
-    Fields:
-      gold_evidence_turn_ids       — the evidence turns from the
-                                     dataset's per-turn markers
-      evidence_rank_positions      — {turn_id -> 0-indexed rank in
-                                     `ranked`}; missing entries mean
-                                     the evidence didn't appear in
-                                     the ranking at all
-      evidence_in_scores           — at least one evidence turn was
-                                     scored
-      evidence_max_score           — best score on any evidence turn
-      evidence_well_ranked         — evidence turns in top-K
-      evidence_selected            — evidence turns that survived
-                                     into selected_turn_ids
-      evidence_dropped_at_budget   — evidence turns in decisions with
-                                     included=False, reason='budget'
-      evidence_coverage            — fraction of well-ranked evidence
-                                     in selected, the key signal for
-                                     the crowding vs assemble-internal
-                                     split; None when no well-ranked
-                                     evidence exists
-    """
-    regime_name = classify(o).name if not o.correct else "correct"
-    evidence_ranks = o.evidence_rank_positions() if o.has_evidence_turn_ids() else {}
-    well_ranked = list(o.evidence_ranked_top_k(well_ranked_k)) \
-        if o.has_evidence_turn_ids() else []
-    selected_evidence = list(o.evidence_selected()) \
-        if o.has_evidence_turn_ids() else []
-    dropped_evidence = list(o.evidence_dropped_at_budget()) \
-        if o.has_evidence_turn_ids() else []
-    coverage: float | None = None
-    if well_ranked:
-        n_in_sel = sum(1 for t in well_ranked if t in o.selected_turn_ids)
-        coverage = n_in_sel / len(well_ranked)
-    return {
-        "question_id": o.question_id,
-        "question_type": o.question_type,
-        "correct": o.correct,
-        "regime": regime_name,
-        "truncated": o.truncated,
-        "n_selected": len(o.selected_turn_ids),
-        "score_error": bool(o.score_error),
-        # ---- evidence-level signals (the detector's actual inputs) ----
-        "gold_evidence_turn_ids": list(o.gold_evidence_turn_ids),
-        "evidence_rank_positions": evidence_ranks,
-        "evidence_in_scores": o.evidence_in_scores() if o.has_evidence_turn_ids() else False,
-        "evidence_max_score": o.evidence_max_score() if o.has_evidence_turn_ids() else 0.0,
-        "evidence_well_ranked": well_ranked,
-        "evidence_selected": selected_evidence,
-        "evidence_dropped_at_budget": dropped_evidence,
-        "evidence_coverage": coverage,
-        "well_ranked_k": well_ranked_k,
-    }
+# Backward-compat re-export: tests import `_outcome_summary` from this
+# module (the function moved to regimes.targets.longmemeval). Keeping
+# the symbol importable here avoids breaking external callers.
+from regimes.targets.longmemeval.outcome_summary import outcome_summary as _outcome_summary  # noqa: E402,F401
 
 
 # ===========================================================================
@@ -118,8 +58,7 @@ def _outcome_summary(o, *, well_ranked_k: int = WELL_RANKED_K) -> dict[str, Any]
 @dataclass
 class LoopContext:
     iteration_id: str
-    eval_backend: Any
-    author: Any
+    target: Target
     instances: list[Any]
     confirm_instances: list[Any] | None
     baseline: EvalResult | None = None
@@ -145,6 +84,15 @@ class LoopContext:
     def __post_init__(self):
         if self.transform_log is None:
             self.transform_log = []
+
+    # ---- back-compat accessors --------------------------------------------
+    # Pre-Target-interface callers expected `lctx.eval_backend`. The
+    # backend now lives on the target; expose it as a property so the
+    # external surface is unchanged.
+
+    @property
+    def eval_backend(self) -> Any:
+        return self.target.eval_backend
 
 
 _CONTEXTS: dict[str, LoopContext] = {}
@@ -177,7 +125,7 @@ def clear_context(iteration_id: str) -> None:
 def behavior_run_baseline(event, graph, ctx) -> None:  # noqa: ARG001
     iid = event.payload["iteration_id"]
     lctx = get_context(iid)
-    result = lctx.eval_backend.run_on_split(lctx.instances)
+    result = lctx.target.eval_backend.run_on_split(lctx.instances)
     lctx.baseline = result
     lctx.last_result = result
     # Self-justifying summary: each per-question record carries the
@@ -185,7 +133,7 @@ def behavior_run_baseline(event, graph, ctx) -> None:  # noqa: ARG001
     # label — so every label in the persisted report can be checked
     # against its basis. (Previously only qid/correct/regime were
     # persisted, which made labels unauditable.)
-    outcomes_summary = [_outcome_summary(o) for o in result.outcomes]
+    outcomes_summary = [lctx.target.outcome_summary(o) for o in result.outcomes]
     graph.emit(
         E.BASELINE_RECORDED,
         {
@@ -209,12 +157,13 @@ def behavior_diagnose(event, graph, ctx) -> None:  # noqa: ARG001
     iid = event.payload["iteration_id"]
     lctx = get_context(iid)
     assert lctx.baseline is not None
-    rows = histogram(lctx.baseline.outcomes)
+    tax = lctx.target.taxonomy
+    rows = tax.histogram(lctx.baseline.outcomes)
     n_failures = sum(1 for o in lctx.baseline.outcomes if not o.correct)
     n_total = len(lctx.baseline.outcomes)
     # Per-question regime classification, for downstream attribution.
     per_qid = {
-        o.question_id: ("correct" if o.correct else classify(o).name)
+        o.question_id: ("correct" if o.correct else tax.classify(o).name)
         for o in lctx.baseline.outcomes
     }
     graph.emit(
@@ -234,7 +183,7 @@ def behavior_diagnose(event, graph, ctx) -> None:  # noqa: ARG001
                 for r in rows
             ],
             "per_question": per_qid,
-            "formatted": format_histogram(rows, n_failures=n_failures, n_total=n_total),
+            "formatted": tax.format_histogram(rows, n_failures=n_failures, n_total=n_total),
         },
     )
 
@@ -264,22 +213,24 @@ def behavior_hypothesize(event, graph, ctx) -> None:  # noqa: ARG001
         return
 
     counts = {r["regime"]: r["count"] for r in event.payload["rows"]}
-    target = _choose_target(counts, lctx)
-    if not target:
+    chosen = _choose_target(counts, lctx)
+    if not chosen:
         graph.emit(
             E.LOOP_STOPPED,
             {
                 "iteration_id": iid,
                 "reason": "no_optimizable_regime_remaining",
                 "remaining_regimes": [k for k, v in counts.items() if v > 0],
-                "named_wall": _name_wall(counts),
+                "named_wall": lctx.target.taxonomy.name_wall(counts),
             },
         )
         return
 
     failing = [o for o in lctx.baseline.outcomes if not o.correct]
-    drafted = lctx.author.draft(dominant_regime=target, failures=failing)
-    lctx.current_target = target
+    drafted = lctx.target.action_space.draft(
+        dominant_regime=chosen, failures=failing,
+    )
+    lctx.current_target = chosen
     lctx.current_source = drafted.source
     lctx.current_author = drafted.author
     graph.emit(
@@ -303,7 +254,8 @@ def behavior_static_gate(event, graph, ctx) -> None:  # noqa: ARG001
     lctx = get_context(iid)
     src = event.payload["source"]
     name = event.payload["name"]
-    res = _gates.static_gate(src)
+    aspace = lctx.target.action_space
+    res = aspace.static_gate(src)
     if not res.passed:
         _log_transform(lctx, name, event.payload["target_regime"], "static_rejected",
                        reasons=list(res.reasons), source=src,
@@ -318,7 +270,7 @@ def behavior_static_gate(event, graph, ctx) -> None:  # noqa: ARG001
         )
         return
     # Compile the source into a callable so downstream gates can run it.
-    fn = _gates.compile_transform(src)
+    fn = aspace.compile(src)
     lctx.current_fn = fn
     lctx.current_name = name
     graph.emit(
@@ -335,16 +287,12 @@ def behavior_sandbox_gate(event, graph, ctx) -> None:  # noqa: ARG001
     lctx = get_context(iid)
     fn = lctx.current_fn
     name = lctx.current_name
-    # Pull probe scores from up to 5 outcomes — enough to exercise the
-    # transform without re-running a full eval.
-    probes: list[dict[str, Any]] = []
-    for o in lctx.baseline.outcomes[:5]:
-        probes.append({
-            "scores": dict(o.scores),
-            "question": "",
-            "question_date": "",
-        })
-    res = _gates.sandbox_gate(fn, probes=probes)
+    aspace = lctx.target.action_space
+    # The probe shape is per-target (score-transform inputs for
+    # LongMemEval; a different shape for SQL in Phase 2). Built by the
+    # ActionSpace from the baseline outcomes.
+    probes = aspace.build_probes(lctx.baseline)
+    res = aspace.sandbox_gate(fn, probes=probes)
     if not res.passed:
         _log_transform(lctx, name, lctx.current_target, "sandbox_rejected",
                        reasons=list(res.reasons), source=lctx.current_source,
@@ -379,11 +327,11 @@ def behavior_eval_diff(event, graph, ctx) -> None:  # noqa: ARG001
     lctx = get_context(iid)
     fn = lctx.current_fn
     name = lctx.current_name
-    target = lctx.current_target
-    diff = _gates.eval_diff(
-        fn=fn, fn_name=name, target_regime=target,
+    target_regime = lctx.current_target
+    diff = lctx.target.action_space.eval_diff(
+        fn=fn, fn_name=name, target_regime=target_regime,
         baseline=lctx.baseline,
-        eval_backend=lctx.eval_backend,
+        eval_backend=lctx.target.eval_backend,
         instances=lctx.instances,
     )
     graph.emit(
@@ -391,7 +339,7 @@ def behavior_eval_diff(event, graph, ctx) -> None:  # noqa: ARG001
         {
             "iteration_id": iid,
             "name": name,
-            "target_regime": target,
+            "target_regime": target_regime,
             "overall_before": diff.overall_before,
             "overall_after": diff.overall_after,
             "overall_delta": diff.overall_delta,
@@ -411,22 +359,24 @@ def behavior_promote(event, graph, ctx) -> None:  # noqa: ARG001
     iid = event.payload["iteration_id"]
     lctx = get_context(iid)
     name = event.payload["name"]
-    target = event.payload["target_regime"]
+    target_regime = event.payload["target_regime"]
+    aspace = lctx.target.action_space
     # Reconstruct an EvalDiff-ish shape for promotion_decision.
-    diff = _gates.EvalDiff(
+    diff = EvalDiff(
         overall_before=event.payload["overall_before"],
         overall_after=event.payload["overall_after"],
         overall_delta=event.payload["overall_delta"],
         per_type_delta=event.payload["per_type_delta"],
         regime_before=event.payload["regime_before"],
         regime_after=event.payload["regime_after"],
-        target_regime=target,
+        target_regime=target_regime,
         target_delta=event.payload["target_delta"],
         transitions=tuple(tuple(t) for t in event.payload["transitions"]),
     )
-    decision = _gates.promotion_decision(diff)
+    decision = aspace.promotion_decision(diff)
     if not decision.eligible:
-        _log_transform(lctx, name, target, "discarded", reasons=list(decision.reasons),
+        _log_transform(lctx, name, target_regime, "discarded",
+                       reasons=list(decision.reasons),
                        overall_delta=diff.overall_delta, target_delta=diff.target_delta,
                        source=lctx.current_source, author=lctx.current_author)
         lctx.consecutive_discards += 1
@@ -442,23 +392,24 @@ def behavior_promote(event, graph, ctx) -> None:  # noqa: ARG001
         )
         return
 
-    # Promote: register on the agent's seam and run a one-shot CONFIRM
-    # check (if a CONFIRM set was supplied).
-    _agent_transforms.promote(name, lctx.current_fn)
+    # Promote: install on the target's action-space seam and run a
+    # one-shot CONFIRM check (if a CONFIRM set was supplied).
+    aspace.install(name, lctx.current_fn)
     lctx.consecutive_discards = 0
     confirm_delta = None
     if lctx.confirm_instances:
         # Compare CONFIRM accuracy with vs without the transform.
         # We promoted above; for the "without" baseline reading we
         # revert temporarily.
-        confirm_after = lctx.eval_backend.run_on_split(lctx.confirm_instances)
-        _agent_transforms.revert(name)
-        confirm_before = lctx.eval_backend.run_on_split(lctx.confirm_instances)
-        _agent_transforms.promote(name, lctx.current_fn)
+        backend = lctx.target.eval_backend
+        confirm_after = backend.run_on_split(lctx.confirm_instances)
+        aspace.revert(name)
+        confirm_before = backend.run_on_split(lctx.confirm_instances)
+        aspace.install(name, lctx.current_fn)
         confirm_delta = (
             confirm_after.overall_accuracy() - confirm_before.overall_accuracy()
         )
-    _log_transform(lctx, name, target, "promoted",
+    _log_transform(lctx, name, target_regime, "promoted",
                    overall_delta=diff.overall_delta, target_delta=diff.target_delta,
                    confirm_delta=confirm_delta, source=lctx.current_source,
                    author=lctx.current_author)
@@ -467,7 +418,7 @@ def behavior_promote(event, graph, ctx) -> None:  # noqa: ARG001
         {
             "iteration_id": iid,
             "name": name,
-            "target_regime": target,
+            "target_regime": target_regime,
             "overall_delta": diff.overall_delta,
             "target_delta": diff.target_delta,
             "confirm_delta": confirm_delta,
@@ -486,7 +437,7 @@ def behavior_attribute(event, graph, ctx) -> None:  # noqa: ARG001
     # compare to the original baseline. Promotion has already installed
     # the transform on the agent's seam, so a plain run_on_split picks
     # it up.
-    after = lctx.eval_backend.run_on_split(lctx.instances)
+    after = lctx.target.eval_backend.run_on_split(lctx.instances)
     lctx.last_result = after
     att = _attribute(lctx.baseline, after)
     graph.emit(
@@ -515,8 +466,10 @@ def behavior_iterate_after_discard(event, graph, ctx) -> None:  # noqa: ARG001
     iid = event.payload["iteration_id"]
     lctx = get_context(iid)
     if lctx.consecutive_discards >= lctx.max_consecutive_discards:
-        rows = histogram(lctx.last_result.outcomes if lctx.last_result else
-                          lctx.baseline.outcomes)
+        rows = lctx.target.taxonomy.histogram(
+            lctx.last_result.outcomes if lctx.last_result else
+            lctx.baseline.outcomes
+        )
         counts = {r.regime: r.count for r in rows}
         graph.emit(
             E.LOOP_STOPPED,
@@ -524,7 +477,7 @@ def behavior_iterate_after_discard(event, graph, ctx) -> None:  # noqa: ARG001
                 "iteration_id": iid,
                 "reason": "max_consecutive_discards",
                 "remaining_regimes": [k for k, v in counts.items() if v > 0],
-                "named_wall": _name_wall(counts),
+                "named_wall": lctx.target.taxonomy.name_wall(counts),
             },
         )
         return
@@ -543,16 +496,16 @@ def _emit_next_step(graph, lctx: LoopContext, iid: str) -> None:
     latest = lctx.last_result or lctx.baseline
     if latest is None:
         return
-    rows = histogram(latest.outcomes)
+    rows = lctx.target.taxonomy.histogram(latest.outcomes)
     counts = {r.regime: r.count for r in rows}
-    if not _any_optimizable_remaining(counts):
+    if not _any_optimizable_remaining(counts, lctx):
         graph.emit(
             E.LOOP_STOPPED,
             {
                 "iteration_id": iid,
                 "reason": "no_optimizable_regime_remaining",
                 "remaining_regimes": [k for k, v in counts.items() if v > 0],
-                "named_wall": _name_wall(counts),
+                "named_wall": lctx.target.taxonomy.name_wall(counts),
             },
         )
         return
@@ -578,7 +531,7 @@ def behavior_rebaseline(event, graph, ctx) -> None:  # noqa: ARG001
     # Update the "baseline used by diagnose" via the existing slot; the
     # original baseline is preserved on lctx for attribution.
     lctx.baseline = base_for_round
-    outcomes_summary = [_outcome_summary(o) for o in base_for_round.outcomes]
+    outcomes_summary = [lctx.target.outcome_summary(o) for o in base_for_round.outcomes]
     graph.emit(
         E.BASELINE_RECORDED,
         {
@@ -598,11 +551,10 @@ def behavior_rebaseline(event, graph, ctx) -> None:  # noqa: ARG001
     )
 
 
-def _any_optimizable_remaining(counts: dict[str, int]) -> bool:
+def _any_optimizable_remaining(counts: dict[str, int], lctx: LoopContext) -> bool:
     """A regime is "remaining and optimizable" iff its count > 0 and the
-    taxonomy marks it as seam-reachable + optimizable."""
-    from regimes.loop.regimes import REGIMES as _all_regimes  # local: dynamic
-    reg = _all_regimes()
+    target's taxonomy marks it as seam-reachable + optimizable."""
+    reg = lctx.target.taxonomy.REGIMES()
     for name, c in counts.items():
         if c <= 0:
             continue
@@ -614,37 +566,9 @@ def _any_optimizable_remaining(counts: dict[str, int]) -> bool:
     return False
 
 
-def _name_wall(counts: dict[str, int]) -> str:
-    """Construct the named-wall string for the loop.stopped payload.
-
-    Lists the remaining unreachable regimes and what would be needed to
-    address each. Pure description; no recommendation about which to
-    pursue."""
-    from regimes.loop.regimes import REGIMES as _all_regimes  # local
-    reg = _all_regimes()
-    fragments: list[str] = []
-    for name, c in sorted(counts.items()):
-        if c <= 0:
-            continue
-        r = reg.get(name)
-        if r is None or (r.optimizable and r.seam_reachable):
-            continue
-        if name == "retrieval-signal-gap":
-            fix = "signal change (better embedder / scorer)"
-        elif name == "assemble-internal":
-            fix = "assemble() internals change (reader prompt / context format)"
-        elif name == "scoring-error":
-            fix = "fix the scoring-step exception (e.g. input truncation before embedding)"
-        else:
-            fix = "outside the score-transform action space"
-        fragments.append(f"{name}={c} → {fix}")
-    return "; ".join(fragments) if fragments else "no remaining failures"
-
-
 def _choose_target(counts: dict[str, int], lctx: LoopContext) -> str:
     """Pick the highest-count optimizable+seam-reachable regime."""
-    from regimes.loop.regimes import REGIMES as _all_regimes
-    reg = _all_regimes()
+    reg = lctx.target.taxonomy.REGIMES()
     candidates: list[tuple[int, str]] = []
     for name, c in counts.items():
         if c <= 0:

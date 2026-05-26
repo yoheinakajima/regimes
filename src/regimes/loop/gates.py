@@ -25,7 +25,7 @@ from __future__ import annotations
 import ast
 import time
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any, Callable, Mapping
 
 from regimes.agent import transforms as _agent_transforms
 from regimes.eval.types import EvalResult
@@ -65,8 +65,26 @@ class StaticResult:
     fn_name: str = "transform"
 
 
-def static_gate(source: str, *, expected_fn: str = "transform") -> StaticResult:
-    """AST-based static analysis. Returns reasons rather than raising."""
+def static_gate(
+    source: str,
+    *,
+    expected_fn: str = "transform",
+    signature_params: tuple[str, ...] | None = None,
+    import_whitelist: frozenset[str] | None = None,
+) -> StaticResult:
+    """AST-based static analysis. Returns reasons rather than raising.
+
+    `signature_params` and `import_whitelist` default to the
+    LongMemEval-shaped score-transform constants
+    (`REQUIRED_SIGNATURE_PARAMS`, `IMPORT_WHITELIST`) so existing
+    callers see identical behavior; concrete ActionSpaces pass their
+    own when their action-space differs (e.g. a SQL prompt-edit
+    signature in Phase 2)."""
+    if signature_params is None:
+        signature_params = REQUIRED_SIGNATURE_PARAMS
+    if import_whitelist is None:
+        import_whitelist = IMPORT_WHITELIST
+
     reasons: list[str] = []
 
     try:
@@ -95,16 +113,16 @@ def static_gate(source: str, *, expected_fn: str = "transform") -> StaticResult:
         names = [a.name.split(".")[0] for a in imp.names] if isinstance(imp, ast.Import) \
             else [imp.module.split(".")[0]] if imp.module else []
         for n in names:
-            if n not in IMPORT_WHITELIST:
+            if n not in import_whitelist:
                 reasons.append(f"import outside whitelist: {n!r}")
 
     if defs:
         fn = defs[0]
         params = [a.arg for a in fn.args.args]
-        if tuple(params) != REQUIRED_SIGNATURE_PARAMS:
+        if tuple(params) != signature_params:
             reasons.append(
                 f"signature mismatch: got {params!r}, "
-                f"expected {list(REQUIRED_SIGNATURE_PARAMS)!r}"
+                f"expected {list(signature_params)!r}"
             )
 
     # Walk the whole tree for banned names + attribute access.
@@ -304,26 +322,39 @@ class PromotionDecision:
     reasons: tuple[str, ...] = field(default=())
 
 
+# The LongMemEval-default per-type promotion floor: multi-session must
+# not regress. Phase 1 keeps this as the default so existing callers see
+# identical behavior; concrete targets (LongMemEvalTarget) pass their own
+# map through ActionSpace.promotion_decision.
+_DEFAULT_PER_TYPE_FLOORS: dict[str, float] = {"multi-session": 0.0}
+
+
 def promotion_decision(
     diff: EvalDiff,
     *,
-    multi_session_floor_delta: float = 0.0,
+    per_type_floors: Mapping[str, float] | None = None,
     overall_floor_delta: float = 0.0,
 ) -> PromotionDecision:
     """Deterministic eligibility rule. Promotion-eligible iff:
 
       (a) the targeted regime SHRANK (target_delta < 0),
-      (b) multi-session accuracy did not regress (delta >= floor),
-      (c) overall accuracy did not regress (delta >= floor).
+      (b) no question_type in `per_type_floors` regressed past its floor,
+      (c) overall accuracy did not regress past `overall_floor_delta`.
+
+    `per_type_floors` defaults to {"multi-session": 0.0} — the
+    LongMemEval-shaped rule. The fixed-dict default preserves the
+    pre-refactor decision exactly for any caller that doesn't pass it.
     """
+    floors = _DEFAULT_PER_TYPE_FLOORS if per_type_floors is None else per_type_floors
     reasons: list[str] = []
     if diff.target_delta >= 0:
         reasons.append(
             f"target regime did not shrink: target_delta={diff.target_delta}"
         )
-    multi = diff.per_type_delta.get("multi-session")
-    if multi is not None and multi < multi_session_floor_delta:
-        reasons.append(f"multi-session regressed by {multi:+.4f}")
+    for qtype, floor in floors.items():
+        d = diff.per_type_delta.get(qtype)
+        if d is not None and d < floor:
+            reasons.append(f"{qtype} regressed by {d:+.4f}")
     if diff.overall_delta < overall_floor_delta:
         reasons.append(f"overall regressed by {diff.overall_delta:+.4f}")
     return PromotionDecision(eligible=len(reasons) == 0, reasons=tuple(reasons))

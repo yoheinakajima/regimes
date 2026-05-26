@@ -50,12 +50,36 @@ REGIMES_RUN_VERSION = "regimes-eval-real-v1"
 # ============================================================================
 
 
+# Default Anthropic reader model. claude-sonnet-4-5 was retired; the
+# working successor is claude-sonnet-4-6. Override with the
+# REGIMES_READER_MODEL env var (and the loop's transform author honors
+# BEHAVIORDRAFTS_MODEL — kept distinct so reader and author can pin
+# different models if needed).
+DEFAULT_READER_MODEL = "claude-sonnet-4-6"
+
+
+def build_real_reader(model: str | None = None) -> "AnthropicReader":
+    """Construct an AnthropicReader for the --mode real path.
+
+    Reads `REGIMES_READER_MODEL` from the environment if `model` is None;
+    falls back to `DEFAULT_READER_MODEL`. Raises `ConfigurationError`
+    (via AnthropicReader.__post_init__) if `ANTHROPIC_API_KEY` or the
+    `anthropic` package is missing."""
+    name = model or os.environ.get("REGIMES_READER_MODEL") or DEFAULT_READER_MODEL
+    return AnthropicReader(name=name)
+
+
 @dataclass
 class AnthropicReader:
     """Real reader: Claude (tool-free, T=0, no web). Wired only to make
-    requests work; not exercised in this container's tests."""
+    requests work; not exercised in this container's tests.
 
-    name: str = "claude-sonnet-4-5"
+    Constructed via `build_real_reader()` in the CLI / production path so
+    the model id can be overridden via REGIMES_READER_MODEL; the
+    field-default below is the fallback when neither env var nor an
+    explicit `model=` is given."""
+
+    name: str = DEFAULT_READER_MODEL
     temperature: float = 0.0
     max_tokens: int = 1024
     _client: Any = None

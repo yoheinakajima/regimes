@@ -28,7 +28,7 @@ from regimes.loop.behaviors import (
     clear_context,
     set_context,
 )
-from regimes.loop.hypothesize import DraftedTransform, StubAuthor
+from regimes.target import Target
 
 
 @dataclass
@@ -49,16 +49,25 @@ class LoopReport:
 
 def run_loop(
     *,
-    eval_backend: Any,
+    eval_backend: Any = None,
     instances: list[Any],
     confirm_instances: list[Any] | None = None,
     author: Any = None,
+    target: Target | None = None,
     pause_after: str | None = None,
     iteration_id: str = "loop-001",
     frozen_t: str = "2026-01-01T00:00:00Z",
     max_consecutive_discards: int = 3,
 ) -> LoopReport:
     """Run the loop end-to-end and return a LoopReport.
+
+    Two equivalent calling shapes:
+      - `run_loop(target=..., instances=..., ...)` — pass any
+        `regimes.target.Target`.
+      - `run_loop(eval_backend=..., author=..., instances=..., ...)` —
+        backwards-compatible LongMemEval path: a `LongMemEvalTarget` is
+        constructed from these args. Existing callers (the CLI, the
+        tests) keep working unchanged.
 
     `pause_after`:
         - None        → run all phases through stop.
@@ -68,11 +77,18 @@ def run_loop(
                         is the go/no-go for spending eval budget on
                         transforms.
     """
-    author = author if author is not None else StubAuthor()
+    if target is None:
+        # Local import: avoids a regimes.loop ↔ regimes.targets cycle at
+        # module-import time. The targets package re-imports from the loop.
+        from regimes.targets.longmemeval import build_target as _build_lme_target
+        if eval_backend is None:
+            raise TypeError(
+                "run_loop requires either target=... or eval_backend=..."
+            )
+        target = _build_lme_target(eval_backend=eval_backend, author=author)
     lctx = LoopContext(
         iteration_id=iteration_id,
-        eval_backend=eval_backend,
-        author=author,
+        target=target,
         instances=list(instances),
         confirm_instances=list(confirm_instances) if confirm_instances else None,
         max_consecutive_discards=max_consecutive_discards,
