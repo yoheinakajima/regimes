@@ -6,15 +6,27 @@ with a deterministic detector function. Detectors are PURE over Outcome
 — no graph re-walk, no I/O — so they're replayable and trivially
 testable.
 
-The taxonomy splits two ways:
-  - optimizable vs. non-optimizable
-        scoring-error is non-optimizable: there's no score to re-weight
-        when the scoring step itself failed.
-  - seam-reachable vs. seam-unreachable
-        score-transforms operate at the turns.scored seam. Regimes
-        whose fix lives outside that seam (signal change, assemble()
-        internals, scoring bug) are unreachable; the loop's `stop`
-        phase names them as walls instead of trying to optimize them.
+The taxonomy splits two ways — and BOTH splits are DERIVED, not stored:
+a regime is optimizable / seam-reachable iff the LongMemEval action
+space has ≥1 transform type that targets it (see REGIME_TO_TYPES in
+regimes.targets.longmemeval.transform_types). `REGIMES()`,
+`histogram()`, and `is_seam_reachable()` all compute these flags from
+that one map via `_derived_reachable()`, so the histogram's opt/seam
+columns can NEVER drift from what the action space can actually route:
+
+  - seam-reachable iff REGIME_TO_TYPES maps the regime to a transform
+        type. budget-truncation / assembly-crowding (score- or
+        assembly-transform) and assemble-internal (reader-prompt-
+        transform) are reachable; retrieval-signal-gap and scoring-error
+        map to nothing and remain walls.
+  - optimizable: same derivation. If no transform type can reach a
+        regime there is nothing to optimize, so the loop's `stop` phase
+        names it as a wall instead of trying.
+
+The `optimizable` / `seam_reachable` fields on the frozen `Regime`
+descriptors below are seed values only; the derivation overrides them on
+every read, so adding a new (regime → transform type) edge to
+REGIME_TO_TYPES is the ONLY change needed to make a regime reachable.
 
 Priority order for `classify()` is important when an Outcome's signals
 match more than one detector — see PRIORITY below. The order picks the
@@ -28,7 +40,7 @@ replayable code; the loop never invokes the LLM to RE-classify.
 from __future__ import annotations
 
 import threading
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Callable
 
 from regimes.eval.types import Outcome
@@ -80,8 +92,12 @@ class Regime:
 
     name: str
     detector: Callable[[Outcome], bool]
-    optimizable: bool       # can a score-transform plausibly fix it?
-    seam_reachable: bool    # is the fix at the turns.scored seam?
+    # Seed values only. The authoritative optimizable / seam-reachable
+    # status is DERIVED from REGIME_TO_TYPES at read time (see
+    # `_derived_reachable` + `REGIMES()` / `histogram()` /
+    # `is_seam_reachable()`); these fields are overridden on every read.
+    optimizable: bool       # ≥1 transform type can target this regime?
+    seam_reachable: bool    # ≥1 transform type can target this regime?
     description: str = ""
 
 
@@ -332,13 +348,16 @@ _BUILTIN: list[Regime] = [
     Regime(
         name="assemble-internal",
         detector=detect_assemble_internal,
-        optimizable=False,
-        seam_reachable=False,
+        # Reachable since the action space gained a reader-prompt-transform
+        # (REGIME_TO_TYPES["assemble-internal"]). Seed value; derivation is
+        # authoritative.
+        optimizable=True,
+        seam_reachable=True,
         description=(
             "Well-ranked gold was MOSTLY selected into the context "
             "(coverage >= ASSEMBLE_COVERAGE_FLOOR) but the answer is "
             "still wrong. Failure is downstream of assemble() — reader, "
-            "prompt format, judge — not addressable by a score-transform."
+            "prompt format, judge — addressable by a reader-prompt-transform."
         ),
     ),
     Regime(
@@ -390,10 +409,49 @@ _REGISTRY: dict[str, Regime] = {r.name: r for r in _BUILTIN}
 _PRIORITY: list[str] = list(PRIORITY)
 
 
+# ----- Derivation: seam/optimizable flow FROM the routing map --------------
+#
+# The single source of truth for "can the action space reach this regime?"
+# is REGIME_TO_TYPES (regimes.targets.longmemeval.transform_types). The
+# loop routes a diagnosed regime to a transform type via that same map, so
+# deriving the histogram's opt/seam flags from it here makes the two
+# physically incapable of disagreeing — the exact failure mode that left
+# assemble-internal a wall after a reader-prompt-transform was added to
+# reach it.
+
+
+def _eligible_transform_types(name: str) -> tuple[str, ...]:
+    """Transform types that target this regime, per REGIME_TO_TYPES.
+
+    Imported lazily: regimes.loop is the generic layer and the longmemeval
+    target package imports back from it, so a module-top import would
+    cycle. By the time these flags are read (runtime) both modules are
+    fully loaded."""
+    from regimes.targets.longmemeval.transform_types import REGIME_TO_TYPES
+    return tuple(REGIME_TO_TYPES.get(name, ()))
+
+
+def _derived_reachable(name: str) -> bool:
+    """A regime is optimizable / seam-reachable iff ≥1 transform type
+    targets it. Used for BOTH flags — if nothing can reach a regime there
+    is nothing to optimize."""
+    return len(_eligible_transform_types(name)) >= 1
+
+
 def REGIMES() -> dict[str, Regime]:  # noqa: N802 — public-API style
-    """Snapshot of the current regime registry."""
+    """Snapshot of the current regime registry, with optimizable /
+    seam-reachable flags DERIVED from REGIME_TO_TYPES (the stored seed
+    values on each Regime are overridden here)."""
     with _REG_LOCK:
-        return dict(_REGISTRY)
+        snap = dict(_REGISTRY)
+    return {
+        name: replace(
+            r,
+            optimizable=_derived_reachable(name),
+            seam_reachable=_derived_reachable(name),
+        )
+        for name, r in snap.items()
+    }
 
 
 def register_regime(
@@ -408,7 +466,12 @@ def register_regime(
     """Append a new regime to the taxonomy. Loop hypothesize callers use
     this when a failure cluster fits no built-in detector. The detector
     is pure replayable code from this point on; the LLM author is never
-    re-consulted to classify."""
+    re-consulted to classify.
+
+    NOTE: `optimizable` / `seam_reachable` are seed values only — like the
+    built-ins, the authoritative status is DERIVED from REGIME_TO_TYPES on
+    every read. A newly registered regime is a wall (not drafted for) until
+    a transform type is mapped to it in REGIME_TO_TYPES."""
     with _REG_LOCK:
         if name in _REGISTRY:
             raise ValueError(f"regime already registered: {name!r}")
@@ -451,10 +514,11 @@ def classify(o: Outcome) -> Regime:
 
 
 def is_seam_reachable(regime_name: str) -> bool:
-    """Is a regime addressable by the score-transform action space?"""
+    """Is a regime addressable by the action space? Derived from
+    REGIME_TO_TYPES: True iff a known regime maps to ≥1 transform type."""
     with _REG_LOCK:
-        r = _REGISTRY.get(regime_name)
-    return bool(r and r.seam_reachable)
+        known = regime_name in _REGISTRY
+    return known and _derived_reachable(regime_name)
 
 
 @dataclass(frozen=True)
@@ -483,14 +547,15 @@ def histogram(outcomes: list[Outcome], *, failures_only: bool = True) -> list[Hi
     with _REG_LOCK:
         rows = []
         for name in _PRIORITY:
-            r = _REGISTRY[name]
             members = by_regime.get(name, [])
             rows.append(
                 HistogramRow(
                     regime=name,
                     count=len(members),
-                    optimizable=r.optimizable,
-                    seam_reachable=r.seam_reachable,
+                    # Derived from REGIME_TO_TYPES (not r.*) so the opt/seam
+                    # columns can't drift from the action space's routing.
+                    optimizable=_derived_reachable(name),
+                    seam_reachable=_derived_reachable(name),
                     qids=tuple(o.question_id for o in members),
                 )
             )

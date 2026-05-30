@@ -39,6 +39,7 @@ from typing import Any, Iterable
 from activegraph import ConfigurationError
 
 from regimes.agent import retrieve as agent_retrieve
+from regimes.agent import events as AE
 from regimes.eval.types import EvalResult, Judge, Outcome, Reader
 
 
@@ -485,6 +486,12 @@ class RealEval:
         hypotheses: list[dict[str, Any]] = []
         references: list[dict[str, Any]] = []
         errors: dict[str, str] = {}
+        # Auditable embedding-error records, lifted from the agent trace's
+        # agent.embedding_error events (emitted by agent.score_embedding
+        # when the embedder rejects a specific input). Persisted into the
+        # run report so a scoring-signal failure can never vanish to
+        # stderr again.
+        embedding_errors: list[dict[str, Any]] = []
 
         for inst in instances:
             qid = inst["question_id"]
@@ -517,6 +524,13 @@ class RealEval:
                 trace = None
                 hyp = ""
                 errors[qid] = f"{type(e).__name__}: {e}"
+
+            # Lift any embedding-error events the agent emitted for this
+            # question into the run-level audit list.
+            if trace is not None:
+                for ev in trace.events:
+                    if ev.type == AE.EMBEDDING_ERROR:
+                        embedding_errors.append({"question_id": qid, **dict(ev.payload)})
 
             traces[qid] = trace
             hypotheses.append({"question_id": qid, "hypothesis": hyp})
@@ -609,6 +623,13 @@ class RealEval:
                 n_errors += 1
             total_tokens += o.running_tokens
 
+        # Embedding-error blast radius: how many turns failed, across how
+        # many distinct questions.
+        n_embedding_errors = len(embedding_errors)
+        n_questions_with_embedding_errors = len(
+            {e["question_id"] for e in embedding_errors}
+        )
+
         aggregate = {
             "version": REGIMES_RUN_VERSION,
             "n": len(outcomes),
@@ -620,8 +641,18 @@ class RealEval:
             "n_truncated": n_truncated,
             "n_errors": n_errors,
             "mean_context_tokens": total_tokens / len(outcomes) if outcomes else 0.0,
+            "n_embedding_errors": n_embedding_errors,
+            "n_questions_with_embedding_errors": n_questions_with_embedding_errors,
         }
         (run_dir_p / "aggregate.json").write_text(json.dumps(aggregate, indent=2) + "\n")
+
+        # Persist the full per-input embedding-error records (with
+        # tracebacks) separately so they're auditable without bloating the
+        # aggregate. Always written — an empty list means "verified zero
+        # embedding errors this run".
+        (run_dir_p / "embedding_errors.json").write_text(
+            json.dumps(embedding_errors, indent=2) + "\n"
+        )
 
         return EvalResult(
             outcomes=outcomes,
@@ -636,5 +667,6 @@ class RealEval:
                 "min_token_length": self.min_token_length,
                 "min_session_cooccurrence": self.min_session_cooccurrence,
                 "max_doc_freq_fraction": self.max_doc_freq_fraction,
+                "embedding_errors": embedding_errors,
             },
         )

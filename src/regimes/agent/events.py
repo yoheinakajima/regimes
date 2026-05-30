@@ -26,6 +26,13 @@ TURNS_TRANSFORMED = "turns.transformed"
 TURNS_EXPANDED = "turns.expanded"
 CONTEXT_ASSEMBLED = "context.assembled"
 
+# Side event (NOT part of the per-question chain): emitted by
+# agent.score_embedding when the embedder raises on a specific input. It
+# carries the offending input's identity + a full traceback so the
+# failure is auditable in the run report instead of vanishing to stderr.
+# Deliberately excluded from ALL so chain-shape assertions stay exact.
+EMBEDDING_ERROR = "agent.embedding_error"
+
 ALL = (
     QUESTION_ASKED,
     TURNS_SCORED,
