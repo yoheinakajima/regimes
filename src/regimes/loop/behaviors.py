@@ -65,6 +65,16 @@ class LoopContext:
     last_result: EvalResult | None = None
     max_consecutive_discards: int = 3
     consecutive_discards: int = 0
+    # Regimes that have hit max_consecutive_discards and been retired from
+    # drafting THIS run. The loop rotates to the next un-attempted
+    # optimizable+seam-reachable regime instead of stopping the whole loop
+    # the moment one regime stalls — so with budget-truncation AND
+    # assemble-internal both reachable, both get attempted before stop.
+    exhausted_regimes: set[str] = None
+    # Generous global guard so a pathological promote/discard cycle can't
+    # spin forever. Sized to comfortably attempt every regime several times.
+    max_iterations: int = 200
+    iterations: int = 0
     pause_after: str | None = None        # "histogram" | None
     # Live record of every drafted transform's outcome on OPTIMIZE.
     transform_log: list[dict[str, Any]] = None
@@ -79,11 +89,14 @@ class LoopContext:
     # past the TRANSFORM_DRAFTED event).
     current_source: str = ""
     current_author: str = ""
+    current_transform_type: str = ""
     halted: bool = False
 
     def __post_init__(self):
         if self.transform_log is None:
             self.transform_log = []
+        if self.exhausted_regimes is None:
+            self.exhausted_regimes = set()
 
     # ---- back-compat accessors --------------------------------------------
     # Pre-Target-interface callers expected `lctx.eval_backend`. The
@@ -233,12 +246,14 @@ def behavior_hypothesize(event, graph, ctx) -> None:  # noqa: ARG001
     lctx.current_target = chosen
     lctx.current_source = drafted.source
     lctx.current_author = drafted.author
+    lctx.current_transform_type = drafted.transform_type
     graph.emit(
         E.TRANSFORM_DRAFTED,
         {
             "iteration_id": iid,
             "name": drafted.name,
             "target_regime": drafted.target_regime,
+            "transform_type": drafted.transform_type,
             "author": drafted.author,
             "source": drafted.source,
             "rationale": drafted.rationale,
@@ -496,21 +511,13 @@ def behavior_iterate_after_discard(event, graph, ctx) -> None:  # noqa: ARG001
     iid = event.payload["iteration_id"]
     lctx = get_context(iid)
     if lctx.consecutive_discards >= lctx.max_consecutive_discards:
-        rows = lctx.target.taxonomy.histogram(
-            lctx.last_result.outcomes if lctx.last_result else
-            lctx.baseline.outcomes
-        )
-        counts = {r.regime: r.count for r in rows}
-        graph.emit(
-            E.LOOP_STOPPED,
-            {
-                "iteration_id": iid,
-                "reason": "max_consecutive_discards",
-                "remaining_regimes": [k for k, v in counts.items() if v > 0],
-                "named_wall": lctx.target.taxonomy.name_wall(counts),
-            },
-        )
-        return
+        # This regime is exhausted: drafting against it kept failing the
+        # discard threshold. Retire it and ROTATE to the next un-attempted
+        # optimizable+seam-reachable regime instead of stopping the whole
+        # loop. The loop only stops once EVERY reachable regime is
+        # exhausted (handled in _emit_next_step via _choose_target).
+        lctx.exhausted_regimes.add(lctx.current_target)
+        lctx.consecutive_discards = 0
     _emit_next_step(graph, lctx, iid)
 
 
@@ -521,14 +528,18 @@ def behavior_iterate_after_discard(event, graph, ctx) -> None:  # noqa: ARG001
 
 def _emit_next_step(graph, lctx: LoopContext, iid: str) -> None:
     """Decide whether to iterate (re-fire diagnose) or stop with a named
-    wall. Reads the latest result's failures and applies the
-    optimizable-remaining check."""
+    wall.
+
+    Stops iff there is no un-exhausted optimizable+seam-reachable regime
+    left to attempt (`_choose_target` returns "" once every reachable
+    regime is either gone from the histogram or retired into
+    `exhausted_regimes`) — OR the generous global iteration guard trips."""
     latest = lctx.last_result or lctx.baseline
     if latest is None:
         return
     rows = lctx.target.taxonomy.histogram(latest.outcomes)
     counts = {r.regime: r.count for r in rows}
-    if not _any_optimizable_remaining(counts, lctx):
+    if not _choose_target(counts, lctx):
         graph.emit(
             E.LOOP_STOPPED,
             {
@@ -539,12 +550,24 @@ def _emit_next_step(graph, lctx: LoopContext, iid: str) -> None:
             },
         )
         return
+    if lctx.iterations >= lctx.max_iterations:
+        graph.emit(
+            E.LOOP_STOPPED,
+            {
+                "iteration_id": iid,
+                "reason": "max_iterations",
+                "remaining_regimes": [k for k, v in counts.items() if v > 0],
+                "named_wall": lctx.target.taxonomy.name_wall(counts),
+            },
+        )
+        return
+    lctx.iterations += 1
     # Iterate: re-emit BASELINE_RECORDED-style content so diagnose fires
     # again on the latest result. We do this by emitting LOOP_ITERATE
     # which a tiny re-baseline behavior listens for.
     graph.emit(
         E.LOOP_ITERATE,
-        {"iteration_id": iid, "round": lctx.consecutive_discards},
+        {"iteration_id": iid, "round": lctx.iterations},
     )
 
 
@@ -581,27 +604,20 @@ def behavior_rebaseline(event, graph, ctx) -> None:  # noqa: ARG001
     )
 
 
-def _any_optimizable_remaining(counts: dict[str, int], lctx: LoopContext) -> bool:
-    """A regime is "remaining and optimizable" iff its count > 0 and the
-    target's taxonomy marks it as seam-reachable + optimizable."""
-    reg = lctx.target.taxonomy.REGIMES()
-    for name, c in counts.items():
-        if c <= 0:
-            continue
-        r = reg.get(name)
-        if r is None:
-            continue
-        if r.optimizable and r.seam_reachable:
-            return True
-    return False
-
-
 def _choose_target(counts: dict[str, int], lctx: LoopContext) -> str:
-    """Pick the highest-count optimizable+seam-reachable regime."""
+    """Pick the highest-count optimizable+seam-reachable regime that has
+    NOT yet been exhausted this run.
+
+    Regimes retired into `lctx.exhausted_regimes` (each hit
+    max_consecutive_discards) are skipped so the loop rotates through every
+    reachable regime before giving up. Returns "" when nothing reachable
+    remains — the loop's stop condition."""
     reg = lctx.target.taxonomy.REGIMES()
     candidates: list[tuple[int, str]] = []
     for name, c in counts.items():
         if c <= 0:
+            continue
+        if name in lctx.exhausted_regimes:
             continue
         r = reg.get(name)
         if r is None or not (r.optimizable and r.seam_reachable):
@@ -626,6 +642,11 @@ def _log_transform(
     rec: dict[str, Any] = {
         "name": name,
         "target_regime": target,
+        # The action-space seam this candidate used (score-transform /
+        # assembly-transform / reader-prompt-transform). Recorded on EVERY
+        # entry so the audit reveals which seam each candidate exercised —
+        # required to verify reader-prompt-transforms actually fire.
+        "transform_type": lctx.current_transform_type,
         "status": status,
     }
     rec.update(fields)

@@ -28,6 +28,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from regimes.agent import reader_transforms as _reader_transforms
 from regimes.agent import transforms as _transforms
 from regimes.eval.types import EvalResult, Outcome
 
@@ -69,6 +70,48 @@ class MockInstance:
     gold_score_threshold: float = float("inf")
     candidate_turn_ids: tuple[str, ...] = ()
 
+    # ---- reader-prompt seam simulation ----------------------------------
+    # The reader prompt fragments the mock reader sees for this question.
+    # When non-empty, the mock applies the installed reader-prompt
+    # pipeline to these parts, then the mock reader (`MockReader`) re-reads
+    # the modified prompt. If the modified prompt now contains
+    # `reader_correct_when_contains` (and the baseline prompt did not),
+    # the answer flips to correct — i.e. a reader-prompt-transform that
+    # reaches the reader actually changes the outcome.
+    prompt_parts: tuple[tuple[str, str], ...] = ()
+    reader_correct_when_contains: str = ""
+
+
+# ----- Mock reader ---------------------------------------------------------
+
+
+@dataclass
+class MockReader:
+    """A deterministic stand-in for the LME reader.
+
+    Reads the (possibly transformed) reader prompt fragments and decides
+    correctness. The rule is intentionally simple: the answer is correct
+    iff the assembled prompt contains the instance's required marker —
+    so the test can prove that a reader-prompt-transform's edit to
+    `prompt_parts` actually reached the reader and changed the verdict.
+    """
+
+    name: str = "mock-reader-v1"
+
+    def reads_correct(
+        self,
+        *,
+        prompt_parts: dict[str, str],
+        required_marker: str,
+        baseline_correct: bool,
+    ) -> bool:
+        if not required_marker:
+            return baseline_correct
+        assembled = "\n".join(str(v) for v in prompt_parts.values())
+        if required_marker in assembled:
+            return True
+        return baseline_correct
+
 
 # ----- Backend -------------------------------------------------------------
 
@@ -84,6 +127,7 @@ class MockEval:
 
     signal: str = "embedding"
     token_budget: int = 2500
+    reader: "MockReader" = field(default_factory=MockReader)
 
     def run_on_split(
         self,
@@ -134,7 +178,10 @@ class MockEval:
             config={
                 "signal": self.signal,
                 "token_budget": self.token_budget,
-                "applied_transforms": [e.name for e in _transforms.get_pipeline()],
+                "applied_transforms": (
+                    [e.name for e in _transforms.get_pipeline()]
+                    + [e.name for e in _reader_transforms.get_pipeline()]
+                ),
             },
         )
 
@@ -172,6 +219,26 @@ class MockEval:
                 if sid in gold and s >= mi.gold_score_threshold and tid in candidates:
                     correct = True
                     break
+
+        # Reader-prompt seam: apply the installed reader-prompt pipeline to
+        # this question's prompt fragments and let the mock reader re-read
+        # the (possibly) modified prompt. This is what makes an installed
+        # reader-prompt-transform actually affect the eval outcome — the
+        # modified prompt_parts reach the reader and can flip the verdict.
+        if mi.prompt_parts and not mi.score_error:
+            base_parts = {k: v for k, v in mi.prompt_parts}
+            result, _rerrors = _reader_transforms.apply_pipeline(
+                prompt_parts=base_parts,
+                question=mi.question,
+                question_date=mi.question_date,
+            )
+            final_parts = result["prompt_parts"]
+            applied = applied + list(result["names"])
+            correct = self.reader.reads_correct(
+                prompt_parts=final_parts,
+                required_marker=mi.reader_correct_when_contains,
+                baseline_correct=correct,
+            )
 
         return Outcome(
             question_id=mi.question_id,
@@ -220,4 +287,8 @@ def _from_dict(d: dict[str, Any]) -> MockInstance:
         question_date=str(d.get("question_date", "")),
         gold_score_threshold=float(d.get("gold_score_threshold", float("inf"))),
         candidate_turn_ids=tuple(d.get("candidate_turn_ids", ())),
+        prompt_parts=tuple(
+            (k, v) for k, v in dict(d.get("prompt_parts", {})).items()
+        ),
+        reader_correct_when_contains=str(d.get("reader_correct_when_contains", "")),
     )

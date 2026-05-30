@@ -69,6 +69,13 @@ class DraftedChange:
     target_regime: str
     author: str             # "stub" | "claude-..." | etc.
     rationale: str = ""
+    # Which action-space seam this change uses. For LongMemEval this is
+    # one of score-transform / assembly-transform / reader-prompt-transform;
+    # carried through the gate chain so each transform_log entry can record
+    # the seam a candidate exercised (the audit otherwise can't tell a
+    # reader-prompt-transform from a score-transform). Optional + defaulted
+    # so action spaces that don't distinguish seams (e.g. SQL) are unaffected.
+    transform_type: str = ""
 
 
 # ---------------------------------------------------------------------------
