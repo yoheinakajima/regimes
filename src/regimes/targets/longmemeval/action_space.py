@@ -125,9 +125,15 @@ class LongMemEvalActionSpace:
         eval_backend: Any,
         instances: Sequence[Any],
     ) -> EvalDiff:
+        # Generic gate path now takes the install/revert seam and the
+        # taxonomy as kwargs. Passing self.install/self.revert/None
+        # taxonomy keeps the LongMemEval defaults the gate already
+        # picks; passing them explicitly future-proofs against the
+        # default ever drifting away from the LME pipeline.
         return _gates.eval_diff(
             fn=fn, fn_name=fn_name, target_regime=target_regime,
             baseline=baseline, eval_backend=eval_backend, instances=list(instances),
+            install=self.install, revert=self.revert,
         )
 
     def promotion_decision(self, diff: EvalDiff) -> PromotionDecision:

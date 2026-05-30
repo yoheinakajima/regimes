@@ -1,34 +1,22 @@
 """SqlActionSpace: the prompt-transform pipeline + the SQL-shaped
 gates.
 
-Static-gate is reused verbatim from `regimes.loop.gates.static_gate`
-— that function already takes `signature_params` and `import_whitelist`
-as kwargs, so the SQL signature pin
-`(prompt_parts, question, schema_meta)` and the
-`{math, string}` whitelist drop in without modification.
+All four gates now go through `regimes.loop.gates`, which Phase 1.5
+made target-agnostic (taxonomy / install / revert / call_fn /
+value_validator are kwargs with LongMemEval defaults). The SQL
+ActionSpace just passes its own:
 
-Sandbox-gate is reimplemented here. The generic gates.sandbox_gate
-hard-codes the score-transform call shape
-`fn(scores, None, question, question_date)` and a float-coercion check
-on the returned values — both LME-specific. We mirror the gate's
-shape (StaticResult/SandboxResult, n_probed, elapsed_s) so the loop's
-behaviors see the same protocol.
+  - static_gate:          (sig_params, import_whitelist) → SQL set
+  - sandbox_gate:         (call_fn, value_validator) → prompt-transform shape
+  - eval_diff:            (install, revert, taxonomy) → SQL pipeline + SqlTaxonomy
+  - promotion_decision:   (per_type_floors, overall_floor_delta)
 
-Eval-diff is reimplemented here too. The generic gates.eval_diff
-delegates to `regimes.loop.regimes.classify` directly to count
-`regime_before` / `regime_after`, which is LME-specific (see
-docs/PHASE1_5_LEAKS.md). We compute the diff with the SQL taxonomy
-so promotion can see the regime actually shrinking.
-
-Promotion-decision delegates to the generic
-`gates.promotion_decision` with SQL-appropriate `per_type_floors`
-(empty by default — v1 SQL fixture is too small to defend a
-per-type floor reliably).
+Per-target configuration lives on this ActionSpace instance; the gate
+bodies are shared.
 """
 
 from __future__ import annotations
 
-import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Sequence
 
@@ -48,6 +36,25 @@ from regimes.targets.sql.taxonomy import SqlTaxonomy
 
 SQL_SIGNATURE_PARAMS: tuple[str, ...] = ("prompt_parts", "question", "schema_meta")
 SQL_IMPORT_WHITELIST: frozenset[str] = frozenset({"math", "string"})
+
+
+def _sql_call_fn(fn: Callable, probe: Mapping[str, Any]) -> dict:
+    """SQL prompt-transform call shape:
+    `fn(prompt_parts, question, schema_meta)`. Matches the seam in
+    `sql_agent.behavior_prompt_pipeline`."""
+    return fn(
+        dict(probe.get("prompt_parts", {})),
+        probe.get("question", ""),
+        dict(probe.get("schema_meta", {})),
+    )
+
+
+def _sql_value_validator(out: Mapping[str, Any]) -> None:
+    """SQL prompt-transforms can return any JSON-shaped values
+    (strings, lists, dicts). No additional invariant beyond "is a
+    dict and keys ⊆ input keys" — both enforced by sandbox_gate
+    itself."""
+    return None
 
 
 @dataclass
@@ -91,45 +98,15 @@ class SqlActionSpace:
     def sandbox_gate(
         self, fn: Callable, *, probes: Sequence[Mapping[str, Any]]
     ) -> SandboxResult:
-        """Run the compiled prompt-transform against the recorded
-        `prompt_parts` from a handful of baseline outcomes. Asserts:
-        no exception, returns a dict, keys are a subset of the input
-        prompt_parts dict, total wall time under the soft budget."""
-        reasons: list[str] = []
-        t0 = time.perf_counter()
-        n_done = 0
-        try:
-            for p in probes:
-                input_parts = dict(p.get("prompt_parts", {}))
-                out = fn(
-                    input_parts,
-                    p.get("question", ""),
-                    dict(p.get("schema_meta", {})),
-                )
-                if not isinstance(out, dict):
-                    reasons.append(
-                        f"non-dict return at probe {n_done}: {type(out).__name__}"
-                    )
-                    break
-                extra = set(out) - set(input_parts)
-                if extra:
-                    reasons.append(
-                        f"introduced unknown prompt_parts keys at probe "
-                        f"{n_done}: {sorted(extra)[:3]}"
-                    )
-                    break
-                n_done += 1
-                if time.perf_counter() - t0 > self.sandbox_time_budget_s:
-                    reasons.append(f"time budget exceeded after {n_done} probes")
-                    break
-        except Exception as e:  # noqa: BLE001
-            reasons.append(f"raised at probe {n_done}: {type(e).__name__}: {e}")
-        elapsed = time.perf_counter() - t0
-        return SandboxResult(
-            passed=len(reasons) == 0 and n_done == len(list(probes)),
-            reasons=tuple(reasons),
-            n_probed=n_done,
-            elapsed_s=elapsed,
+        """Delegates to the shared `gates.sandbox_gate` with the SQL
+        call_fn (prompt-transform signature) and a no-op value
+        validator (prompt_parts hold strings/lists, not floats)."""
+        return _gates.sandbox_gate(
+            fn,
+            probes=list(probes),
+            time_budget_s=self.sandbox_time_budget_s,
+            call_fn=_sql_call_fn,
+            value_validator=_sql_value_validator,
         )
 
     def build_probes(self, baseline: EvalResult) -> list[dict[str, Any]]:
@@ -150,7 +127,7 @@ class SqlActionSpace:
     def revert(self, name: str) -> None:
         _pipeline.revert(name)
 
-    # ---- eval-diff (SQL-taxonomy aware) -----------------------------------
+    # ---- eval-diff --------------------------------------------------------
 
     def eval_diff(
         self,
@@ -162,57 +139,18 @@ class SqlActionSpace:
         eval_backend: Any,
         instances: Sequence[Any],
     ) -> EvalDiff:
-        """Same structure as `gates.eval_diff` but uses the SQL
-        taxonomy's `classify` / `histogram` so promotion can see the
-        SQL regime actually shrinking. The generic gates.eval_diff
-        delegates to LME's classify, which would return
-        'unclassified' on every SqlOutcome — see Phase 1.5 leak notes."""
-        self.install(fn_name, fn)
-        try:
-            after = eval_backend.run_on_split(list(instances))
-        finally:
-            self.revert(fn_name)
-
-        r_before = self._regime_counts(baseline)
-        r_after = self._regime_counts(after)
-        per_type_before = baseline.per_type_accuracy()
-        per_type_after = after.per_type_accuracy()
-        per_type_delta = {
-            t: per_type_after.get(t, 0.0) - per_type_before.get(t, 0.0)
-            for t in sorted(set(per_type_before) | set(per_type_after))
-        }
-        before_qregime = self._per_qid_regime(baseline)
-        after_qregime = self._per_qid_regime(after)
-        transitions = tuple(
-            (qid, before_qregime[qid], after_qregime.get(qid, "?"))
-            for qid in sorted(before_qregime)
-            if after_qregime.get(qid) != before_qregime[qid]
+        """Delegates to the shared `gates.eval_diff` with the SQL
+        prompt-transform install/revert seam and the SQL taxonomy.
+        Phase 1.5 unblocked this — before the gate was hardcoded to
+        LME's classify+pipeline and the SQL target had to re-implement
+        the body."""
+        return _gates.eval_diff(
+            fn=fn, fn_name=fn_name, target_regime=target_regime,
+            baseline=baseline, eval_backend=eval_backend,
+            instances=list(instances),
+            install=self.install, revert=self.revert,
+            taxonomy=self.taxonomy,
         )
-
-        return EvalDiff(
-            overall_before=baseline.overall_accuracy(),
-            overall_after=after.overall_accuracy(),
-            overall_delta=after.overall_accuracy() - baseline.overall_accuracy(),
-            per_type_delta=per_type_delta,
-            regime_before=r_before,
-            regime_after=r_after,
-            target_regime=target_regime,
-            target_delta=r_after.get(target_regime, 0) - r_before.get(target_regime, 0),
-            transitions=transitions,
-        )
-
-    def _regime_counts(self, result: EvalResult) -> dict[str, int]:
-        rows = self.taxonomy.histogram(result.outcomes)
-        return {r.regime: r.count for r in rows}
-
-    def _per_qid_regime(self, result: EvalResult) -> dict[str, str]:
-        out: dict[str, str] = {}
-        for o in result.outcomes:
-            if o.correct:
-                out[o.question_id] = "correct"
-            else:
-                out[o.question_id] = self.taxonomy.classify(o).name
-        return out
 
     # ---- promotion decision ----------------------------------------------
 

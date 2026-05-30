@@ -439,7 +439,7 @@ def behavior_attribute(event, graph, ctx) -> None:  # noqa: ARG001
     # it up.
     after = lctx.target.eval_backend.run_on_split(lctx.instances)
     lctx.last_result = after
-    att = _attribute(lctx.baseline, after)
+    att = _attribute(lctx.baseline, after, taxonomy=lctx.target.taxonomy)
     graph.emit(
         E.ATTRIBUTION_RECORDED,
         {

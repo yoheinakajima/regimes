@@ -274,7 +274,10 @@ def test_action_space_sandbox_rejects_unknown_keys():
     }]
     res = aspace.sandbox_gate(fn, probes=probes)
     assert not res.passed
-    assert any("unknown prompt_parts" in r for r in res.reasons)
+    # Phase 1.5: sandbox_gate is now target-agnostic; the rejection
+    # reason is the generic "unknown keys" rather than the SQL-specific
+    # "unknown prompt_parts". The rejection itself is unchanged.
+    assert any("unknown keys" in r for r in res.reasons)
 
 
 def test_action_space_install_and_revert_round_trip():

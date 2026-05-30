@@ -2,161 +2,194 @@
 
 The Phase 1 refactor (commit `b94edbe`) moved the LongMemEval couplings
 behind the `Target` interface and preserved byte-equal LongMemEval
-behavior. Phase 2 (the SQL target) exercised that interface with a
-genuinely different action space and taxonomy and surfaced four
-places in the loop-control code where LongMemEval shape still leaks
-through. The SQL target works around each — but they should be fixed
-before Phase 3 / before any third target.
+behavior. Phase 2 (the SQL target, commit `f43516a`) exercised that
+interface with a genuinely different action space and taxonomy and
+surfaced four places where LongMemEval shape still leaked through
+the loop-control code.
 
-These were discovered, not introduced. The SQL target is committed
-with the workarounds in place; this doc is the punch list.
-
----
-
-## Leak 1 — `loop/attribute.py` calls LongMemEval's `classify` directly
-
-**File:** `src/regimes/loop/attribute.py:22`, `:42-44`
-
-```python
-from regimes.loop.regimes import classify   # <-- LME-pinned import
-...
-def _per_qid_regime(result: EvalResult) -> dict[str, str]:
-    out: dict[str, str] = {}
-    for o in result.outcomes:
-        out[o.question_id] = "correct" if o.correct else classify(o).name
-```
-
-**Symptom for SQL:** Every SqlOutcome goes through LME's `classify` and
-lands on `"unclassified"` (its detectors all return False on
-SqlOutcome's empty LME-shaped fields). So `attribution.recorded` events
-report transitions like `("sql_co_q01", "unclassified", "correct")`
-instead of `("sql_co_q01", "schema-misunderstanding", "correct")`.
-
-**Why it doesn't crash:** `SqlOutcome` subclasses `Outcome` so the LME
-detector reads `.answer_session_ids` / `.scores` / `.gold_evidence_turn_ids`
-without `AttributeError` — they're just empty.
-
-**Fix:** Thread `target.taxonomy.classify` through `attribute()` (take
-a taxonomy argument; the loop's `behavior_attribute` already has
-`lctx.target.taxonomy` in scope).
+**Phase 1.5 (commit on `claude/phase-1-5-leaks`) resolves all four.**
+After Phase 1.5 the SQL `ActionSpace` no longer re-implements
+`eval_diff` or `sandbox_gate` — both go through the now-target-agnostic
+shared gate code via short delegation calls.
 
 ---
 
-## Leak 2 — `loop/gates.py::_per_question_regime` / `_regime_counts` call LME classify/histogram
+## Leak 1 — `loop/attribute.py` calls LongMemEval's `classify` directly  ✅ RESOLVED
 
-**File:** `src/regimes/loop/gates.py:231-233`, `:236-246`
+**Was:** `from regimes.loop.regimes import classify` at the top; all
+attribution events for SqlOutcome reported transitions like
+`("sql_co_q01", "unclassified", "correct")`.
+
+**Now:** `attribute()` takes an optional `taxonomy=` keyword (default =
+LongMemEval, preserves direct-caller behavior). The loop's
+`behavior_attribute` passes `lctx.target.taxonomy`. SQL attribution
+events now report `("sql_co_q01", "schema-misunderstanding",
+"correct")`.
+
+**Fix locations:**
+- `src/regimes/loop/attribute.py:24-104` — `Attribution.taxonomy_name`
+  field added; `attribute(*, taxonomy=None)` signature; `_per_qid_regime`
+  threads it through.
+- `src/regimes/loop/behaviors.py:512-516` — `behavior_attribute` now
+  calls `_attribute(lctx.baseline, after, taxonomy=lctx.target.taxonomy)`.
+
+**Evidence:** SQL mock loop attribution payloads went from
+`[..., "unclassified", "correct"]` to `[..., "schema-misunderstanding",
+"correct"]` (etc) — verified by `diff /tmp/sql_before_15/report.json
+/tmp/sql_after_15/report.json`. All other fields (events, baseline,
+promotions, discards, stopped) byte-equal.
+
+---
+
+## Leak 2 — `gates.eval_diff` / `_per_question_regime` / `_regime_counts` call LME classify/histogram  ✅ RESOLVED (high severity)
+
+**Was:** `gates.eval_diff` hardcoded `regimes.loop.regimes.classify` and
+`histogram`, so `regime_before` / `regime_after` were always
+LME-flavored regardless of what target produced the outcomes. SQL had
+to re-implement the whole `eval_diff` body in
+`SqlActionSpace.eval_diff` to get correct counts.
+
+**Now:** `gates.eval_diff(*, taxonomy=None, install=None, revert=None,
+...)`. The three new kwargs default to the LongMemEval defaults
+(`_lme_classify` / `_lme_histogram` / `regimes.agent.transforms.promote`
+/ `regimes.agent.transforms.revert`) so historical direct callers and
+the LME action space see no change. The SQL action space passes
+`self.taxonomy`, `self.install`, `self.revert`.
+
+**Fix locations:**
+- `src/regimes/loop/gates.py:269-292` — `_regime_counts` /
+  `_per_question_regime` take a `taxonomy` kwarg.
+- `src/regimes/loop/gates.py:294-364` — `eval_diff` takes
+  `install` / `revert` / `taxonomy` kwargs with LME defaults.
+- `src/regimes/targets/sql/action_space.py:128-149` —
+  `SqlActionSpace.eval_diff` shrank from ~50 lines of re-implementation
+  to a single 8-line delegation to `_gates.eval_diff`.
+- `src/regimes/targets/longmemeval/action_space.py:120-140` —
+  `LongMemEvalActionSpace.eval_diff` now passes its `install`/`revert`
+  explicitly (no behavior change; just makes the dependency visible).
+
+**Evidence:** The SQL loop still promotes the same 4 stub transforms
+(`stub_schema_clarification_hint`, `stub_groupby_hint`,
+`stub_fk_join_hint`, `stub_where_hint`) in the same order across 4
+iterations, ending in `loop.stopped` with
+`reason="no_optimizable_regime_remaining"` — identical to Phase 2.
+
+---
+
+## Leak 3 — `gates.sandbox_gate` hard-codes the LME call shape + float coercion  ✅ RESOLVED (medium severity)
+
+**Was:** `sandbox_gate` called `fn(scores, None, question, question_date)`
+verbatim and did a `float()` coercion on the returned values. Both
+LME-score-transform-specific. SQL had to re-implement the gate body
+in `SqlActionSpace.sandbox_gate`.
+
+**Now:** `gates.sandbox_gate` takes `call_fn` and `value_validator`
+kwargs:
 
 ```python
-from regimes.loop.regimes import classify, histogram
-...
-def _regime_counts(result: EvalResult) -> dict[str, int]:
-    rows = histogram(result.outcomes)
-    return {r.regime: r.count for r in rows}
-
-def _per_question_regime(result: EvalResult) -> dict[str, str]:
+def sandbox_gate(fn, *, probes, time_budget_s=2.0,
+                 call_fn=None, value_validator=None) -> SandboxResult:
+    if call_fn is None: call_fn = _lme_call_fn
+    if value_validator is None: value_validator = _lme_value_validator
     ...
-    out[o.question_id] = classify(o).name
 ```
 
-**Symptom for SQL:** Same as leak 1 — for SqlOutcomes the LME
-taxonomy returns `unclassified` for every failure, so
-`gates.eval_diff` would report `regime_before == regime_after`
-constantly. The `target_delta` it computes would always be `0`
-because the target regime ("schema-misunderstanding" etc.) doesn't
-exist in LME's registry, and `r_after.get(target_regime, 0)` is
-always 0. **Result: promotion_decision always rejects** ("target
-regime did not shrink: target_delta=0"). Every SQL transform would
-be discarded.
+- `_lme_call_fn` → `fn(scores, None, question, question_date)`
+- `_lme_value_validator` → float coercion check
+- `_sql_call_fn` (in SqlActionSpace) → `fn(prompt_parts, question, schema_meta)`
+- `_sql_value_validator` → no-op (prompt_parts hold strings/lists)
 
-**Workaround in Phase 2:** `SqlActionSpace.eval_diff`
-(`src/regimes/targets/sql/action_space.py:139-180`) re-implements the
-same diff logic, calling `self.taxonomy.classify` / `self.taxonomy.histogram`
-instead of going through `gates.eval_diff`. Verified: with the
-workaround, all four stub SQL transforms get promoted because the
-SQL taxonomy correctly sees the target regime shrinking.
+The "no new keys" invariant is now decoded via `_probe_input_keys(probe)`
+which checks `probe["scores"]` then `probe["prompt_parts"]` — both
+established shapes — so the invariant works on either without a
+target tag.
 
-**Fix:** Take an optional `taxonomy=` argument on `gates.eval_diff`
-(default = LME's, so behavior unchanged). Then
-`LongMemEvalActionSpace.eval_diff` and `SqlActionSpace.eval_diff` can
-both go back to a single shared `gates.eval_diff` call.
+**Fix locations:**
+- `src/regimes/loop/gates.py:174-269` — `sandbox_gate` parameterized;
+  `_lme_call_fn`, `_lme_value_validator`, `_probe_input_keys` added.
+- `src/regimes/targets/sql/action_space.py:54-78,107-116` —
+  `_sql_call_fn`, `_sql_value_validator`, and `SqlActionSpace.sandbox_gate`
+  shrunk from ~40 lines of re-implementation to an 8-line delegation.
+
+**Note: small test-string change.** The sandbox gate's
+"unknown-keys" rejection message used to be target-shaped
+(`"introduced unknown turn_ids"` for LME / `"introduced unknown
+prompt_parts"` for the SQL re-implementation). It's now the generic
+`"introduced unknown keys"`. The gate's structural behavior
+(`passed=False`, `n_probed=N`) is identical; only the human-readable
+reason text changed. Two test assertions
+(`tests/test_loop_gates.py:124`, `tests/test_sql_target.py:277`) were
+updated to assert on the generic string. **No loop behavior depends
+on the reason text.**
 
 ---
 
-## Leak 3 — `loop/gates.py::sandbox_gate` hard-codes the score-transform call shape
+## Leak 4 — `EvalDiff.transitions` taxonomy-blind  ✅ RESOLVED (documentation + optional tag)
 
-**File:** `src/regimes/loop/gates.py:156-205`
+**Was:** `transitions: tuple[tuple[str, str, str], ...]` with no
+indication which taxonomy produced the regime-name strings inside.
 
-```python
-def sandbox_gate(fn, *, probes, time_budget_s=2.0):
-    ...
-    for p in probes:
-        input_scores = dict(p.get("scores", {}))
-        out = fn(input_scores, None, p.get("question", ""),
-                 p.get("question_date", ""))      # <-- LME signature pinned
-        ...
-        try:
-            {tid: float(v) for tid, v in out.items()}   # <-- float coercion
-        except (TypeError, ValueError) as e:
-            reasons.append(f"non-float values at probe {n_done}: {e}")
-```
+**Now:** Two changes:
+1. `EvalDiff.taxonomy_name: str = ""` field added with default. The
+   action-space path populates it (`gates.eval_diff` reads
+   `getattr(taxonomy, "name", "")` and stamps it on the returned
+   `EvalDiff`). Empty string preserves direct-caller behavior in
+   tests where `EvalDiff` is constructed inline.
+2. The `transitions` field's docstring now states the regime-name
+   strings are TAXONOMY-LOCAL and gives `taxonomy_name` as the
+   taxonomy-of-origin tag.
 
-The call shape `fn(scores, None, question, question_date)` and the
-float-coercion-on-values check are both score-transform-specific.
+`Attribution` got the same `taxonomy_name` field for symmetry.
 
-**Workaround in Phase 2:** `SqlActionSpace.sandbox_gate`
-(`src/regimes/targets/sql/action_space.py:73-117`) reimplements the
-gate body with the prompt-transform call shape `fn(prompt_parts,
-question, schema_meta)` and no float coercion (prompt_parts values are
-strings/lists). It still returns the same `SandboxResult` dataclass so
-the loop's `behavior_sandbox_gate` sees the documented shape.
-
-**Fix:** Make `sandbox_gate` take a `call_fn` callable
-(`call_fn(fn, probe) -> dict`) and an optional `value_validator`
-(`Callable[[dict], None]` that raises on bad values). The current
-LME-shaped behavior becomes one specific `(call_fn, value_validator)`
-pair; the SQL action space supplies its own.
+**Fix locations:**
+- `src/regimes/loop/gates.py:241-265` — `EvalDiff.taxonomy_name` +
+  docstring update.
+- `src/regimes/loop/gates.py:364-365` — `eval_diff` stamps the
+  taxonomy name onto the result.
+- `src/regimes/loop/attribute.py:39-45` — `Attribution.taxonomy_name`.
+- `src/regimes/loop/attribute.py:97-99` — `attribute()` stamps it.
 
 ---
 
-## Leak 4 — `regimes.target.EvalDiff.transitions` carries regime-name strings whose meaning is per-taxonomy
+## Summary table — after Phase 1.5
 
-**File:** `src/regimes/loop/gates.py:223-224` (definition), re-exported
-via `regimes.target`.
+| Leak | Status | Severity | Pre-1.5 workaround | Post-1.5 |
+|---|---|---|---|---|
+| 1 — `attribute.py` LME classify | resolved | low | none (attribution labels were "unclassified") | `attribute(..., taxonomy=lctx.target.taxonomy)` |
+| 2 — `gates.eval_diff` LME classify/histogram | resolved | **high** | `SqlActionSpace.eval_diff` re-implemented body | one-line delegation to `gates.eval_diff(taxonomy=..., install=..., revert=...)` |
+| 3 — `sandbox_gate` LME call shape + float coercion | resolved | medium | `SqlActionSpace.sandbox_gate` re-implemented body | one-line delegation to `gates.sandbox_gate(call_fn=..., value_validator=...)` |
+| 4 — `EvalDiff.transitions` taxonomy-blind | resolved | low | none | optional `taxonomy_name` field + docstring |
 
-```python
-transitions: tuple[tuple[str, str, str], ...] = ()
-# Each row is (qid, regime_before_name, regime_after_name)
-```
+## Verification (run on commit of this branch)
 
-This isn't broken per se — it's a generic shape — but the regime names
-inside it are produced by whatever `classify` made them, and (per
-leaks 1 + 2) that's currently LME's `classify` for any non-SqlAction-
-Space caller. So the strings inside `transitions` are
-LME-namespace-shaped.
+- **`pytest -q`**: 189 passed, 3 failed (the same three pre-existing
+  environmental `tests/test_split.py` failures as Phase 2).
+- **`python scripts/run_loop.py --mode mock --full`**: report.json is
+  byte-equal to the Phase 2 baseline. LongMemEval behavior is
+  unchanged.
+- **`python scripts/run_sql_loop.py --mode mock --full`**: identical
+  event sequence (110 events), identical baseline (57.9%), identical
+  4 promotions, identical stop reason. Only the
+  `attribution.recorded.transitions` payloads differ — they now use
+  the real SQL regime names instead of `"unclassified"`. **This was
+  leak 1's whole purpose.**
+- **Delegation evidence** (`git diff --stat`):
+  - `src/regimes/targets/sql/action_space.py`: 166 lines deleted, 56
+    added — net ~halved. `eval_diff` and `sandbox_gate`
+    re-implementations gone.
 
-Not a leak the SQL target hits, since `SqlActionSpace.eval_diff`
-produces SQL-named transitions internally. Worth noting for future
-clarity: a future `Target` whose taxonomy shares any regime names
-with LME's would alias them; the `transitions` field has no
-taxonomy-of-origin tag.
+## New leak discovered while fixing these
 
-**Fix:** Either tag transitions with a taxonomy name, or document that
-`EvalDiff.transitions` is target-local. The simplest fix is to make
-the leak-2 fix (taxonomy threaded through `gates.eval_diff`)
-authoritative and call out the field as target-local in its docstring.
+One small structural note, **not blocking**:
 
----
-
-## Summary
-
-| Leak | Symptom in SQL | Workaround | Severity |
-|---|---|---|---|
-| 1 — `attribute.py` LME classify | attribution events use `"unclassified"` labels instead of real SQL regimes | none; cosmetic | low |
-| 2 — `gates.eval_diff` LME classify/histogram | would block ALL SQL promotions | `SqlActionSpace.eval_diff` re-implements diff with SQL taxonomy | **high** |
-| 3 — `sandbox_gate` LME call shape + float coercion | wouldn't be callable on prompt-transform fn | `SqlActionSpace.sandbox_gate` re-implements with prompt-transform shape | medium |
-| 4 — `EvalDiff.transitions` taxonomy-blind | string labels in transitions could collide across taxonomies | none | low |
-
-Fix order: **leak 2 first** (blocks new targets from promoting at all),
-then leak 3 (forces every new ActionSpace to re-implement
-`sandbox_gate`), then leak 1 (cosmetic but cheap once leak 2 is done),
-then leak 4 (documentation).
+- `regimes.target.py` re-exports `EvalDiff`, `SandboxResult`,
+  `StaticResult`, `PromotionDecision` from `regimes.loop.gates`. To
+  avoid a circular import (`gates → target → gates`), both
+  `gates.py` and `attribute.py` reference a local duck-typed
+  `_TaxonomyLike` instead of `regimes.target.RegimeTaxonomy`. It's
+  structurally identical to the protocol in `regimes.target` but it
+  IS a duplicate. The clean fix is to move the four gate-result
+  dataclasses out of `gates.py` into `regimes.target` so the
+  inheritance goes the other way; that's bigger churn than this
+  branch covers and the duck-typing works fine. Filing as a separate
+  cleanup-ticket level item.
