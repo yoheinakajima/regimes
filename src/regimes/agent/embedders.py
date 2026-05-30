@@ -52,13 +52,44 @@ def _truncate_for_embedding(text: str) -> str:
         except Exception:
             _TIKTOKEN_ENC = False  # mark unavailable
     if _TIKTOKEN_ENC:
-        toks = _TIKTOKEN_ENC.encode(text)
+        # `disallowed_special=()` is REQUIRED. tiktoken's encode() defaults
+        # to disallowed_special="all", which RAISES ValueError the moment
+        # the input contains a substring matching a special token (e.g. a
+        # turn that literally contains "<|endoftext|>"). LongMemEval
+        # conversation turns are arbitrary user/assistant text and can
+        # carry such markers, so the default blew up scoring on those
+        # turns. () makes tiktoken encode special-token text as ordinary
+        # bytes — exactly what we want for a length clamp. (This is a
+        # DIFFERENT bug from over-long truncation; both are now handled.)
+        toks = _TIKTOKEN_ENC.encode(text, disallowed_special=())
         if len(toks) <= _EMBED_MAX_TOKENS:
             return text
         return _TIKTOKEN_ENC.decode(toks[:_EMBED_MAX_TOKENS])
     # fallback: ~4 chars/token, conservative
     max_chars = _EMBED_MAX_TOKENS * 4
     return text if len(text) <= max_chars else text[:max_chars]
+
+
+def embedding_token_count(text: str) -> int | None:
+    """Best-effort token count for an embedding input, for diagnostics.
+
+    Uses the same encoder as `_truncate_for_embedding` (with the same
+    special-token-tolerant settings). Returns None if tiktoken is
+    unavailable rather than raising — this is for error reporting, so it
+    must never itself throw."""
+    global _TIKTOKEN_ENC
+    if _TIKTOKEN_ENC is None:
+        try:
+            import tiktoken
+            _TIKTOKEN_ENC = tiktoken.get_encoding("cl100k_base")
+        except Exception:
+            _TIKTOKEN_ENC = False
+    if _TIKTOKEN_ENC:
+        try:
+            return len(_TIKTOKEN_ENC.encode(text, disallowed_special=()))
+        except Exception:
+            return None
+    return None
 
 
 @runtime_checkable

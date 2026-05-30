@@ -21,6 +21,7 @@ Event chain (one question):
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from activegraph import behavior
@@ -29,6 +30,8 @@ from regimes.agent import events as E
 from regimes.agent import transforms
 from regimes.agent.embedders import get_embedder
 from regimes.agent.signals import score_embedding, score_lexical
+
+_log = logging.getLogger("regimes.agent.score_embedding")
 
 
 # ----- 1a) Lexical scoring (gated where signal=="lexical") -------------------
@@ -86,7 +89,39 @@ def behavior_score_embedding(event, graph, ctx) -> None:
     token_budget = payload["token_budget"]
 
     embedder = get_embedder()
-    scores = score_embedding(ctx.view, question, embedder=embedder)
+
+    # Wrap the embedding call so a bad input is VISIBLE and AUDITABLE
+    # instead of dying silently to stderr. score_embedding hands us a
+    # record per offending input (turn_id, input chars/tokens, a repr, and
+    # a full traceback); we log it and emit an agent.embedding_error event
+    # so RealEval can persist it into the run report. The offending turns
+    # get a neutral zero score, so the rest of the question's scores aren't
+    # silently corrupted.
+    embedding_errors: list[dict[str, Any]] = []
+    scores = score_embedding(
+        ctx.view, question, embedder=embedder, on_error=embedding_errors.append
+    )
+
+    for rec in embedding_errors:
+        _log.error(
+            "agent.score_embedding failed on input turn_id=%s "
+            "(chars=%s tokens=%s repr=%s): %s: %s\n%s",
+            rec.get("turn_id"),
+            rec.get("input_chars"),
+            rec.get("input_tokens"),
+            rec.get("input_repr"),
+            rec.get("exception_type"),
+            rec.get("message"),
+            rec.get("traceback"),
+        )
+        graph.emit(
+            E.EMBEDDING_ERROR,
+            {
+                "question_id": question_id,
+                "scorer_model": embedder.model,
+                **rec,
+            },
+        )
 
     graph.emit(
         E.TURNS_SCORED,
@@ -99,6 +134,7 @@ def behavior_score_embedding(event, graph, ctx) -> None:
             "scores": scores,
             "token_budget": token_budget,
             "min_token_length": min_token_length,
+            "n_embedding_errors": len(embedding_errors),
         },
     )
 

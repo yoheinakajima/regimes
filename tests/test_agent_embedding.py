@@ -124,6 +124,136 @@ def test_openai_embedder_missing_key_raises_clean():
             os.environ["OPENAI_API_KEY"] = saved
 
 
+# ---------------------------------------------------------------------------
+# Issue 2: embedding-error visibility + the tiktoken special-token root cause
+# ---------------------------------------------------------------------------
+
+MARKER = "<|endoftext|>"
+
+
+class _FakeTurn:
+    def __init__(self, turn_id, text):
+        self.data = {"turn_id": turn_id, "text": text}
+
+
+class _FakeView:
+    def __init__(self, turns):
+        self._turns = turns
+
+    def objects(self, type):  # noqa: A002 — mirrors the real view API
+        return list(self._turns) if type == "turn" else []
+
+
+class _MarkerFailingEmbedder:
+    """Simulates the tiktoken special-token ValueError: raises on any input
+    containing MARKER, returns a unit vector otherwise."""
+
+    model = "marker-failing"
+
+    def embed(self, texts):
+        out = []
+        for t in texts:
+            if MARKER in t:
+                raise ValueError(f"disallowed special token in {t!r}")
+            out.append([1.0, 0.0, 0.0, 0.0])
+        return out
+
+
+def test_score_embedding_isolates_and_reports_offending_turn():
+    """A single pathological turn must NOT take down the whole question's
+    scoring. The bad turn gets a neutral 0.0; good turns still score; the
+    failure is reported with a turn_id + traceback + repr."""
+    from regimes.agent.signals import score_embedding
+
+    view = _FakeView([
+        _FakeTurn("s1#0", "good turn one"),
+        _FakeTurn("s1#1", f"poisoned {MARKER} turn"),
+        _FakeTurn("s1#2", "good turn two"),
+    ])
+    errs = []
+    scores = score_embedding(
+        view, "good question", embedder=_MarkerFailingEmbedder(),
+        on_error=errs.append,
+    )
+    # Good turns scored (unit·unit = 1.0); poisoned turn got 0.0.
+    assert scores["s1#0"] == pytest.approx(1.0)
+    assert scores["s1#2"] == pytest.approx(1.0)
+    assert scores["s1#1"] == pytest.approx(0.0)
+    # Exactly one auditable record, naming the offending turn, with detail.
+    assert len(errs) == 1
+    rec = errs[0]
+    assert rec["turn_id"] == "s1#1"
+    assert rec["exception_type"] == "ValueError"
+    assert MARKER in rec["input_repr"]
+    assert "Traceback" in rec["traceback"]
+    assert rec["input_chars"] > 0
+
+
+def test_score_embedding_clean_run_reports_no_errors():
+    from regimes.agent.signals import score_embedding
+
+    view = _FakeView([_FakeTurn("s1#0", "a turn"), _FakeTurn("s1#1", "another")])
+    errs = []
+    scores = score_embedding(
+        view, "q", embedder=_MarkerFailingEmbedder(), on_error=errs.append,
+    )
+    assert errs == []
+    assert set(scores) == {"s1#0", "s1#1"}
+
+
+def test_embedding_error_surfaces_as_event_and_chain_continues(instances):
+    """End-to-end: a poisoned question makes the embedder raise, but the
+    agent emits an agent.embedding_error event (auditable, not silent) and
+    the chain still reaches context.assembled with a neutral score."""
+    from regimes.agent import events as AE
+    from regimes.agent import reset_embedder
+
+    try:
+        set_embedder(_MarkerFailingEmbedder())
+        t = retrieve(
+            instances[0], signal="embedding", token_budget=2500,
+            question=f"poisoned {MARKER} question",
+        )
+    finally:
+        reset_embedder()
+
+    err_events = [e for e in t.events if e.type == AE.EMBEDDING_ERROR]
+    assert len(err_events) >= 1
+    p = err_events[0].payload
+    assert p["turn_id"] == "<question>"
+    assert p["exception_type"] == "ValueError"
+    assert MARKER in p["input_repr"]
+    assert "Traceback" in p["traceback"]
+    # The chain didn't die: assembly still ran, and the scored event
+    # records the error count.
+    assert any(e.type == "context.assembled" for e in t.events)
+    scored = _scored_event(t.events)
+    assert scored.payload["n_embedding_errors"] >= 1
+
+
+def test_truncate_passes_disallowed_special_empty(monkeypatch):
+    """Root-cause regression: _truncate_for_embedding must call tiktoken
+    with disallowed_special=() so special-token substrings encode as
+    ordinary text instead of raising ValueError."""
+    from regimes.agent import embedders
+
+    class _FakeEnc:
+        def encode(self, text, *, disallowed_special="all"):
+            # Mirror real tiktoken: default ("all") raises on special tokens.
+            if disallowed_special != () and MARKER in text:
+                raise ValueError("disallowed special token")
+            return list(range(len(text)))
+
+        def decode(self, toks):
+            return "x" * len(toks)
+
+    monkeypatch.setattr(embedders, "_TIKTOKEN_ENC", _FakeEnc())
+    # Would raise ValueError under the old default; must NOT now.
+    out = embedders._truncate_for_embedding(f"hello {MARKER} world")
+    assert isinstance(out, str)
+    assert embedders.embedding_token_count(f"a {MARKER} b") is not None
+
+
 def test_custom_embedder_swap_is_honored(instances):
     """set_embedder() swaps the embedder; the scoring behavior sees it
     via get_embedder(). Proves the production wiring path."""

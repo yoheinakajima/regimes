@@ -499,6 +499,68 @@ class TestMockLoopAllTypes:
 
 
 # ===========================================================================
+# 6b. Regression: assemble-internal reaches the reader-prompt seam THROUGH
+#     the full loop (regime-selection), not just via a direct draft() call.
+#
+# This is the bug that left the whole three-type action space inert on the
+# real path: the loop's _choose_target only drafts for regimes the taxonomy
+# marks optimizable + seam-reachable. assemble-internal mapped to a
+# reader-prompt-transform in REGIME_TO_TYPES, but the taxonomy still flagged
+# it a wall, so the loop never routed to it and only ever drafted
+# score-transforms. With the flags derived from REGIME_TO_TYPES, an
+# assemble-internal-dominant baseline must draft a reader-prompt-transform.
+# ===========================================================================
+
+
+def _assemble_internal_instance(qid: str, gold: str) -> MockInstance:
+    """Well-ranked gold, mostly selected (coverage 1.0), answer still
+    wrong, not truncated → classifies as assemble-internal."""
+    return MockInstance(
+        qid, "multi-session", False, (gold,), False,
+        scores={f"{gold}#0": 0.9, "sN#0": 0.4},
+        ranked=(f"{gold}#0", "sN#0"),
+        selected_turn_ids=(f"{gold}#0",),
+        truncated=False,
+    )
+
+
+class TestAssembleInternalRoutesThroughLoop:
+    def test_loop_drafts_reader_prompt_transform_for_assemble_internal(self):
+        """With assemble-internal the dominant failure, the loop must draft
+        a reader-prompt-transform — NOT a score-transform."""
+        from regimes.loop import run_loop, TRANSFORM_DRAFTED
+
+        instances = [
+            MockInstance("q_ok", "multi-session", False, ("s1",), True,
+                         scores={"s1#0": 1.0}, selected_turn_ids=("s1#0",)),
+            _assemble_internal_instance("q_ai1", "sGa"),
+            _assemble_internal_instance("q_ai2", "sGb"),
+        ]
+        rep = run_loop(
+            eval_backend=MockEval(),
+            instances=instances,
+            author=MockTypedAuthor(),
+            max_consecutive_discards=1,
+        )
+
+        # The histogram's opt/seam columns reflect the routing map: the
+        # dominant failing regime is assemble-internal, marked reachable.
+        rows = {r["regime"]: r for r in rep.histogram["rows"]}
+        ai = rows["assemble-internal"]
+        assert ai["count"] == 2, rows
+        assert ai["optimizable"] is True
+        assert ai["seam_reachable"] is True
+
+        drafted = [e for e in rep.events if e.type == TRANSFORM_DRAFTED]
+        assert drafted, "loop never drafted a transform for assemble-internal"
+        d = drafted[0].payload
+        assert d["target_regime"] == "assemble-internal"
+        # Reader-prompt-transform signature, NOT score-transform.
+        assert "def transform(prompt_parts, question, question_date)" in d["source"]
+        assert "def transform(scores, graph" not in d["source"]
+
+
+# ===========================================================================
 # 7. Confirm threshold is configurable on the action space
 # ===========================================================================
 
