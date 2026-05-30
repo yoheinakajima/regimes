@@ -21,18 +21,24 @@ Four things to verify:
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
+from unittest import mock
+
+import pytest
 
 from regimes.loop import run_loop
 from regimes.target import ActionSpace, EvalBackend, RegimeTaxonomy, Target
 from regimes.targets.sql import (
     FakeSqlReader,
+    LLMSqlAuthor,
     SqlActionSpace,
     SqlEvalBackend,
     SqlOutcome,
     SqlTarget,
     SqlTaxonomy,
     StubSqlAuthor,
+    build_real_sql_author,
     build_target,
 )
 from regimes.targets.sql import prompt_transforms as _pipeline
@@ -356,3 +362,59 @@ def test_run_loop_sql_baseline_in_documented_band():
         assert 0.50 <= acc <= 0.75, f"baseline {acc:.4f} outside 0.50-0.75"
     finally:
         _pipeline.clear()
+
+
+# ---------------------------------------------------------------------------
+# 5) Author construction: mock ↔ real wiring
+# ---------------------------------------------------------------------------
+
+
+def test_mock_mode_uses_stub_author():
+    """In mock mode the action space gets a StubSqlAuthor."""
+    author = StubSqlAuthor()
+    aspace = SqlActionSpace(author=author)
+    assert isinstance(aspace.author, StubSqlAuthor)
+    draft = aspace.draft(dominant_regime="wrong-aggregation", failures=[])
+    assert draft.author == "stub"
+
+
+def test_real_mode_constructs_llm_sql_author_from_env():
+    """build_real_sql_author reads BEHAVIORDRAFTS_MODEL and produces
+    an LLMSqlAuthor — no API call, just construction validation."""
+    env = {
+        "ANTHROPIC_API_KEY": "sk-test-fake",
+        "BEHAVIORDRAFTS_MODEL": "claude-test-model",
+    }
+    with mock.patch.dict(os.environ, env, clear=False):
+        with mock.patch.dict("sys.modules", {"anthropic": mock.MagicMock()}):
+            author = build_real_sql_author()
+    assert isinstance(author, LLMSqlAuthor)
+    assert author.name == "claude-test-model"
+
+
+def test_real_mode_defaults_model_without_env_var():
+    """Without BEHAVIORDRAFTS_MODEL, build_real_sql_author falls back
+    to DEFAULT_LLM_MODEL."""
+    from regimes.targets.sql.hypothesize import DEFAULT_LLM_MODEL
+
+    env = {"ANTHROPIC_API_KEY": "sk-test-fake"}
+    cleaned = {k: v for k, v in os.environ.items() if k != "BEHAVIORDRAFTS_MODEL"}
+    with mock.patch.dict(os.environ, cleaned, clear=True):
+        with mock.patch.dict("sys.modules", {"anthropic": mock.MagicMock()}):
+            author = build_real_sql_author()
+    assert isinstance(author, LLMSqlAuthor)
+    assert author.name == DEFAULT_LLM_MODEL
+
+
+def test_real_author_wired_into_action_space():
+    """LLMSqlAuthor passes through SqlActionSpace.draft unchanged."""
+    env = {
+        "ANTHROPIC_API_KEY": "sk-test-fake",
+        "BEHAVIORDRAFTS_MODEL": "claude-test-model",
+    }
+    with mock.patch.dict(os.environ, env, clear=False):
+        with mock.patch.dict("sys.modules", {"anthropic": mock.MagicMock()}):
+            author = build_real_sql_author()
+            aspace = SqlActionSpace(author=author)
+    assert isinstance(aspace.author, LLMSqlAuthor)
+    assert aspace.author.name == "claude-test-model"
