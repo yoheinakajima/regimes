@@ -245,8 +245,9 @@ class EvalResult:
 @runtime_checkable
 class Reader(Protocol):
     """Generates a hypothesis from (context_text, question). Real
-    implementation is AnthropicReader (claude-sonnet-4-5, T=0,
-    tool-free); test implementation is FakeReader."""
+    implementation is AnthropicReader (default claude-sonnet-4-6, T=0,
+    tool-free; the model id is overridable via REGIMES_READER_MODEL);
+    test implementation is FakeReader."""
 
     name: str
 

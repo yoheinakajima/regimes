@@ -121,7 +121,10 @@ def test_sandbox_rejects_introduced_keys():
     fn = compile_transform(src)
     r = sandbox_gate(fn, probes=[{"scores": {"a": 1.0}}])
     assert not r.passed
-    assert any("introduced unknown turn_ids" in x for x in r.reasons)
+    # Phase 1.5 made sandbox_gate target-agnostic; the reason string is
+    # now the generic "unknown keys" rather than the LME-specific
+    # "unknown turn_ids". The rejection itself is unchanged.
+    assert any("unknown keys" in x for x in r.reasons)
 
 
 def test_sandbox_rejects_raising_transform():

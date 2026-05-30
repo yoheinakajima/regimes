@@ -164,7 +164,7 @@ failure into a regime is on Outcome — `answer_session_ids`,
 `gold_max_score()`) compute the standard regime-detection inputs cheaply.
 
 ```
-RealEval(reader=AnthropicReader(),       # claude-sonnet-4-5, T=0, tool-free
+RealEval(reader=AnthropicReader(),       # default claude-sonnet-4-6, T=0, tool-free
          judge=LMEJudge(lme_checkout=..),# shells to LME upstream evaluate_qa.py
          signal="embedding",             # match rag-dense
          token_budget=2500)              # match rag-dense-turn cell

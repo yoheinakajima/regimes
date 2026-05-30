@@ -1,0 +1,43 @@
+{
+  "source": "fixtures/synthetic_sql.json",
+  "source_sha256": "355bb5429d07c63c3952976f990798df64f47cedbdb613d83b68a75d4e179f03",
+  "n_total": 30,
+  "seed": 42,
+  "optimize_fraction": 0.6,
+  "optimize": [
+    "sql_ci_q00",
+    "sql_ci_q01",
+    "sql_ci_q02",
+    "sql_ci_q04",
+    "sql_ci_q07",
+    "sql_ci_q09",
+    "sql_co_q01",
+    "sql_co_q03",
+    "sql_co_q04",
+    "sql_co_q05",
+    "sql_co_q06",
+    "sql_co_q07",
+    "sql_co_q08",
+    "sql_co_q09",
+    "sql_ed_q01",
+    "sql_ed_q02",
+    "sql_ed_q06",
+    "sql_ed_q07",
+    "sql_ed_q08"
+  ],
+  "confirm": [
+    "sql_ci_q03",
+    "sql_ci_q05",
+    "sql_ci_q06",
+    "sql_ci_q08",
+    "sql_co_q00",
+    "sql_co_q02",
+    "sql_ed_q00",
+    "sql_ed_q03",
+    "sql_ed_q04",
+    "sql_ed_q05",
+    "sql_ed_q09"
+  ],
+  "stratified_by": "question_type",
+  "note": "SQL OPTIMIZE/CONFIRM split. Mirrors the LME held-out discipline: OPTIMIZE drives diagnose / sandbox / eval-diff; CONFIRM is touched once per promotion for reporting."
+}

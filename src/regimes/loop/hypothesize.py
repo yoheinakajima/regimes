@@ -40,7 +40,7 @@ class DraftedTransform:
     name: str
     source: str
     target_regime: str
-    author: str          # "stub" | "claude-sonnet-4-5"
+    author: str          # "stub" | "claude-sonnet-4-6" | ...
     rationale: str = ""
 
 
@@ -146,7 +146,7 @@ class StubAuthor:
 # ---------------------------------------------------------------------------
 
 
-DEFAULT_LLM_MODEL = "claude-sonnet-4-5"
+DEFAULT_LLM_MODEL = "claude-sonnet-4-6"
 
 
 def build_real_author(model: str | None = None) -> "LLMAuthor":

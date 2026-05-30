@@ -140,14 +140,14 @@ def main() -> int:
             )
             return 2
         from regimes.agent import OpenAIEmbedder, set_embedder  # noqa: WPS433
-        from regimes.eval import AnthropicReader, LMEJudge, RealEval  # noqa: WPS433
+        from regimes.eval import LMEJudge, RealEval, build_real_reader  # noqa: WPS433
         set_embedder(OpenAIEmbedder())
         s = load_split(args.split)
         by_id = {x["question_id"]: x for x in json.load(open(args.lme_data))}
         opt = [by_id[q] for q in s.optimize]
         confirm = [by_id[q] for q in s.confirm]
         backend = RealEval(
-            reader=AnthropicReader(),
+            reader=build_real_reader(),
             judge=LMEJudge(lme_checkout=args.lme_checkout),
             signal=args.signal, token_budget=args.token_budget,
         )
