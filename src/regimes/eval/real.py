@@ -38,12 +38,45 @@ from typing import Any, Iterable
 
 from activegraph import ConfigurationError
 
+from regimes.agent import reader_transforms as _reader_transforms
 from regimes.agent import retrieve as agent_retrieve
 from regimes.agent import events as AE
 from regimes.eval.types import EvalResult, Judge, Outcome, Reader
 
 
 REGIMES_RUN_VERSION = "regimes-eval-real-v1"
+
+# The standing reader instruction. A reader-prompt-transform edits the
+# `instruction` (and/or `context`) fragment of the reader prompt; the
+# transformed fragments are folded back into the text the reader sees, so
+# an installed reader-prompt-transform actually changes the reader's
+# prompt during eval (the same seam the score-transform pipeline gives the
+# scorer via turns.scored).
+DEFAULT_READER_INSTRUCTION = (
+    "Answer the question using only the provided context."
+)
+
+
+def _assemble_reader_prompt(
+    *, context: str, question: str, question_date: str
+) -> tuple[str, list[str]]:
+    """Build the reader prompt fragments, apply the installed
+    reader-prompt pipeline, and reassemble the effective context the
+    reader sees. Returns (effective_context, applied_transform_names)."""
+    prompt_parts = {
+        "instruction": DEFAULT_READER_INSTRUCTION,
+        "context": context,
+    }
+    result, _errors = _reader_transforms.apply_pipeline(
+        prompt_parts=prompt_parts,
+        question=question,
+        question_date=question_date,
+    )
+    final = result["prompt_parts"]
+    instruction = str(final.get("instruction", "")).strip()
+    body = str(final.get("context", ""))
+    effective = f"{instruction}\n\n{body}" if instruction else body
+    return effective, list(result["names"])
 
 
 # ============================================================================
@@ -505,8 +538,16 @@ class RealEval:
                     max_doc_freq_fraction=self.max_doc_freq_fraction,
                 )
                 ctx_text = trace.context.text
+                # Hook the reader-prompt-assembly seam: apply any installed
+                # reader-prompt-transform to the prompt fragments before the
+                # reader reads them.
+                reader_context, _applied_reader = _assemble_reader_prompt(
+                    context=ctx_text,
+                    question=inst["question"],
+                    question_date=str(inst.get("question_date", "")),
+                )
                 hyp = self.reader.answer(
-                    context=ctx_text, question=inst["question"], question_id=qid,
+                    context=reader_context, question=inst["question"], question_id=qid,
                 )
                 # Don't let an empty context vanish silently into an
                 # empty hypothesis. If the agent's chain didn't reach

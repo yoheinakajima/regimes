@@ -23,6 +23,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Sequence
 
+from regimes.agent import reader_transforms as _reader_transforms
 from regimes.agent import transforms as _agent_transforms
 from regimes.eval.types import EvalResult
 from regimes.loop import gates as _gates
@@ -51,20 +52,18 @@ LONGMEMEVAL_PER_TYPE_FLOORS: dict[str, float] = {"multi-session": 0.0}
 # Per-type install/revert registries
 # ---------------------------------------------------------------------------
 
-# Assembly-transform and reader-prompt-transform have their own
-# in-process pipelines (same pattern as regimes.agent.transforms).
-# The mock eval honors only the score-transform pipeline today; for
-# the new types, the install/revert is tracked but eval-diff delegates
-# to the same score-transform-aware mock (the additional types are
-# validated via static+sandbox gates and the mock eval pass-through).
+# Assembly-transform has its own in-process pipeline (same pattern as
+# regimes.agent.transforms). The reader-prompt-transform now installs
+# into the shared `regimes.agent.reader_transforms` pipeline that BOTH
+# the mock eval and the real reader path apply — so an installed
+# reader-prompt-transform actually changes the prompt the reader sees
+# during eval-diff (previously it installed into a local dict no eval
+# path ever read, so it could never affect the outcome).
 
 import threading
 
 _ASSEMBLY_LOCK = threading.Lock()
 _ASSEMBLY_PIPELINE: dict[str, Callable] = {}
-
-_READER_LOCK = threading.Lock()
-_READER_PIPELINE: dict[str, Callable] = {}
 
 
 def _install_assembly(name: str, fn: Callable) -> None:
@@ -78,22 +77,19 @@ def _revert_assembly(name: str) -> None:
 
 
 def _install_reader(name: str, fn: Callable) -> None:
-    with _READER_LOCK:
-        _READER_PIPELINE[name] = fn
+    _reader_transforms.promote(name, fn)
 
 
 def _revert_reader(name: str) -> None:
-    with _READER_LOCK:
-        _READER_PIPELINE.pop(name, None)
+    _reader_transforms.revert(name)
 
 
 def clear_all_pipelines() -> None:
     """Test isolation helper."""
     _agent_transforms.clear()
+    _reader_transforms.clear()
     with _ASSEMBLY_LOCK:
         _ASSEMBLY_PIPELINE.clear()
-    with _READER_LOCK:
-        _READER_PIPELINE.clear()
 
 
 # ---------------------------------------------------------------------------
@@ -146,6 +142,7 @@ class LongMemEvalActionSpace:
             target_regime=d.target_regime,
             author=d.author,
             rationale=d.rationale,
+            transform_type=transform_type.name,
         )
 
     def _select_type(self, regime: str) -> TransformType:
@@ -295,7 +292,7 @@ class LongMemEvalActionSpace:
         # Revert from all pipelines (safe: only one will have the name)
         _agent_transforms.revert(name)
         _revert_assembly(name)
-        _revert_reader(name)
+        _reader_transforms.revert(name)
 
     # ---- eval-diff + promotion --------------------------------------------
 
