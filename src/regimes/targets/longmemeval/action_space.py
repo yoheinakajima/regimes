@@ -53,6 +53,7 @@ class LongMemEvalActionSpace:
         default_factory=lambda: dict(LONGMEMEVAL_PER_TYPE_FLOORS)
     )
     overall_floor_delta: float = 0.0
+    confirm_threshold: float = 0.0
     expected_fn: str = "transform"
     n_probe_outcomes: int = 5
     sandbox_time_budget_s: float = 2.0

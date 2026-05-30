@@ -395,7 +395,6 @@ def behavior_promote(event, graph, ctx) -> None:  # noqa: ARG001
     # Promote: install on the target's action-space seam and run a
     # one-shot CONFIRM check (if a CONFIRM set was supplied).
     aspace.install(name, lctx.current_fn)
-    lctx.consecutive_discards = 0
     confirm_delta = None
     if lctx.confirm_instances:
         # Compare CONFIRM accuracy with vs without the transform.
@@ -409,6 +408,37 @@ def behavior_promote(event, graph, ctx) -> None:  # noqa: ARG001
         confirm_delta = (
             confirm_after.overall_accuracy() - confirm_before.overall_accuracy()
         )
+        # Confirm gate: held-out delta must clear the threshold.
+        # Default 0.0 = "must not regress". Reader non-determinism
+        # is ~+-0.02-0.04 on LongMemEval; a threshold of +0.0 still
+        # admits within-noise promotions — callers may set higher
+        # (e.g. +0.02) to require clearing the noise band.
+        confirm_threshold = getattr(aspace, "confirm_threshold", 0.0)
+        if confirm_delta < confirm_threshold:
+            aspace.revert(name)
+            _log_transform(lctx, name, target_regime, "discarded",
+                           reasons=["confirm_regression"],
+                           overall_delta=diff.overall_delta,
+                           target_delta=diff.target_delta,
+                           confirm_delta=confirm_delta,
+                           confirm_threshold=confirm_threshold,
+                           source=lctx.current_source,
+                           author=lctx.current_author)
+            lctx.consecutive_discards += 1
+            graph.emit(
+                E.TRANSFORM_DISCARDED,
+                {
+                    "iteration_id": iid,
+                    "name": name,
+                    "reasons": ["confirm_regression"],
+                    "overall_delta": diff.overall_delta,
+                    "target_delta": diff.target_delta,
+                    "confirm_delta": confirm_delta,
+                    "confirm_threshold": confirm_threshold,
+                },
+            )
+            return
+    lctx.consecutive_discards = 0
     _log_transform(lctx, name, target_regime, "promoted",
                    overall_delta=diff.overall_delta, target_delta=diff.target_delta,
                    confirm_delta=confirm_delta, source=lctx.current_source,

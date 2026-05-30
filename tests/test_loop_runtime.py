@@ -6,9 +6,12 @@ activegraph events, and the report is built by scanning the log.
 
 from __future__ import annotations
 
+import dataclasses
+
 import pytest
 
 from regimes.agent import transforms as T
+from regimes.eval.types import EvalResult, Outcome
 from regimes.loop import (
     BASELINE_RECORDED,
     LOOP_STOPPED,
@@ -238,3 +241,148 @@ def test_named_wall_for_scoring_error_only():
     assert "scoring-error" in rep.stopped["named_wall"]
     # Must surface that a SCORING fix is needed, not a transform.
     assert "scoring" in rep.stopped["named_wall"].lower()
+
+
+# ---------------------------------------------------------------------------
+# Confirm gate: held-out validation must gate promotion
+# ---------------------------------------------------------------------------
+
+
+def _promotable_optimize_instances():
+    """OPTIMIZE instances where stub_topk_boost (assembly-crowding author)
+    flips one failure to correct → promotion-eligible on OPTIMIZE."""
+    return [
+        MockInstance("q_ok1", "multi-session", False, ("s1",), True,
+                     scores={"s1#0": 1.0}, selected_turn_ids=("s1#0",)),
+        MockInstance("q_ok2", "multi-session", False, ("s2",), True,
+                     scores={"s2#0": 0.9}, selected_turn_ids=("s2#0",)),
+        MockInstance(
+            "q_ac", "multi-session", False, ("sG",), False,
+            scores={"sG#0": 0.6, "sN#0": 0.95},
+            ranked=("sN#0", "sG#0"),
+            selected_turn_ids=("sN#0",), truncated=True,
+            gold_score_threshold=0.7,
+            candidate_turn_ids=("sG#0",),
+        ),
+    ]
+
+
+class _RegressOnConfirmEval:
+    """MockEval wrapper that flips marked instances from correct to
+    incorrect when transforms are installed — simulates overfitting
+    where OPTIMIZE improves but CONFIRM regresses."""
+
+    def __init__(self, regress_qids):
+        self._base = MockEval()
+        self._regress_qids = frozenset(regress_qids)
+
+    def run_on_split(self, instances, **kw):
+        result = self._base.run_on_split(instances, **kw)
+        if not T.get_pipeline():
+            return result
+        new_outcomes = []
+        for o in result.outcomes:
+            if o.question_id in self._regress_qids:
+                new_outcomes.append(
+                    dataclasses.replace(o, correct=False, judge_label="mock-0")
+                )
+            else:
+                new_outcomes.append(o)
+        return EvalResult(
+            outcomes=new_outcomes,
+            aggregate=result.aggregate,
+            backend=result.backend,
+            run_dir=result.run_dir,
+            config=result.config,
+        )
+
+
+def test_confirm_gate_promotes_when_positive_on_both():
+    """A transform that improves both OPTIMIZE and CONFIRM still promotes."""
+    optimize = _promotable_optimize_instances()
+    confirm = [
+        MockInstance("qc_ok1", "multi-session", False, ("sc1",), True,
+                     scores={"sc1#0": 1.0}, selected_turn_ids=("sc1#0",)),
+        MockInstance("qc_ok2", "multi-session", False, ("sc2",), True,
+                     scores={"sc2#0": 0.9}, selected_turn_ids=("sc2#0",)),
+        MockInstance(
+            "qc_flip", "multi-session", False, ("scG",), False,
+            scores={"scG#0": 0.6, "scN#0": 0.95},
+            ranked=("scN#0", "scG#0"),
+            selected_turn_ids=("scN#0",), truncated=True,
+            gold_score_threshold=0.7,
+            candidate_turn_ids=("scG#0",),
+        ),
+    ]
+    rep = run_loop(eval_backend=MockEval(), instances=optimize,
+                   confirm_instances=confirm)
+    types = {e.type for e in rep.events}
+    assert TRANSFORM_PROMOTED in types
+    promo = rep.promotions[0]
+    assert promo["confirm_delta"] is not None
+    assert promo["confirm_delta"] > 0
+
+
+def test_confirm_gate_discards_on_confirm_regression():
+    """A transform that passes OPTIMIZE gates but regresses on CONFIRM
+    is discarded with reason='confirm_regression'."""
+    optimize = _promotable_optimize_instances()
+    confirm = [
+        MockInstance("qc_ok1", "multi-session", False, ("sc1",), True,
+                     scores={"sc1#0": 1.0}, selected_turn_ids=("sc1#0",)),
+        MockInstance("qc_ok2", "multi-session", False, ("sc2",), True,
+                     scores={"sc2#0": 0.9}, selected_turn_ids=("sc2#0",)),
+    ]
+    backend = _RegressOnConfirmEval(regress_qids={"qc_ok1", "qc_ok2"})
+    rep = run_loop(eval_backend=backend, instances=optimize,
+                   confirm_instances=confirm, max_consecutive_discards=1)
+    types = {e.type for e in rep.events}
+    assert TRANSFORM_DISCARDED in types
+    assert TRANSFORM_PROMOTED not in types
+    discard = rep.discards[0]
+    assert "confirm_regression" in discard["reasons"]
+    assert discard["confirm_delta"] < 0
+    assert "confirm_threshold" in discard
+
+
+def test_confirm_gate_threshold_is_configurable():
+    """When confirm_threshold is set above zero, a zero-delta CONFIRM
+    result is treated as below threshold and discarded."""
+    from regimes.targets.longmemeval import LongMemEvalTarget
+    from regimes.targets.longmemeval.action_space import LongMemEvalActionSpace
+    from regimes.targets.longmemeval.taxonomy import LongMemEvalTaxonomy
+
+    optimize = _promotable_optimize_instances()
+    confirm = [
+        MockInstance("qc_ok1", "multi-session", False, ("sc1",), True,
+                     scores={"sc1#0": 1.0}, selected_turn_ids=("sc1#0",)),
+        MockInstance("qc_ok2", "multi-session", False, ("sc2",), True,
+                     scores={"sc2#0": 0.9}, selected_turn_ids=("sc2#0",)),
+    ]
+    backend = MockEval()
+    aspace = LongMemEvalActionSpace(confirm_threshold=0.05)
+    target = LongMemEvalTarget(
+        eval_backend=backend, action_space=aspace,
+        taxonomy=LongMemEvalTaxonomy(),
+    )
+    rep = run_loop(target=target, instances=optimize,
+                   confirm_instances=confirm, max_consecutive_discards=1)
+    types = {e.type for e in rep.events}
+    assert TRANSFORM_DISCARDED in types
+    assert TRANSFORM_PROMOTED not in types
+    discard = rep.discards[0]
+    assert "confirm_regression" in discard["reasons"]
+    assert discard["confirm_delta"] == pytest.approx(0.0)
+    assert discard["confirm_threshold"] == pytest.approx(0.05)
+
+
+def test_confirm_gate_noop_without_confirm_instances():
+    """When no confirm instances are supplied, the gate is a no-op
+    and the transform promotes as before."""
+    optimize = _promotable_optimize_instances()
+    rep = run_loop(eval_backend=MockEval(), instances=optimize,
+                   confirm_instances=None)
+    types = {e.type for e in rep.events}
+    assert TRANSFORM_PROMOTED in types
+    promo = rep.promotions[0]
+    assert promo["confirm_delta"] is None
