@@ -65,6 +65,27 @@ def _fake_anthropic(monkeypatch):
                 "model": model, "messages": messages,
                 "max_tokens": max_tokens, "temperature": temperature,
             })
+            # Mimic a model that reads the requested signature out of the
+            # prompt and emits a matching, gate-clean transform — so a
+            # reader-prompt prompt yields a reader-prompt function, etc.
+            prompt = messages[0]["content"]
+            if "selected_turns" in prompt:
+                return _Resp(
+                    "```python\n"
+                    "def transform(selected_turns, scores, question, question_date):\n"
+                    "    return sorted(selected_turns, key=lambda t: -scores.get(t, 0.0))\n"
+                    "```"
+                )
+            if "prompt_parts" in prompt:
+                return _Resp(
+                    "```python\n"
+                    "def transform(prompt_parts, question, question_date):\n"
+                    "    out = dict(prompt_parts)\n"
+                    "    out['instruction'] = out.get('instruction', '') + \\\n"
+                    "        ' Reconcile the evidence already in context before answering.'\n"
+                    "    return out\n"
+                    "```"
+                )
             return _Resp(
                 "```python\n"
                 "def transform(scores, graph, question, question_date):\n"
@@ -128,6 +149,143 @@ def test_llm_author_draft_invokes_client_and_returns_drafted(_fake_anthropic):
     assert "sG#0" in prompt   # the dropped evidence turn id is named
     assert "budget_winners" in prompt
     assert "REWEIGHT" in prompt
+
+
+# ---------------------------------------------------------------------------
+# Per-type authoring: the prompt names the right signature + constraints
+# for the type the action space requested, and a returned sample of each
+# type passes that type's static gate. (No API call — the prompt is read
+# off the recorded fake-client call; the static gate is pure.)
+# ---------------------------------------------------------------------------
+
+
+def _budget_failure() -> Outcome:
+    return Outcome(
+        question_id="q1", question_type="multi-session",
+        is_abstention=False, answer_session_ids=("sG",),
+        correct=False, truncated=True,
+        scores={"sG#0": 0.6, "sN#0": 0.9},
+        ranked=("sN#0", "sG#0"),
+        selected_turn_ids=("sN#0",),
+        decisions=({"turn_id": "sG#0", "included": False, "reason": "budget"},),
+        gold_evidence_turn_ids=("sG#0",),
+    )
+
+
+def _reconciliation_failure() -> Outcome:
+    # Evidence WAS selected (present in context) but the answer is wrong.
+    return Outcome(
+        question_id="qR", question_type="multi-session",
+        is_abstention=False, answer_session_ids=("sG",),
+        correct=False, judge_label="wrong",
+        hypothesis="It was on a Tuesday.",
+        scores={"sG#0": 0.9, "sN#0": 0.5},
+        ranked=("sG#0", "sN#0"),
+        selected_turn_ids=("sG#0", "sN#0"),
+        gold_evidence_turn_ids=("sG#0",),
+    )
+
+
+def _static_gate_for(active_type):
+    from regimes.targets.longmemeval.action_space import LongMemEvalActionSpace
+    aspace = LongMemEvalActionSpace()
+    aspace._active_type = active_type
+    return aspace.static_gate
+
+
+def test_score_transform_prompt_and_gate(_fake_anthropic):
+    from regimes.targets.longmemeval.transform_types import SCORE_TRANSFORM
+
+    author = build_real_author()
+    cli = author._ensure_client()
+    drafted = author.draft_typed(
+        dominant_regime="budget-truncation",
+        failures=[_budget_failure()],
+        transform_type="score-transform",
+    )
+    prompt = cli.messages.calls[0]["messages"][0]["content"]
+    # Right signature + score-transform constraints.
+    assert "def transform(scores: dict, graph" in prompt
+    assert "-> dict" in prompt
+    assert "REWEIGHT" in prompt
+    assert "SAME turn_ids" in prompt
+    # Failure signals for the regime.
+    assert "evidence_dropped_at_budget" in prompt
+    assert "budget_winners" in prompt
+    assert "sG#0" in prompt
+    # A returned sample passes the score-transform static gate.
+    r = _static_gate_for(SCORE_TRANSFORM)(drafted.source)
+    assert r.passed, r.reasons
+
+
+def test_assembly_transform_prompt_and_gate(_fake_anthropic):
+    from regimes.targets.longmemeval.transform_types import ASSEMBLY_TRANSFORM
+
+    author = build_real_author()
+    cli = author._ensure_client()
+    drafted = author.draft_typed(
+        dominant_regime="assembly-crowding",
+        failures=[_budget_failure()],
+        transform_type="assembly-transform",
+    )
+    prompt = cli.messages.calls[0]["messages"][0]["content"]
+    # Right signature: takes selected_turns + scores, returns a list.
+    assert "def transform(selected_turns: list, scores: dict" in prompt
+    assert "-> list" in prompt
+    # Constraints: subset-or-reorder, no fabricated ids.
+    assert "SUBSET-OR-REORDER" in prompt
+    assert "fabricated" in prompt
+    # Failure signals: dropped evidence + crowding competitors.
+    assert "evidence_dropped_at_budget" in prompt
+    assert "sG#0" in prompt
+    # A returned sample passes the assembly-transform static gate.
+    r = _static_gate_for(ASSEMBLY_TRANSFORM)(drafted.source)
+    assert r.passed, r.reasons
+
+
+def test_reader_prompt_transform_prompt_and_gate(_fake_anthropic):
+    from regimes.targets.longmemeval.transform_types import READER_PROMPT_TRANSFORM
+
+    author = build_real_author()
+    cli = author._ensure_client()
+    drafted = author.draft_typed(
+        dominant_regime="assemble-internal",
+        failures=[_reconciliation_failure()],
+        transform_type="reader-prompt-transform",
+    )
+    prompt = cli.messages.calls[0]["messages"][0]["content"]
+    # Right signature: edits prompt_parts, returns a dict.
+    assert "def transform(prompt_parts: dict, question: str" in prompt
+    assert "-> dict" in prompt
+    # Constraints: same keys, bounded added text.
+    assert "SAME KEYS" in prompt
+    assert "2000" in prompt
+    # Failure signals: reconciliation failures (evidence in context, wrong).
+    assert "reconciliation_failure=True" in prompt
+    assert "evidence_present_in_context" in prompt
+    assert "sG#0" in prompt
+    # A returned sample passes the reader-prompt static gate.
+    r = _static_gate_for(READER_PROMPT_TRANSFORM)(drafted.source)
+    assert r.passed, r.reasons
+
+
+def test_action_space_routes_active_type_to_llm_author(_fake_anthropic):
+    """End-to-end wiring: the action space selects the type for the
+    regime, sets _active_type, and the LLMAuthor drafts THAT type — the
+    drafted source then passes the action space's own static gate."""
+    from regimes.targets.longmemeval.action_space import LongMemEvalActionSpace
+
+    author = build_real_author()
+    aspace = LongMemEvalActionSpace(author=author)
+    # assemble-internal routes to reader-prompt-transform.
+    change = aspace.draft(
+        dominant_regime="assemble-internal",
+        failures=[_reconciliation_failure()],
+    )
+    assert aspace._active_type.name == "reader-prompt-transform"
+    assert "prompt_parts" in change.source
+    r = aspace.static_gate(change.source)
+    assert r.passed, r.reasons
 
 
 # ---------------------------------------------------------------------------
