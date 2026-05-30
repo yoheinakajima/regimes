@@ -54,6 +54,25 @@ TRANSFORM_SIGNATURE = (
     "def transform(scores: dict, graph, question: str, question_date: str) -> dict:"
 )
 
+# Per-type signatures for the widened LongMemEval action space. The
+# author must draft a transform whose signature matches the type the
+# action space selected for the diagnosed regime — otherwise the static
+# gate rejects it on a signature mismatch. These mirror the
+# `signature_params` pinned on each TransformType descriptor in
+# `regimes.targets.longmemeval.transform_types`.
+SCORE_TRANSFORM_SIGNATURE = TRANSFORM_SIGNATURE
+ASSEMBLY_TRANSFORM_SIGNATURE = (
+    "def transform(selected_turns: list, scores: dict, "
+    "question: str, question_date: str) -> list:"
+)
+READER_PROMPT_TRANSFORM_SIGNATURE = (
+    "def transform(prompt_parts: dict, question: str, question_date: str) -> dict:"
+)
+
+# Reader-prompt-transforms may only add a bounded amount of text. Kept in
+# sync with the cap the reader-prompt value-validator enforces.
+READER_PROMPT_MAX_ADDED_CHARS = 2000
+
 
 # ---------------------------------------------------------------------------
 # StubAuthor — a small library of pre-written transforms per regime.
@@ -196,10 +215,52 @@ class LLMAuthor:
         dominant_regime: str,
         failures: Iterable[Outcome],
     ) -> DraftedTransform:
+        """Legacy single-type path: always drafts a score-transform.
+
+        Kept for callers (and the action space's fallback branch) that
+        don't pass an active transform type. Equivalent to
+        `draft_typed(..., transform_type="score-transform")` but keeps
+        the historical `llm_<regime>` name."""
+        return self._draft(
+            dominant_regime=dominant_regime,
+            failures=failures,
+            transform_type="score-transform",
+            name=f"llm_{dominant_regime.replace('-', '_')}",
+        )
+
+    def draft_typed(
+        self,
+        *,
+        dominant_regime: str,
+        failures: Iterable[Outcome],
+        transform_type: str,
+    ) -> DraftedTransform:
+        """Draft a transform of the type the action space requested.
+
+        The LongMemEvalActionSpace sets its `_active_type` and passes the
+        type name here; the prompt is built so the model emits a function
+        whose SIGNATURE and CONSTRAINTS match that type, and so it
+        receives the failure signals relevant to that type. Drafting the
+        wrong type would fail the per-type static gate."""
+        return self._draft(
+            dominant_regime=dominant_regime,
+            failures=failures,
+            transform_type=transform_type,
+            name=f"llm_{transform_type.replace('-', '_')}_"
+                 f"{dominant_regime.replace('-', '_')}",
+        )
+
+    def _draft(
+        self,
+        *,
+        dominant_regime: str,
+        failures: Iterable[Outcome],
+        transform_type: str,
+        name: str,
+    ) -> DraftedTransform:
         cli = self._ensure_client()
         sample = list(failures)[:8]
-        sample_str = _format_failure_signals(sample)
-        prompt = _build_author_prompt(dominant_regime, sample_str)
+        prompt = build_typed_author_prompt(transform_type, dominant_regime, sample)
         resp = cli.messages.create(  # pragma: no cover — network path
             model=self.name,
             max_tokens=self.max_tokens,
@@ -213,7 +274,7 @@ class LLMAuthor:
                 break
         src = _extract_code(text)
         return DraftedTransform(
-            name=f"llm_{dominant_regime.replace('-', '_')}",
+            name=name,
             source=src,
             target_regime=dominant_regime,
             author=self.name,
@@ -260,6 +321,114 @@ def _format_failure_signals(failures: list[Outcome]) -> str:
             f"    top_ranked_scores={score_view}"
         )
     return "\n".join(blocks)
+
+
+def build_typed_author_prompt(
+    transform_type: str, dominant_regime: str, sample: list[Outcome]
+) -> str:
+    """Construct the author prompt for the requested transform type.
+
+    Each type gets its own signature, constraints, and failure-signal
+    framing. Unknown types fall back to the score-transform prompt."""
+    if transform_type == "assembly-transform":
+        return _build_assembly_prompt(
+            dominant_regime, _format_failure_signals(sample)
+        )
+    if transform_type == "reader-prompt-transform":
+        return _build_reader_prompt(
+            dominant_regime, _format_reconciliation_signals(sample)
+        )
+    # score-transform (default / legacy)
+    return _build_author_prompt(dominant_regime, _format_failure_signals(sample))
+
+
+def _format_reconciliation_signals(failures: list[Outcome]) -> str:
+    """Per-failure signals the reader-prompt author needs: the questions
+    where the evidence WAS present in the assembled context but the
+    reader still answered wrong (reconciliation failures). These are the
+    assemble-internal cases a prompt edit can target — the retrieval
+    worked, so only the reader's instructions can move them."""
+    if not failures:
+        return "(no failures)"
+    blocks: list[str] = []
+    for o in failures:
+        # Evidence that actually reached the reader's context window.
+        evidence_in_context = list(o.evidence_selected()) \
+            if o.has_evidence_turn_ids() else list(o.gold_selected())
+        reconciliation_failure = bool(evidence_in_context) and not o.correct
+        blocks.append(
+            f"- qid={o.question_id} type={o.question_type} "
+            f"reconciliation_failure={reconciliation_failure}\n"
+            f"    evidence_present_in_context={evidence_in_context}\n"
+            f"    n_selected={len(o.selected_turn_ids)}\n"
+            f"    judge_label={o.judge_label!r}\n"
+            f"    wrong_answer={o.hypothesis[:160]!r}"
+        )
+    return "\n".join(blocks)
+
+
+def _build_assembly_prompt(dominant_regime: str, signals_block: str) -> str:
+    return (
+        f"You are authoring a Python assembly-transform to address the "
+        f"'{dominant_regime}' retrieval regime.\n\n"
+        f"Signature (REQUIRED, exact):\n  {ASSEMBLY_TRANSFORM_SIGNATURE}\n\n"
+        "The transform is called once per question, AFTER assembly has\n"
+        "picked `selected_turns` (an ordered list of turn_ids that fit the\n"
+        "token budget) and BEFORE the reader sees them. `scores` maps\n"
+        "turn_id -> post-scoring weight. Your job is to REORDER and/or\n"
+        "FILTER `selected_turns` so that:\n"
+        "  - evidence turns that were dropped at the budget wall, or buried\n"
+        "    beneath the competing turns that crowded them out, end up\n"
+        "    earlier (or survive a filter), AND\n"
+        "  - you do NOT invent turn_ids.\n\n"
+        "Constraints:\n"
+        "  - Pure Python; ONLY the `math` and `string` modules may be\n"
+        "    imported.\n"
+        "  - No filesystem, network, subprocess, no attribute access on\n"
+        "    builtins (no getattr/setattr/__class__/etc.).\n"
+        "  - Return a LIST of turn_ids that is a SUBSET-OR-REORDER of the\n"
+        "    input `selected_turns`. Every returned id MUST already be in\n"
+        "    the input — NO fabricated ids. You may drop ids (filter) and\n"
+        "    reorder them; you may not add new ones.\n"
+        "  - You do not know which turns are evidence at call time — reason\n"
+        "    over `scores` shape (relative ranks, gaps) and the question.\n\n"
+        f"Per-question failure signals (the dropped evidence and the\n"
+        f"competing turns that crowded it out):\n"
+        f"{signals_block}\n\n"
+        "Reply with a single ```python``` block containing only the\n"
+        "function. No prose."
+    )
+
+
+def _build_reader_prompt(dominant_regime: str, signals_block: str) -> str:
+    return (
+        f"You are authoring a Python reader-prompt-transform to address the "
+        f"'{dominant_regime}' regime.\n\n"
+        f"Signature (REQUIRED, exact):\n  {READER_PROMPT_TRANSFORM_SIGNATURE}\n\n"
+        "The transform is called once per question to edit the reader's\n"
+        "prompt fragments. `prompt_parts` is a dict of named prompt pieces\n"
+        "(e.g. 'context', 'instruction'). The evidence already reached the\n"
+        "reader's context on the failing questions below — retrieval and\n"
+        "assembly worked — but the reader still answered wrong. Your job is\n"
+        "to EDIT the prompt fragment values (typically 'instruction') to\n"
+        "write guidance that helps the reader reconcile the evidence that\n"
+        "is already present and produce the correct answer.\n\n"
+        "Constraints:\n"
+        "  - Pure Python; ONLY the `math` and `string` modules may be\n"
+        "    imported.\n"
+        "  - No filesystem, network, subprocess, no attribute access on\n"
+        "    builtins (no getattr/setattr/__class__/etc.).\n"
+        "  - Return a dict with the SAME KEYS as the input `prompt_parts`.\n"
+        "    You may EDIT the values; you may NOT add or remove keys.\n"
+        f"  - Total added text across all fragments must be <= "
+        f"{READER_PROMPT_MAX_ADDED_CHARS} characters.\n\n"
+        f"Per-question reconciliation failures (evidence present in context\n"
+        f"but the answer was still wrong — write instructions targeting\n"
+        f"these):\n"
+        f"{signals_block}\n\n"
+        "Reply with a single ```python``` block containing only the\n"
+        "function. No prose."
+    )
 
 
 def _build_author_prompt(dominant_regime: str, signals_block: str) -> str:
