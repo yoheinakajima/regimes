@@ -72,6 +72,7 @@ class SqlActionSpace:
     expected_fn: str = "transform"
     per_type_floors: Mapping[str, float] = field(default_factory=dict)
     overall_floor_delta: float = 0.0
+    confirm_threshold: float = 0.0
     n_probe_outcomes: int = 5
     sandbox_time_budget_s: float = 2.0
 
