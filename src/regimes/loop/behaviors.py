@@ -63,6 +63,13 @@ class LoopContext:
     confirm_instances: list[Any] | None
     baseline: EvalResult | None = None
     last_result: EvalResult | None = None
+    # The two CONFIRM (held-out) eval snapshots taken at the promotion
+    # gate: baseline-on-CONFIRM (transform reverted) and
+    # transform-on-CONFIRM. Stashed by `behavior_promote` so
+    # `behavior_attribute` can compute held-out transitions, and so the
+    # promotion event can persist the per-question held-out outcomes.
+    confirm_baseline: EvalResult | None = None
+    confirm_transform: EvalResult | None = None
     max_consecutive_discards: int = 3
     consecutive_discards: int = 0
     # Regimes that have hit max_consecutive_discards and been retired from
@@ -414,6 +421,8 @@ def behavior_promote(event, graph, ctx) -> None:  # noqa: ARG001
     # one-shot CONFIRM check (if a CONFIRM set was supplied).
     aspace.install(name, lctx.current_fn)
     confirm_delta = None
+    confirm_before = None
+    confirm_after = None
     if lctx.confirm_instances:
         # Compare CONFIRM accuracy with vs without the transform.
         # We promoted above; for the "without" baseline reading we
@@ -423,6 +432,11 @@ def behavior_promote(event, graph, ctx) -> None:  # noqa: ARG001
         aspace.revert(name)
         confirm_before = backend.run_on_split(lctx.confirm_instances)
         aspace.install(name, lctx.current_fn)
+        # Pin both held-out snapshots so the promotion event can persist
+        # the per-question CONFIRM outcomes and `behavior_attribute` can
+        # compute held-out transitions from the same two runs.
+        lctx.confirm_baseline = confirm_before
+        lctx.confirm_transform = confirm_after
         confirm_delta = (
             confirm_after.overall_accuracy() - confirm_before.overall_accuracy()
         )
@@ -461,6 +475,21 @@ def behavior_promote(event, graph, ctx) -> None:  # noqa: ARG001
                    overall_delta=diff.overall_delta, target_delta=diff.target_delta,
                    confirm_delta=confirm_delta, source=lctx.current_source,
                    author=lctx.current_author)
+    # Persist the per-question held-out (CONFIRM) outcomes for BOTH the
+    # baseline-on-CONFIRM and transform-on-CONFIRM runs, in the same
+    # shape as baseline.outcomes (question_id, question_type, correct,
+    # regime, is_abstention, ...). Only the aggregate confirm_delta was
+    # persisted before, which made per-type held-out deltas, held-out
+    # flip tables and abstention movement impossible to reconstruct from
+    # the saved report. Empty lists when no CONFIRM set was supplied.
+    confirm_baseline_outcomes = (
+        [lctx.target.outcome_summary(o) for o in confirm_before.outcomes]
+        if confirm_before is not None else []
+    )
+    confirm_transform_outcomes = (
+        [lctx.target.outcome_summary(o) for o in confirm_after.outcomes]
+        if confirm_after is not None else []
+    )
     graph.emit(
         E.TRANSFORM_PROMOTED,
         {
@@ -470,6 +499,8 @@ def behavior_promote(event, graph, ctx) -> None:  # noqa: ARG001
             "overall_delta": diff.overall_delta,
             "target_delta": diff.target_delta,
             "confirm_delta": confirm_delta,
+            "confirm_baseline_outcomes": confirm_baseline_outcomes,
+            "confirm_transform_outcomes": confirm_transform_outcomes,
         },
     )
 
@@ -488,16 +519,33 @@ def behavior_attribute(event, graph, ctx) -> None:  # noqa: ARG001
     after = lctx.target.eval_backend.run_on_split(lctx.instances)
     lctx.last_result = after
     att = _attribute(lctx.baseline, after, taxonomy=lctx.target.taxonomy)
-    graph.emit(
-        E.ATTRIBUTION_RECORDED,
-        {
-            "iteration_id": iid,
-            "name": name,
-            "transitions": [list(t) for t in att.transitions],
-            "n_recovered": att.n_recovered,
-            "n_introduced": att.n_introduced,
-        },
-    )
+    payload = {
+        "iteration_id": iid,
+        "name": name,
+        "split": "optimize",
+        # Bare (qid, from, to) triples — kept for backward compatibility.
+        "transitions": [list(t) for t in att.transitions],
+        # Direction made explicit: BOTH wrong→right ("gained") and
+        # right→wrong ("lost") flips, plus wrong→wrong regime shifts.
+        # Required to prove (or disprove) per-category regressions.
+        "transition_rows": list(att.directed_rows()),
+        "n_recovered": att.n_recovered,
+        "n_introduced": att.n_introduced,
+    }
+    # Held-out (CONFIRM) attribution from the same two snapshots the
+    # promotion gate took: baseline-on-CONFIRM vs transform-on-CONFIRM.
+    # Carries the same bidirectional, direction-explicit shape so
+    # held-out regressions are visible, not just OPTIMIZE ones.
+    if lctx.confirm_baseline is not None and lctx.confirm_transform is not None:
+        catt = _attribute(
+            lctx.confirm_baseline, lctx.confirm_transform,
+            taxonomy=lctx.target.taxonomy,
+        )
+        payload["confirm_transitions"] = [list(t) for t in catt.transitions]
+        payload["confirm_transition_rows"] = list(catt.directed_rows())
+        payload["confirm_n_recovered"] = catt.n_recovered
+        payload["confirm_n_introduced"] = catt.n_introduced
+    graph.emit(E.ATTRIBUTION_RECORDED, payload)
 
 
 # ----- 9) Stop / iterate ----------------------------------------------------

@@ -60,6 +60,7 @@ def outcome_summary(o: Outcome, *, well_ranked_k: int = WELL_RANKED_K) -> dict[s
         "question_type": o.question_type,
         "correct": o.correct,
         "regime": regime_name,
+        "is_abstention": o.is_abstention,
         "truncated": o.truncated,
         "n_selected": len(o.selected_turn_ids),
         "score_error": bool(o.score_error),

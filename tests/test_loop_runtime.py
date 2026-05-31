@@ -386,3 +386,108 @@ def test_confirm_gate_noop_without_confirm_instances():
     assert TRANSFORM_PROMOTED in types
     promo = rep.promotions[0]
     assert promo["confirm_delta"] is None
+
+
+# ---------------------------------------------------------------------------
+# Held-out persistence: per-question CONFIRM outcomes + bidirectional
+# attribution (the analyzable held-out data the report must carry)
+# ---------------------------------------------------------------------------
+
+
+def _confirm_with_one_flip():
+    """A 3-question CONFIRM set; the third flips correct under the
+    promoted transform (assembly-crowding boost), so held-out gain is
+    observable per-question."""
+    return [
+        MockInstance("qc_ok1", "multi-session", False, ("sc1",), True,
+                     scores={"sc1#0": 1.0}, selected_turn_ids=("sc1#0",)),
+        MockInstance("qc_ok2", "knowledge-update", False, ("sc2",), True,
+                     scores={"sc2#0": 0.92}, selected_turn_ids=("sc2#0",)),
+        MockInstance(
+            "qc_flip", "multi-session", False, ("scG",), False,
+            scores={"scG#0": 0.6, "scN#0": 0.95},
+            ranked=("scN#0", "scG#0"),
+            selected_turn_ids=("scN#0",), truncated=True,
+            gold_score_threshold=0.7,
+            candidate_turn_ids=("scG#0",),
+        ),
+    ]
+
+
+def test_promotion_persists_per_question_confirm_outcomes():
+    """A promoted transform persists per-question outcomes for BOTH
+    baseline-on-CONFIRM and transform-on-CONFIRM, in the baseline shape
+    (qid/type/correct/regime/is_abstention) — so per-type held-out
+    deltas, flips and abstention movement are reconstructable."""
+    optimize = _promotable_optimize_instances()
+    confirm = _confirm_with_one_flip()
+    rep = run_loop(eval_backend=MockEval(), instances=optimize,
+                   confirm_instances=confirm)
+    promo = rep.promotions[0]
+
+    base = promo["confirm_baseline_outcomes"]
+    xform = promo["confirm_transform_outcomes"]
+    assert len(base) == len(confirm)
+    assert len(xform) == len(confirm)
+    # Same per-question audit shape as baseline.outcomes.
+    for o in base + xform:
+        assert {"question_id", "question_type", "correct", "regime",
+                "is_abstention"} <= set(o)
+
+    by_base = {o["question_id"]: o for o in base}
+    by_xform = {o["question_id"]: o for o in xform}
+    # The held-out flip is visible per-question: wrong in baseline, right
+    # under the transform — NOT just an aggregate confirm_delta scalar.
+    assert by_base["qc_flip"]["correct"] is False
+    assert by_xform["qc_flip"]["correct"] is True
+
+
+def test_attribution_records_bidirectional_optimize_and_confirm():
+    """The attribution event carries direction-explicit transition rows
+    for BOTH OPTIMIZE and CONFIRM, so regressions (right→wrong) are
+    representable, not only wrong→right flips."""
+    optimize = _promotable_optimize_instances()
+    confirm = _confirm_with_one_flip()
+    rep = run_loop(eval_backend=MockEval(), instances=optimize,
+                   confirm_instances=confirm)
+    att = rep.attributions[0]
+
+    # OPTIMIZE rows carry explicit direction.
+    assert att["split"] == "optimize"
+    opt_rows = att["transition_rows"]
+    assert opt_rows, "expected at least one OPTIMIZE transition"
+    for r in opt_rows:
+        assert r["status"] in {"gained", "lost", "shifted"}
+        assert r["status"] == "gained" if r["after_correct"] else True
+    assert any(r["status"] == "gained" for r in opt_rows)
+
+    # CONFIRM (held-out) attribution present with the same explicit shape.
+    conf_rows = att["confirm_transition_rows"]
+    assert any(r["question_id"] == "qc_flip" and r["status"] == "gained"
+               for r in conf_rows)
+    assert att["confirm_n_recovered"] == 1
+    assert att["confirm_n_introduced"] == 0
+
+
+def test_directed_rows_mark_regressions_as_lost():
+    """Direct unit check: a right→wrong transition is labeled 'lost' and
+    counted as an introduced regression."""
+    from regimes.loop.attribute import attribute
+
+    def _o(qid, correct):
+        return Outcome(question_id=qid, question_type="multi-session",
+                       is_abstention=False, answer_session_ids=("s",),
+                       correct=correct, scores={}, ranked=(),
+                       selected_turn_ids=())
+
+    before = EvalResult(outcomes=[_o("q1", True), _o("q2", False)],
+                        aggregate={}, backend="mock")
+    after = EvalResult(outcomes=[_o("q1", False), _o("q2", True)],
+                       aggregate={}, backend="mock")
+    att = attribute(before, after)
+    rows = {r["question_id"]: r for r in att.directed_rows()}
+    assert rows["q1"]["status"] == "lost"
+    assert rows["q1"]["before_correct"] and not rows["q1"]["after_correct"]
+    assert rows["q2"]["status"] == "gained"
+    assert att.n_introduced == 1
+    assert att.n_recovered == 1

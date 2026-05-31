@@ -48,6 +48,41 @@ class Attribution:
     ) -> tuple[tuple[str, str, str], ...]:
         return tuple(t for t in self.transitions if t[1] == target_regime)
 
+    def directed_rows(self) -> tuple[dict[str, Any], ...]:
+        """Per-transition rows with the DIRECTION made explicit.
+
+        The bare `(qid, before, after)` triples already carry both
+        directions (a right→wrong regression is `(qid, "correct",
+        <regime>)`), but a consumer has to know that "correct" is the
+        sentinel to read direction out of them. These rows surface it
+        directly so held-out flip tables and per-category regression
+        counts are reconstructable from the saved report without that
+        implicit knowledge:
+
+          status "gained"  — wrong→right (before incorrect, now correct)
+          status "lost"    — right→wrong (before correct, now incorrect)
+          status "shifted" — wrong→wrong, regime label changed
+        """
+        rows: list[dict[str, Any]] = []
+        for qid, bv, av in self.transitions:
+            if av == "correct" and bv != "correct":
+                status = "gained"
+            elif bv == "correct" and av != "correct":
+                status = "lost"
+            else:
+                status = "shifted"
+            rows.append(
+                {
+                    "question_id": qid,
+                    "before": bv,
+                    "after": av,
+                    "before_correct": bv == "correct",
+                    "after_correct": av == "correct",
+                    "status": status,
+                }
+            )
+        return tuple(rows)
+
 
 class _TaxonomyLike:
     """Duck-typed protocol so this module doesn't import
