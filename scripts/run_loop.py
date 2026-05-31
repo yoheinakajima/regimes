@@ -54,6 +54,61 @@ def _build_mock_confirm_instances() -> list[MockInstance]:
     ]
 
 
+def _build_chaotic_mock_instances() -> list[MockInstance]:
+    """A budget-truncation-dominant + assemble-internal fixture that
+    forces the loop to ROTATE between two seam-reachable regimes under a
+    chaotic author. Mirrors the real run's baseline shape: drafting
+    score-transforms for budget-truncation (which the chaotic author
+    botches), then rotating to assemble-internal and drafting a
+    reader-prompt-transform that CAN promote (the assemble-internal
+    instances carry prompt fragments + the reconciliation marker)."""
+    from regimes.targets.longmemeval.mock_author import RECONCILE_MARKER
+
+    insts: list[MockInstance] = [
+        MockInstance("q_ok", "multi-session", False, ("s_ok",), True,
+                     scores={"s_ok#0": 1.0}, selected_turn_ids=("s_ok#0",)),
+    ]
+    # 4 budget-truncation: gold dropped at the budget wall, no flip path.
+    for i in range(4):
+        insts.append(MockInstance(
+            f"q_bt{i}", "multi-session", False, (f"sGb{i}",), False,
+            scores={f"sGb{i}#0": 0.7, f"sNb{i}#0": 0.6},
+            ranked=(f"sGb{i}#0", f"sNb{i}#0"),
+            selected_turn_ids=(f"sNb{i}#0",), truncated=True,
+            decisions=({"turn_id": f"sGb{i}#0", "included": False, "reason": "budget"},),
+            candidate_turn_ids=(f"sGb{i}#0", f"sNb{i}#0"),
+        ))
+    # 3 assemble-internal: gold fully selected, answer wrong, not truncated;
+    # a reader-prompt-transform injecting the marker flips them correct.
+    for i in range(3):
+        gold = f"sGa{i}"
+        insts.append(MockInstance(
+            f"q_ai{i}", "multi-session", False, (gold,), False,
+            scores={f"{gold}#0": 0.9, f"sNa{i}#0": 0.4},
+            ranked=(f"{gold}#0", f"sNa{i}#0"),
+            selected_turn_ids=(f"{gold}#0",), truncated=False,
+            prompt_parts=(
+                ("instruction", "Answer the question based on the context."),
+                ("context", f"turn {gold}#0"),
+            ),
+            reader_correct_when_contains=RECONCILE_MARKER,
+        ))
+    return insts
+
+
+def _build_chaotic_author():
+    """A ChaoticMockAuthor scripted to reproduce the real failure mix:
+    budget-truncation gets a discard / sandbox-reject / static-reject mix
+    (exhausts → rotate), then assemble-internal gets a promotable
+    reader-prompt-transform."""
+    from regimes.targets.longmemeval.mock_author import ChaoticMockAuthor
+
+    return ChaoticMockAuthor(by_regime={
+        "budget-truncation": ["discard", "sandbox_reject", "static_reject"],
+        "assemble-internal": ["promote"],
+    })
+
+
 def _build_mock_instances() -> list[MockInstance]:
     """A small fixture mix used to exercise the histogram in --mock
     mode. Carries one of each main regime plus a couple of correct
@@ -108,6 +163,13 @@ def main() -> int:
         "--full", action="store_true",
         help="Run all phases through stop (default: pause after histogram).",
     )
+    p.add_argument(
+        "--chaotic", action="store_true",
+        help="Mock mode only: use the ChaoticMockAuthor (emits the real "
+             "author's failure mix) against a budget-truncation + "
+             "assemble-internal fixture so the loop rotates between two "
+             "seam-reachable regimes and ends cleanly.",
+    )
     p.add_argument("--run-dir", default="runs/loop_001",
                    help="Where to write the report.")
     p.add_argument("--split", default="config/split.json")
@@ -123,12 +185,20 @@ def main() -> int:
     run_dir.mkdir(parents=True, exist_ok=True)
 
     if args.mode == "mock":
-        instances = _build_mock_instances()
-        confirm = _build_mock_confirm_instances()
         backend = MockEval()
-        rep = run_loop(eval_backend=backend, instances=instances,
-                       confirm_instances=confirm,
-                       pause_after=pause_after)
+        if args.chaotic:
+            instances = _build_chaotic_mock_instances()
+            confirm = _build_mock_confirm_instances()
+            rep = run_loop(eval_backend=backend, instances=instances,
+                           confirm_instances=confirm,
+                           author=_build_chaotic_author(),
+                           pause_after=pause_after)
+        else:
+            instances = _build_mock_instances()
+            confirm = _build_mock_confirm_instances()
+            rep = run_loop(eval_backend=backend, instances=instances,
+                           confirm_instances=confirm,
+                           pause_after=pause_after)
     else:
         # Real path: build a RealEval, feed it the OPTIMIZE instances
         # for hypothesize/eval-diff and the CONFIRM instances for the

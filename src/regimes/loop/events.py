@@ -14,19 +14,28 @@ Sequence per iteration:
       -> behavior_hypothesize        (or pause)
     transform.drafted                (inert; name, src, target_regime, author)
       -> behavior_static_gate
-    transform.static_passed | transform.static_rejected
-      -> behavior_sandbox_gate
-    transform.sandbox_passed | transform.sandbox_rejected
-      -> behavior_eval_diff
+    transform.static_passed          -> behavior_sandbox_gate
+    transform.static_rejected        -> behavior_iterate_after_static_reject
+    transform.sandbox_passed         -> behavior_eval_diff
+    transform.sandbox_rejected       -> behavior_iterate_after_sandbox_reject
     transform.eval_diff              (per-type + overall deltas)
       -> behavior_promote
-    transform.promoted | transform.discarded
-      -> behavior_attribute          (only on promotion)
-    attribution.recorded
-      -> behavior_iterate
+    transform.promoted               -> behavior_attribute -> attribution.recorded
+                                        -> behavior_iterate_after_promote
+    transform.discarded              -> behavior_iterate_after_discard
     loop.iterate | loop.stopped
 
-`loop.stopped` is terminal; its payload names the wall.
+EVERY non-promoting candidate outcome (static_rejected, sandbox_rejected,
+discarded, confirm_regression) routes through `_handle_failed_attempt`:
+it counts the attempt toward the regime's consecutive-failure ceiling and
+then either re-drafts, rotates to the next seam-reachable regime, or stops
+cleanly. Before dedicated listeners existed for the *_rejected events, the
+chain died mid-iteration on a malformed/crashing candidate and the loop
+exited with `loop.stopped` never emitted (the gap-4 bug).
+
+`loop.stopped` is terminal; its payload names the wall. A completed run
+ALWAYS emits exactly one (the runner has a backstop so `stopped: None` is
+structurally impossible).
 """
 
 from __future__ import annotations
