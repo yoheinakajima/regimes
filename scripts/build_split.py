@@ -123,16 +123,24 @@ def _verify_strata_cover(picked_ids: Iterable[str], all_entries: list[dict]) -> 
         raise ValueError("split has zero `_abs` instances; stratifier degenerate")
 
 
-def build_split(src: Path, dst: Path) -> dict:
+def build_split(src: Path, dst: Path, *, seed: int = SEED) -> dict:
+    """Draw a stratified OPTIMIZE/CONFIRM split from `src` into `dst`.
+
+    `seed` controls the within-stratum shuffle. The default (SEED=42)
+    reproduces the committed split byte-for-byte. Passing a different
+    seed yields a DIFFERENT held-out draw with the SAME stratification
+    rule — used to test robustness across draws rather than just
+    repeatability on a fixed split.
+    """
     data = json.loads(src.read_text())
     if not isinstance(data, list) or not data:
         raise ValueError(f"{src} is not a non-empty JSON list")
     # OPTIMIZE first
-    optimize_ids, opt_quota = _stratified_pick(data, N_OPTIMIZE, seed=SEED)
+    optimize_ids, opt_quota = _stratified_pick(data, N_OPTIMIZE, seed=seed)
     _verify_strata_cover(optimize_ids, data)
     # CONFIRM from the remainder (disjoint by construction)
     remainder_pool = [e for e in data if e["question_id"] not in set(optimize_ids)]
-    confirm_ids, conf_quota = _stratified_pick(remainder_pool, N_CONFIRM, seed=SEED)
+    confirm_ids, conf_quota = _stratified_pick(remainder_pool, N_CONFIRM, seed=seed)
     _verify_strata_cover(confirm_ids, data)
     # invariants
     if set(optimize_ids) & set(confirm_ids):
@@ -141,7 +149,7 @@ def build_split(src: Path, dst: Path) -> dict:
         "source": str(src),
         "source_sha256": _sha256(src),
         "n_total": len(data),
-        "seed": SEED,
+        "seed": seed,
         "n_optimize": len(optimize_ids),
         "n_confirm": len(confirm_ids),
         "optimize": optimize_ids,
@@ -174,8 +182,37 @@ def main() -> int:
             "present, else fixtures/synthetic_lme.json."
         ),
     )
-    ap.add_argument("--out", type=Path, default=Path("config/split.json"))
+    ap.add_argument(
+        "--out",
+        type=Path,
+        default=None,
+        help=(
+            "Output path. Defaults to config/split.json for the canonical "
+            "seed (42); for any other --split-seed the default becomes "
+            "config/split.seed<seed>.json so the committed split is never "
+            "overwritten by a fresh draw."
+        ),
+    )
+    ap.add_argument(
+        "--split-seed",
+        type=int,
+        default=SEED,
+        help=(
+            "Seed for the within-stratum shuffle. Default 42 reproduces the "
+            "committed split. A different seed resamples a DIFFERENT held-out "
+            "OPTIMIZE/CONFIRM draw with the SAME stratification rule (to test "
+            "robustness across draws). With a non-default seed and no explicit "
+            "--out, output is written to config/split.seed<seed>.json."
+        ),
+    )
     args = ap.parse_args()
+
+    if args.out is None:
+        args.out = (
+            Path("config/split.json")
+            if args.split_seed == SEED
+            else Path(f"config/split.seed{args.split_seed}.json")
+        )
 
     if args.source is None:
         candidates = [
@@ -194,13 +231,14 @@ def main() -> int:
             )
             return 2
 
-    report = build_split(args.source, args.out)
+    report = build_split(args.source, args.out, seed=args.split_seed)
     print(
         json.dumps(
             {
                 "wrote": str(args.out),
                 "source": report["source"],
                 "n_total": report["n_total"],
+                "seed": report["seed"],
                 "n_optimize": report["n_optimize"],
                 "n_confirm": report["n_confirm"],
             },

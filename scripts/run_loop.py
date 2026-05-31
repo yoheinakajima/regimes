@@ -173,6 +173,13 @@ def main() -> int:
     p.add_argument("--run-dir", default="runs/loop_001",
                    help="Where to write the report.")
     p.add_argument("--split", default="config/split.json")
+    p.add_argument(
+        "--split-seed", type=int, default=None,
+        help="Real mode only: resample a fresh OPTIMIZE/CONFIRM split with "
+             "this seed (same stratification rule, a DIFFERENT held-out draw) "
+             "instead of loading --split. Writes config/split.seed<seed>.json "
+             "and uses it; the committed config/split.json is left untouched.",
+    )
     p.add_argument("--lme-checkout", default=str(REPO.parent / "activegraph-longmemeval"))
     p.add_argument("--lme-data", default=None,
                    help="Path to longmemeval_s_cleaned.json (real mode only).")
@@ -212,7 +219,18 @@ def main() -> int:
         from regimes.agent import OpenAIEmbedder, set_embedder  # noqa: WPS433
         from regimes.eval import LMEJudge, RealEval, build_real_reader  # noqa: WPS433
         set_embedder(OpenAIEmbedder())
-        s = load_split(args.split)
+        if args.split_seed is not None:
+            # Resample a fresh held-out draw from the real dataset with a
+            # different seed. Reuses the canonical builder so stratification
+            # is identical; writes to a seeded path so config/split.json is
+            # never overwritten.
+            sys.path.insert(0, str(REPO / "scripts"))
+            from build_split import build_split as _build_split_file  # noqa: WPS433
+            split_path = Path(f"config/split.seed{args.split_seed}.json")
+            _build_split_file(Path(args.lme_data), split_path, seed=args.split_seed)
+            s = load_split(split_path)
+        else:
+            s = load_split(args.split)
         by_id = {x["question_id"]: x for x in json.load(open(args.lme_data))}
         opt = [by_id[q] for q in s.optimize]
         confirm = [by_id[q] for q in s.confirm]
