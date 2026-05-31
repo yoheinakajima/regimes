@@ -394,7 +394,10 @@ def behavior_promote(event, graph, ctx) -> None:  # noqa: ARG001
                        reasons=list(decision.reasons),
                        overall_delta=diff.overall_delta, target_delta=diff.target_delta,
                        source=lctx.current_source, author=lctx.current_author)
-        lctx.consecutive_discards += 1
+        # The consecutive-failure counter is bumped once, centrally, in
+        # `_handle_failed_attempt` (fired off TRANSFORM_DISCARDED) so that
+        # discards, confirm-regressions, static-rejects and sandbox-rejects
+        # all count identically toward the regime's ceiling.
         graph.emit(
             E.TRANSFORM_DISCARDED,
             {
@@ -439,7 +442,7 @@ def behavior_promote(event, graph, ctx) -> None:  # noqa: ARG001
                            confirm_threshold=confirm_threshold,
                            source=lctx.current_source,
                            author=lctx.current_author)
-            lctx.consecutive_discards += 1
+            # Counter bump happens centrally in _handle_failed_attempt.
             graph.emit(
                 E.TRANSFORM_DISCARDED,
                 {
@@ -510,20 +513,69 @@ def behavior_iterate_after_promote(event, graph, ctx) -> None:  # noqa: ARG001
 def behavior_iterate_after_discard(event, graph, ctx) -> None:  # noqa: ARG001
     iid = event.payload["iteration_id"]
     lctx = get_context(iid)
+    _handle_failed_attempt(graph, lctx, iid)
+
+
+@behavior(name="loop.iterate_decision_on_static_reject", on=[E.TRANSFORM_STATIC_REJECTED])
+def behavior_iterate_after_static_reject(event, graph, ctx) -> None:  # noqa: ARG001
+    """A malformed/invalid candidate (e.g. unclosed brace) is a FAILED
+    attempt for the regime — exactly like a discard. Before this behavior
+    existed, TRANSFORM_STATIC_REJECTED had no listener: the chain died
+    mid-iteration, the counter never advanced, the regime never exhausted,
+    and the loop exited with `stopped: None` (gap 4). Routing it through
+    the same handler makes static-rejects count toward the ceiling and
+    trigger rotation/clean-stop."""
+    iid = event.payload["iteration_id"]
+    lctx = get_context(iid)
+    _handle_failed_attempt(graph, lctx, iid)
+
+
+@behavior(name="loop.iterate_decision_on_sandbox_reject", on=[E.TRANSFORM_SANDBOX_REJECTED])
+def behavior_iterate_after_sandbox_reject(event, graph, ctx) -> None:  # noqa: ARG001
+    """A candidate that crashes (or misbehaves) in the sandbox is a FAILED
+    attempt for the regime. Same dead-end as static-reject before this
+    listener existed — now counted + rotated like a discard."""
+    iid = event.payload["iteration_id"]
+    lctx = get_context(iid)
+    _handle_failed_attempt(graph, lctx, iid)
+
+
+# ===========================================================================
+# Helpers
+# ===========================================================================
+
+
+def _handle_failed_attempt(graph, lctx: LoopContext, iid: str) -> None:
+    """Single sink for EVERY non-promoting candidate outcome.
+
+    A candidate can fail as: discarded (OPTIMIZE gates), confirm_regression
+    (held-out), static_rejected (malformed code), or sandbox_rejected
+    (crashes in sandbox). All four are FAILED ATTEMPTS for the current
+    regime and must count identically:
+
+      1. bump the regime's consecutive-failure counter,
+      2. if it hit the ceiling, RETIRE the regime (add to
+         `exhausted_regimes`) and reset the counter so the next regime
+         starts fresh,
+      3. hand off to `_emit_next_step`, which decides draft-again /
+         rotate-to-next-regime / stop-cleanly — and ALWAYS emits a
+         terminal `loop.stopped` when nothing reachable remains.
+
+    Centralizing the bump here (rather than scattering `+= 1` across the
+    promote behavior) is what makes a regime whose author only produces
+    garbage exhaust and rotate instead of looping forever or falling out
+    of the chain with `stopped: None`."""
+    lctx.consecutive_discards += 1
     if lctx.consecutive_discards >= lctx.max_consecutive_discards:
-        # This regime is exhausted: drafting against it kept failing the
-        # discard threshold. Retire it and ROTATE to the next un-attempted
+        # This regime is exhausted: drafting against it kept failing
+        # (discard / regression / malformed / crashing — any mix). Retire
+        # it and let _emit_next_step ROTATE to the next un-attempted
         # optimizable+seam-reachable regime instead of stopping the whole
         # loop. The loop only stops once EVERY reachable regime is
         # exhausted (handled in _emit_next_step via _choose_target).
         lctx.exhausted_regimes.add(lctx.current_target)
         lctx.consecutive_discards = 0
     _emit_next_step(graph, lctx, iid)
-
-
-# ===========================================================================
-# Helpers
-# ===========================================================================
 
 
 def _emit_next_step(graph, lctx: LoopContext, iid: str) -> None:

@@ -138,6 +138,35 @@ def run_loop(
             elif ev.type == E.ATTRIBUTION_RECORDED:
                 attributions.append(dict(ev.payload))
 
+        # Invariant: a completed run ALWAYS names its wall. The behaviors
+        # now route every candidate outcome (promote / discard /
+        # confirm-regression / static-reject / sandbox-reject) through
+        # `_emit_next_step`, which emits a terminal `loop.stopped` when no
+        # reachable regime remains — so this backstop should never fire.
+        # It exists so that `stopped: None` is structurally impossible even
+        # if a future behavior introduces a new dead-end: we synthesize and
+        # log a real `loop.stopped` event rather than returning None.
+        if stopped_payload is None:
+            stopped_payload = {
+                "iteration_id": iteration_id,
+                "reason": "loop_drained_without_stop",
+                "remaining_regimes": [],
+                "named_wall": (
+                    "loop drained with no stop event emitted — this is a "
+                    "control-flow bug; a candidate outcome fell out of the "
+                    "iteration without rotating or stopping"
+                ),
+            }
+            stop_ev = Event(
+                id=graph.ids.event(),
+                type=E.LOOP_STOPPED,
+                payload=dict(stopped_payload),
+                actor="runner",
+                caused_by=None,
+                timestamp=graph.clock.now(),
+            )
+            graph.emit(stop_ev)
+
         return LoopReport(
             iteration_id=iteration_id,
             events=list(graph.events),
