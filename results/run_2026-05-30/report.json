@@ -1,0 +1,1852 @@
+{
+  "iteration_id": "loop-001",
+  "histogram": {
+    "iteration_id": "loop-001",
+    "n_total": 50,
+    "n_failures": 15,
+    "rows": [
+      {
+        "regime": "scoring-error",
+        "count": 0,
+        "optimizable": false,
+        "seam_reachable": false,
+        "qids": []
+      },
+      {
+        "regime": "retrieval-signal-gap",
+        "count": 1,
+        "optimizable": false,
+        "seam_reachable": false,
+        "qids": [
+          "eac54add"
+        ]
+      },
+      {
+        "regime": "budget-truncation",
+        "count": 6,
+        "optimizable": true,
+        "seam_reachable": true,
+        "qids": [
+          "a3332713",
+          "b46e15ed",
+          "gpt4_7abb270c",
+          "gpt4_98f46fc6",
+          "gpt4_a1b77f9c",
+          "gpt4_f2262a51"
+        ]
+      },
+      {
+        "regime": "assembly-crowding",
+        "count": 0,
+        "optimizable": true,
+        "seam_reachable": true,
+        "qids": []
+      },
+      {
+        "regime": "assemble-internal",
+        "count": 8,
+        "optimizable": true,
+        "seam_reachable": true,
+        "qids": [
+          "8077ef71",
+          "e25c3b8d",
+          "fca70973",
+          "gpt4_2f8be40d",
+          "gpt4_468eb064",
+          "gpt4_5438fa52",
+          "gpt4_8279ba03",
+          "gpt4_b0863698"
+        ]
+      },
+      {
+        "regime": "unclassified",
+        "count": 0,
+        "optimizable": false,
+        "seam_reachable": false,
+        "qids": []
+      }
+    ],
+    "per_question": {
+      "078150f1": "correct",
+      "07b6f563": "correct",
+      "099778bb": "correct",
+      "0ddfec37": "correct",
+      "1c549ce4": "correct",
+      "1f2b8d4f": "correct",
+      "22d2cb42": "correct",
+      "2311e44b_abs": "correct",
+      "2698e78f_abs": "correct",
+      "2e6d26dc": "correct",
+      "36b9f61e": "correct",
+      "3ba21379": "correct",
+      "3d86fd0a": "correct",
+      "3f1e9474": "correct",
+      "42ec0761": "correct",
+      "4fd1909e": "correct",
+      "51b23612": "correct",
+      "6071bd76": "correct",
+      "6456829e": "correct",
+      "7161e7e2": "correct",
+      "7e00a6cb": "correct",
+      "8077ef71": "assemble-internal",
+      "8a2466db": "correct",
+      "945e3d21": "correct",
+      "94f70d80": "correct",
+      "982b5123_abs": "correct",
+      "a1eacc2a": "correct",
+      "a3045048": "correct",
+      "a3332713": "budget-truncation",
+      "b46e15ed": "budget-truncation",
+      "b759caee": "correct",
+      "bb7c3b45": "correct",
+      "bc8a6e93_abs": "correct",
+      "c5e8278d": "correct",
+      "d52b4f67": "correct",
+      "e25c3b8d": "assemble-internal",
+      "e9327a54": "correct",
+      "eac54add": "retrieval-signal-gap",
+      "fca70973": "assemble-internal",
+      "gpt4_2f584639": "correct",
+      "gpt4_2f8be40d": "assemble-internal",
+      "gpt4_468eb064": "assemble-internal",
+      "gpt4_5438fa52": "assemble-internal",
+      "gpt4_7abb270c": "budget-truncation",
+      "gpt4_8279ba03": "assemble-internal",
+      "gpt4_98f46fc6": "budget-truncation",
+      "gpt4_a1b77f9c": "budget-truncation",
+      "gpt4_b0863698": "assemble-internal",
+      "gpt4_ec93e27f": "correct",
+      "gpt4_f2262a51": "budget-truncation"
+    },
+    "formatted": "Regime histogram (failures=15 / total=50):\n  regime                    count   opt   seam\n  scoring-error                 0    no     no\n  retrieval-signal-gap          1    no     no\n  budget-truncation             6   yes    yes\n  assembly-crowding             0   yes    yes\n  assemble-internal             8   yes    yes\n  unclassified                  0    no     no"
+  },
+  "baseline": {
+    "iteration_id": "loop-001",
+    "n": 50,
+    "overall_accuracy": 0.7,
+    "per_type_accuracy": {
+      "knowledge-update": 1.0,
+      "multi-session": 0.6923076923076923,
+      "single-session-assistant": 1.0,
+      "single-session-preference": 0.6666666666666666,
+      "single-session-user": 1.0,
+      "temporal-reasoning": 0.2857142857142857
+    },
+    "n_truncated": 50,
+    "n_errors": 0,
+    "outcomes": [
+      {
+        "question_id": "078150f1",
+        "question_type": "multi-session",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 12,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_254d8b09_1#8",
+          "answer_254d8b09_2#0",
+          "answer_254d8b09_2#1"
+        ],
+        "evidence_rank_positions": {
+          "answer_254d8b09_1#8": 3,
+          "answer_254d8b09_2#0": 0,
+          "answer_254d8b09_2#1": 1
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.4794608347125992,
+        "evidence_well_ranked": [
+          "answer_254d8b09_1#8",
+          "answer_254d8b09_2#0",
+          "answer_254d8b09_2#1"
+        ],
+        "evidence_selected": [
+          "answer_254d8b09_1#8",
+          "answer_254d8b09_2#0",
+          "answer_254d8b09_2#1"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "07b6f563",
+        "question_type": "single-session-preference",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 8,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_d03098f9#0",
+          "answer_d03098f9#2"
+        ],
+        "evidence_rank_positions": {
+          "answer_d03098f9#0": 4,
+          "answer_d03098f9#2": 0
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.4896648689734491,
+        "evidence_well_ranked": [
+          "answer_d03098f9#0",
+          "answer_d03098f9#2"
+        ],
+        "evidence_selected": [
+          "answer_d03098f9#0",
+          "answer_d03098f9#2"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "099778bb",
+        "question_type": "multi-session",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 11,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_80d6d664_2#2",
+          "answer_80d6d664_1#0"
+        ],
+        "evidence_rank_positions": {
+          "answer_80d6d664_2#2": 2,
+          "answer_80d6d664_1#0": 3
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.526348558637671,
+        "evidence_well_ranked": [
+          "answer_80d6d664_2#2",
+          "answer_80d6d664_1#0"
+        ],
+        "evidence_selected": [
+          "answer_80d6d664_2#2",
+          "answer_80d6d664_1#0"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "0ddfec37",
+        "question_type": "knowledge-update",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 13,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_a22b654d_1#0",
+          "answer_a22b654d_2#0"
+        ],
+        "evidence_rank_positions": {
+          "answer_a22b654d_1#0": 0,
+          "answer_a22b654d_2#0": 2
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.538262497211816,
+        "evidence_well_ranked": [
+          "answer_a22b654d_1#0",
+          "answer_a22b654d_2#0"
+        ],
+        "evidence_selected": [
+          "answer_a22b654d_1#0",
+          "answer_a22b654d_2#0"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "1c549ce4",
+        "question_type": "multi-session",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 12,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_4cb841a8_1#8",
+          "answer_4cb841a8_2#10"
+        ],
+        "evidence_rank_positions": {
+          "answer_4cb841a8_1#8": 4,
+          "answer_4cb841a8_2#10": 1
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.5216563990719046,
+        "evidence_well_ranked": [
+          "answer_4cb841a8_1#8",
+          "answer_4cb841a8_2#10"
+        ],
+        "evidence_selected": [
+          "answer_4cb841a8_1#8",
+          "answer_4cb841a8_2#10"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "1f2b8d4f",
+        "question_type": "multi-session",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 15,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_d8454588_1#0",
+          "answer_d8454588_2#2"
+        ],
+        "evidence_rank_positions": {
+          "answer_d8454588_1#0": 9,
+          "answer_d8454588_2#2": 10
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.46536490665295427,
+        "evidence_well_ranked": [
+          "answer_d8454588_1#0",
+          "answer_d8454588_2#2"
+        ],
+        "evidence_selected": [
+          "answer_d8454588_1#0",
+          "answer_d8454588_2#2"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "22d2cb42",
+        "question_type": "knowledge-update",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 14,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_bcce0b73_2#2"
+        ],
+        "evidence_rank_positions": {
+          "answer_bcce0b73_2#2": 4
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.5860418664379454,
+        "evidence_well_ranked": [
+          "answer_bcce0b73_2#2"
+        ],
+        "evidence_selected": [
+          "answer_bcce0b73_2#2"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "2311e44b_abs",
+        "question_type": "multi-session",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 11,
+        "score_error": false,
+        "gold_evidence_turn_ids": [],
+        "evidence_rank_positions": {},
+        "evidence_in_scores": false,
+        "evidence_max_score": 0.0,
+        "evidence_well_ranked": [],
+        "evidence_selected": [],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": null,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "2698e78f_abs",
+        "question_type": "knowledge-update",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 13,
+        "score_error": false,
+        "gold_evidence_turn_ids": [],
+        "evidence_rank_positions": {},
+        "evidence_in_scores": false,
+        "evidence_max_score": 0.0,
+        "evidence_well_ranked": [],
+        "evidence_selected": [],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": null,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "2e6d26dc",
+        "question_type": "multi-session",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 14,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_fa526fc0_4#0",
+          "answer_fa526fc0_3#0",
+          "answer_fa526fc0_1#0",
+          "answer_fa526fc0_2#0"
+        ],
+        "evidence_rank_positions": {
+          "answer_fa526fc0_4#0": 5,
+          "answer_fa526fc0_3#0": 4,
+          "answer_fa526fc0_1#0": 3,
+          "answer_fa526fc0_2#0": 0
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.5161280409974581,
+        "evidence_well_ranked": [
+          "answer_fa526fc0_4#0",
+          "answer_fa526fc0_3#0",
+          "answer_fa526fc0_1#0",
+          "answer_fa526fc0_2#0"
+        ],
+        "evidence_selected": [
+          "answer_fa526fc0_4#0",
+          "answer_fa526fc0_3#0",
+          "answer_fa526fc0_1#0",
+          "answer_fa526fc0_2#0"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "36b9f61e",
+        "question_type": "multi-session",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 12,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_ef74281f_2#2",
+          "answer_ef74281f_1#0",
+          "answer_ef74281f_3#2"
+        ],
+        "evidence_rank_positions": {
+          "answer_ef74281f_2#2": 3,
+          "answer_ef74281f_1#0": 0,
+          "answer_ef74281f_3#2": 1
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.5912979777340244,
+        "evidence_well_ranked": [
+          "answer_ef74281f_2#2",
+          "answer_ef74281f_1#0",
+          "answer_ef74281f_3#2"
+        ],
+        "evidence_selected": [
+          "answer_ef74281f_2#2",
+          "answer_ef74281f_1#0",
+          "answer_ef74281f_3#2"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "3ba21379",
+        "question_type": "knowledge-update",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 14,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_cd345582_1#0",
+          "answer_cd345582_2#2"
+        ],
+        "evidence_rank_positions": {
+          "answer_cd345582_1#0": 7,
+          "answer_cd345582_2#2": 2
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.3872173449363015,
+        "evidence_well_ranked": [
+          "answer_cd345582_1#0",
+          "answer_cd345582_2#2"
+        ],
+        "evidence_selected": [
+          "answer_cd345582_1#0",
+          "answer_cd345582_2#2"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "3d86fd0a",
+        "question_type": "single-session-user",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 17,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_19c24c11#2"
+        ],
+        "evidence_rank_positions": {
+          "answer_19c24c11#2": 0
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.6127939581258243,
+        "evidence_well_ranked": [
+          "answer_19c24c11#2"
+        ],
+        "evidence_selected": [
+          "answer_19c24c11#2"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "3f1e9474",
+        "question_type": "single-session-user",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 9,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_57fc1954#8"
+        ],
+        "evidence_rank_positions": {
+          "answer_57fc1954#8": 0
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.4822527620794397,
+        "evidence_well_ranked": [
+          "answer_57fc1954#8"
+        ],
+        "evidence_selected": [
+          "answer_57fc1954#8"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "42ec0761",
+        "question_type": "knowledge-update",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 14,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_e3892371_1#4",
+          "answer_e3892371_2#6"
+        ],
+        "evidence_rank_positions": {
+          "answer_e3892371_1#4": 4,
+          "answer_e3892371_2#6": 3
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.447272134421586,
+        "evidence_well_ranked": [
+          "answer_e3892371_1#4",
+          "answer_e3892371_2#6"
+        ],
+        "evidence_selected": [
+          "answer_e3892371_1#4",
+          "answer_e3892371_2#6"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "4fd1909e",
+        "question_type": "single-session-user",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 18,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_2952aee4#2"
+        ],
+        "evidence_rank_positions": {
+          "answer_2952aee4#2": 0
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.6037439236693681,
+        "evidence_well_ranked": [
+          "answer_2952aee4#2"
+        ],
+        "evidence_selected": [
+          "answer_2952aee4#2"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "51b23612",
+        "question_type": "single-session-assistant",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 16,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_ultrachat_427265#1"
+        ],
+        "evidence_rank_positions": {
+          "answer_ultrachat_427265#1": 1
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.6440666211525475,
+        "evidence_well_ranked": [
+          "answer_ultrachat_427265#1"
+        ],
+        "evidence_selected": [
+          "answer_ultrachat_427265#1"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "6071bd76",
+        "question_type": "knowledge-update",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 12,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_4dac77cb_1#0",
+          "answer_4dac77cb_2#0"
+        ],
+        "evidence_rank_positions": {
+          "answer_4dac77cb_1#0": 0,
+          "answer_4dac77cb_2#0": 4
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.5465775202614582,
+        "evidence_well_ranked": [
+          "answer_4dac77cb_1#0",
+          "answer_4dac77cb_2#0"
+        ],
+        "evidence_selected": [
+          "answer_4dac77cb_1#0",
+          "answer_4dac77cb_2#0"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "6456829e",
+        "question_type": "multi-session",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 13,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_743f03a1_2#0",
+          "answer_743f03a1_1#10"
+        ],
+        "evidence_rank_positions": {
+          "answer_743f03a1_2#0": 2,
+          "answer_743f03a1_1#10": 3
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.47358143008682596,
+        "evidence_well_ranked": [
+          "answer_743f03a1_2#0",
+          "answer_743f03a1_1#10"
+        ],
+        "evidence_selected": [
+          "answer_743f03a1_2#0",
+          "answer_743f03a1_1#10"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "7161e7e2",
+        "question_type": "single-session-assistant",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 17,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_sharegpt_5Lzox6N_0#13"
+        ],
+        "evidence_rank_positions": {
+          "answer_sharegpt_5Lzox6N_0#13": 0
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.7084995471437605,
+        "evidence_well_ranked": [
+          "answer_sharegpt_5Lzox6N_0#13"
+        ],
+        "evidence_selected": [
+          "answer_sharegpt_5Lzox6N_0#13"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "7e00a6cb",
+        "question_type": "single-session-assistant",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 13,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_ultrachat_370515#1"
+        ],
+        "evidence_rank_positions": {
+          "answer_ultrachat_370515#1": 1
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.5824514288629867,
+        "evidence_well_ranked": [
+          "answer_ultrachat_370515#1"
+        ],
+        "evidence_selected": [
+          "answer_ultrachat_370515#1"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "8077ef71",
+        "question_type": "temporal-reasoning",
+        "correct": false,
+        "regime": "assemble-internal",
+        "truncated": true,
+        "n_selected": 14,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_0dd54b7c_1#0"
+        ],
+        "evidence_rank_positions": {
+          "answer_0dd54b7c_1#0": 0
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.3998253147200491,
+        "evidence_well_ranked": [
+          "answer_0dd54b7c_1#0"
+        ],
+        "evidence_selected": [
+          "answer_0dd54b7c_1#0"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "8a2466db",
+        "question_type": "single-session-preference",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 10,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_edb03329#0"
+        ],
+        "evidence_rank_positions": {
+          "answer_edb03329#0": 0
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.6142702860198559,
+        "evidence_well_ranked": [
+          "answer_edb03329#0"
+        ],
+        "evidence_selected": [
+          "answer_edb03329#0"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "945e3d21",
+        "question_type": "knowledge-update",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 10,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_6a4f8626_1#4",
+          "answer_6a4f8626_2#2"
+        ],
+        "evidence_rank_positions": {
+          "answer_6a4f8626_1#4": 4,
+          "answer_6a4f8626_2#2": 7
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.40184191797911684,
+        "evidence_well_ranked": [
+          "answer_6a4f8626_1#4",
+          "answer_6a4f8626_2#2"
+        ],
+        "evidence_selected": [
+          "answer_6a4f8626_1#4",
+          "answer_6a4f8626_2#2"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "94f70d80",
+        "question_type": "single-session-user",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 11,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_c63c0458#2"
+        ],
+        "evidence_rank_positions": {
+          "answer_c63c0458#2": 1
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.5171997355222843,
+        "evidence_well_ranked": [
+          "answer_c63c0458#2"
+        ],
+        "evidence_selected": [
+          "answer_c63c0458#2"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "982b5123_abs",
+        "question_type": "temporal-reasoning",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 13,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_ab603dd5_abs_1#0"
+        ],
+        "evidence_rank_positions": {
+          "answer_ab603dd5_abs_1#0": 0
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.4597841331774116,
+        "evidence_well_ranked": [
+          "answer_ab603dd5_abs_1#0"
+        ],
+        "evidence_selected": [
+          "answer_ab603dd5_abs_1#0"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "a1eacc2a",
+        "question_type": "knowledge-update",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 15,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_0eb23770_1#2",
+          "answer_0eb23770_2#0"
+        ],
+        "evidence_rank_positions": {
+          "answer_0eb23770_1#2": 0,
+          "answer_0eb23770_2#0": 2
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.5562604100344497,
+        "evidence_well_ranked": [
+          "answer_0eb23770_1#2",
+          "answer_0eb23770_2#0"
+        ],
+        "evidence_selected": [
+          "answer_0eb23770_1#2",
+          "answer_0eb23770_2#0"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "a3045048",
+        "question_type": "temporal-reasoning",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 11,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_016f6bd4_2#4",
+          "answer_016f6bd4_1#0"
+        ],
+        "evidence_rank_positions": {
+          "answer_016f6bd4_2#4": 1,
+          "answer_016f6bd4_1#0": 2
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.4122651582276587,
+        "evidence_well_ranked": [
+          "answer_016f6bd4_2#4",
+          "answer_016f6bd4_1#0"
+        ],
+        "evidence_selected": [
+          "answer_016f6bd4_2#4",
+          "answer_016f6bd4_1#0"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "a3332713",
+        "question_type": "multi-session",
+        "correct": false,
+        "regime": "budget-truncation",
+        "truncated": true,
+        "n_selected": 13,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_16ece55f_2#0",
+          "answer_16ece55f_1#6"
+        ],
+        "evidence_rank_positions": {
+          "answer_16ece55f_2#0": 2,
+          "answer_16ece55f_1#6": 21
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.5766867057295488,
+        "evidence_well_ranked": [
+          "answer_16ece55f_2#0"
+        ],
+        "evidence_selected": [
+          "answer_16ece55f_2#0"
+        ],
+        "evidence_dropped_at_budget": [
+          "answer_16ece55f_1#6"
+        ],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "b46e15ed",
+        "question_type": "temporal-reasoning",
+        "correct": false,
+        "regime": "budget-truncation",
+        "truncated": true,
+        "n_selected": 9,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_4bfcc250_4#0",
+          "answer_4bfcc250_3#0",
+          "answer_4bfcc250_2#0",
+          "answer_4bfcc250_1#0",
+          "answer_4bfcc250_1#6"
+        ],
+        "evidence_rank_positions": {
+          "answer_4bfcc250_4#0": 20,
+          "answer_4bfcc250_3#0": 8,
+          "answer_4bfcc250_2#0": 154,
+          "answer_4bfcc250_1#0": 11,
+          "answer_4bfcc250_1#6": 5
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.3550452721385764,
+        "evidence_well_ranked": [
+          "answer_4bfcc250_3#0",
+          "answer_4bfcc250_1#0",
+          "answer_4bfcc250_1#6"
+        ],
+        "evidence_selected": [
+          "answer_4bfcc250_3#0",
+          "answer_4bfcc250_1#0",
+          "answer_4bfcc250_1#6"
+        ],
+        "evidence_dropped_at_budget": [
+          "answer_4bfcc250_4#0",
+          "answer_4bfcc250_2#0"
+        ],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "b759caee",
+        "question_type": "single-session-assistant",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 13,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_sharegpt_2BSXlAr_0#1"
+        ],
+        "evidence_rank_positions": {
+          "answer_sharegpt_2BSXlAr_0#1": 1
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.6621009266391,
+        "evidence_well_ranked": [
+          "answer_sharegpt_2BSXlAr_0#1"
+        ],
+        "evidence_selected": [
+          "answer_sharegpt_2BSXlAr_0#1"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "bb7c3b45",
+        "question_type": "multi-session",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 9,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_de64539a_1#0",
+          "answer_de64539a_2#0"
+        ],
+        "evidence_rank_positions": {
+          "answer_de64539a_1#0": 1,
+          "answer_de64539a_2#0": 2
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.5218318163967808,
+        "evidence_well_ranked": [
+          "answer_de64539a_1#0",
+          "answer_de64539a_2#0"
+        ],
+        "evidence_selected": [
+          "answer_de64539a_1#0",
+          "answer_de64539a_2#0"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "bc8a6e93_abs",
+        "question_type": "single-session-user",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 8,
+        "score_error": false,
+        "gold_evidence_turn_ids": [],
+        "evidence_rank_positions": {},
+        "evidence_in_scores": false,
+        "evidence_max_score": 0.0,
+        "evidence_well_ranked": [],
+        "evidence_selected": [],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": null,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "c5e8278d",
+        "question_type": "single-session-user",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 7,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_f6168136#0"
+        ],
+        "evidence_rank_positions": {
+          "answer_f6168136#0": 0
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.41188189587112967,
+        "evidence_well_ranked": [
+          "answer_f6168136#0"
+        ],
+        "evidence_selected": [
+          "answer_f6168136#0"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "d52b4f67",
+        "question_type": "single-session-user",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 23,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_0df6aa4b#4"
+        ],
+        "evidence_rank_positions": {
+          "answer_0df6aa4b#4": 0
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.3754168403704498,
+        "evidence_well_ranked": [
+          "answer_0df6aa4b#4"
+        ],
+        "evidence_selected": [
+          "answer_0df6aa4b#4"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "e25c3b8d",
+        "question_type": "multi-session",
+        "correct": false,
+        "regime": "assemble-internal",
+        "truncated": true,
+        "n_selected": 13,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_6702277b_1#0",
+          "answer_6702277b_2#6"
+        ],
+        "evidence_rank_positions": {
+          "answer_6702277b_1#0": 7,
+          "answer_6702277b_2#6": 0
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.5564161621624305,
+        "evidence_well_ranked": [
+          "answer_6702277b_1#0",
+          "answer_6702277b_2#6"
+        ],
+        "evidence_selected": [
+          "answer_6702277b_1#0",
+          "answer_6702277b_2#6"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "e9327a54",
+        "question_type": "single-session-assistant",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 16,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_ultrachat_480665#7"
+        ],
+        "evidence_rank_positions": {
+          "answer_ultrachat_480665#7": 0
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.6678824845203769,
+        "evidence_well_ranked": [
+          "answer_ultrachat_480665#7"
+        ],
+        "evidence_selected": [
+          "answer_ultrachat_480665#7"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "eac54add",
+        "question_type": "temporal-reasoning",
+        "correct": false,
+        "regime": "retrieval-signal-gap",
+        "truncated": true,
+        "n_selected": 16,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_0d4d0348_2#0"
+        ],
+        "evidence_rank_positions": {
+          "answer_0d4d0348_2#0": 72
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.2495031552678646,
+        "evidence_well_ranked": [],
+        "evidence_selected": [],
+        "evidence_dropped_at_budget": [
+          "answer_0d4d0348_2#0"
+        ],
+        "evidence_coverage": null,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "fca70973",
+        "question_type": "single-session-preference",
+        "correct": false,
+        "regime": "assemble-internal",
+        "truncated": true,
+        "n_selected": 12,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_a1e169b1#0"
+        ],
+        "evidence_rank_positions": {
+          "answer_a1e169b1#0": 0
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.6241733305956028,
+        "evidence_well_ranked": [
+          "answer_a1e169b1#0"
+        ],
+        "evidence_selected": [
+          "answer_a1e169b1#0"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "gpt4_2f584639",
+        "question_type": "temporal-reasoning",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 15,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_11a8f823_2#2",
+          "answer_11a8f823_1#0"
+        ],
+        "evidence_rank_positions": {
+          "answer_11a8f823_2#2": 7,
+          "answer_11a8f823_1#0": 3
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.46711310203570067,
+        "evidence_well_ranked": [
+          "answer_11a8f823_2#2",
+          "answer_11a8f823_1#0"
+        ],
+        "evidence_selected": [
+          "answer_11a8f823_2#2",
+          "answer_11a8f823_1#0"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "gpt4_2f8be40d",
+        "question_type": "multi-session",
+        "correct": false,
+        "regime": "assemble-internal",
+        "truncated": true,
+        "n_selected": 9,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_e7b0637e_2#0",
+          "answer_e7b0637e_1#0",
+          "answer_e7b0637e_3#0"
+        ],
+        "evidence_rank_positions": {
+          "answer_e7b0637e_2#0": 8,
+          "answer_e7b0637e_1#0": 1,
+          "answer_e7b0637e_3#0": 5
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.34863625706286205,
+        "evidence_well_ranked": [
+          "answer_e7b0637e_2#0",
+          "answer_e7b0637e_1#0",
+          "answer_e7b0637e_3#0"
+        ],
+        "evidence_selected": [
+          "answer_e7b0637e_2#0",
+          "answer_e7b0637e_1#0",
+          "answer_e7b0637e_3#0"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "gpt4_468eb064",
+        "question_type": "temporal-reasoning",
+        "correct": false,
+        "regime": "assemble-internal",
+        "truncated": true,
+        "n_selected": 33,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_9b09d95b_1#0"
+        ],
+        "evidence_rank_positions": {
+          "answer_9b09d95b_1#0": 4
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.3227900210865632,
+        "evidence_well_ranked": [
+          "answer_9b09d95b_1#0"
+        ],
+        "evidence_selected": [
+          "answer_9b09d95b_1#0"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "gpt4_5438fa52",
+        "question_type": "temporal-reasoning",
+        "correct": false,
+        "regime": "assemble-internal",
+        "truncated": true,
+        "n_selected": 17,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_b10f3828_1#0",
+          "answer_b10f3828_2#4"
+        ],
+        "evidence_rank_positions": {
+          "answer_b10f3828_1#0": 3,
+          "answer_b10f3828_2#4": 0
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.4120547243550479,
+        "evidence_well_ranked": [
+          "answer_b10f3828_1#0",
+          "answer_b10f3828_2#4"
+        ],
+        "evidence_selected": [
+          "answer_b10f3828_1#0",
+          "answer_b10f3828_2#4"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "gpt4_7abb270c",
+        "question_type": "temporal-reasoning",
+        "correct": false,
+        "regime": "budget-truncation",
+        "truncated": true,
+        "n_selected": 8,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_7093d898_1#0",
+          "answer_7093d898_2#6",
+          "answer_7093d898_3#0",
+          "answer_7093d898_4#0",
+          "answer_7093d898_5#0",
+          "answer_7093d898_6#0"
+        ],
+        "evidence_rank_positions": {
+          "answer_7093d898_1#0": 7,
+          "answer_7093d898_2#6": 44,
+          "answer_7093d898_3#0": 41,
+          "answer_7093d898_4#0": 32,
+          "answer_7093d898_5#0": 6,
+          "answer_7093d898_6#0": 8
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.41217794399958174,
+        "evidence_well_ranked": [
+          "answer_7093d898_1#0",
+          "answer_7093d898_5#0",
+          "answer_7093d898_6#0"
+        ],
+        "evidence_selected": [
+          "answer_7093d898_1#0",
+          "answer_7093d898_5#0"
+        ],
+        "evidence_dropped_at_budget": [
+          "answer_7093d898_6#0",
+          "answer_7093d898_4#0",
+          "answer_7093d898_3#0",
+          "answer_7093d898_2#6"
+        ],
+        "evidence_coverage": 0.6666666666666666,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "gpt4_8279ba03",
+        "question_type": "temporal-reasoning",
+        "correct": false,
+        "regime": "assemble-internal",
+        "truncated": true,
+        "n_selected": 18,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_56521e66_1#0"
+        ],
+        "evidence_rank_positions": {
+          "answer_56521e66_1#0": 6
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.2890895484148352,
+        "evidence_well_ranked": [
+          "answer_56521e66_1#0"
+        ],
+        "evidence_selected": [
+          "answer_56521e66_1#0"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "gpt4_98f46fc6",
+        "question_type": "temporal-reasoning",
+        "correct": false,
+        "regime": "budget-truncation",
+        "truncated": true,
+        "n_selected": 10,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_5850de18_2#0",
+          "answer_5850de18_1#6"
+        ],
+        "evidence_rank_positions": {
+          "answer_5850de18_2#0": 19,
+          "answer_5850de18_1#6": 10
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.3733372399347882,
+        "evidence_well_ranked": [
+          "answer_5850de18_2#0",
+          "answer_5850de18_1#6"
+        ],
+        "evidence_selected": [],
+        "evidence_dropped_at_budget": [
+          "answer_5850de18_1#6",
+          "answer_5850de18_2#0",
+          "answer_5850de18_2#0",
+          "answer_5850de18_1#6"
+        ],
+        "evidence_coverage": 0.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "gpt4_a1b77f9c",
+        "question_type": "temporal-reasoning",
+        "correct": false,
+        "regime": "budget-truncation",
+        "truncated": true,
+        "n_selected": 8,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_e9ad5914_1#0",
+          "answer_e9ad5914_2#0",
+          "answer_e9ad5914_3#6",
+          "answer_e9ad5914_4#0",
+          "answer_e9ad5914_5#8",
+          "answer_e9ad5914_6#0"
+        ],
+        "evidence_rank_positions": {
+          "answer_e9ad5914_1#0": 7,
+          "answer_e9ad5914_2#0": 16,
+          "answer_e9ad5914_3#6": 10,
+          "answer_e9ad5914_4#0": 23,
+          "answer_e9ad5914_5#8": 9,
+          "answer_e9ad5914_6#0": 24
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.3902526630990666,
+        "evidence_well_ranked": [
+          "answer_e9ad5914_1#0",
+          "answer_e9ad5914_2#0",
+          "answer_e9ad5914_3#6",
+          "answer_e9ad5914_5#8"
+        ],
+        "evidence_selected": [
+          "answer_e9ad5914_1#0",
+          "answer_e9ad5914_3#6",
+          "answer_e9ad5914_5#8"
+        ],
+        "evidence_dropped_at_budget": [
+          "answer_e9ad5914_2#0",
+          "answer_e9ad5914_4#0",
+          "answer_e9ad5914_6#0",
+          "answer_e9ad5914_2#0"
+        ],
+        "evidence_coverage": 0.75,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "gpt4_b0863698",
+        "question_type": "temporal-reasoning",
+        "correct": false,
+        "regime": "assemble-internal",
+        "truncated": true,
+        "n_selected": 10,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_550bb2d1_1#0"
+        ],
+        "evidence_rank_positions": {
+          "answer_550bb2d1_1#0": 3
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.4532537903317375,
+        "evidence_well_ranked": [
+          "answer_550bb2d1_1#0"
+        ],
+        "evidence_selected": [
+          "answer_550bb2d1_1#0"
+        ],
+        "evidence_dropped_at_budget": [],
+        "evidence_coverage": 1.0,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "gpt4_ec93e27f",
+        "question_type": "temporal-reasoning",
+        "correct": true,
+        "regime": "correct",
+        "truncated": true,
+        "n_selected": 14,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_e3aa84c4_2#0",
+          "answer_e3aa84c4_1#0"
+        ],
+        "evidence_rank_positions": {
+          "answer_e3aa84c4_2#0": 17,
+          "answer_e3aa84c4_1#0": 13
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.3557432737753188,
+        "evidence_well_ranked": [
+          "answer_e3aa84c4_2#0",
+          "answer_e3aa84c4_1#0"
+        ],
+        "evidence_selected": [
+          "answer_e3aa84c4_1#0"
+        ],
+        "evidence_dropped_at_budget": [
+          "answer_e3aa84c4_2#0"
+        ],
+        "evidence_coverage": 0.5,
+        "well_ranked_k": 20
+      },
+      {
+        "question_id": "gpt4_f2262a51",
+        "question_type": "multi-session",
+        "correct": false,
+        "regime": "budget-truncation",
+        "truncated": true,
+        "n_selected": 12,
+        "score_error": false,
+        "gold_evidence_turn_ids": [
+          "answer_55a6940c_3#0",
+          "answer_55a6940c_1#0",
+          "answer_55a6940c_1#4",
+          "answer_55a6940c_2#2",
+          "answer_55a6940c_2#6"
+        ],
+        "evidence_rank_positions": {
+          "answer_55a6940c_3#0": 12,
+          "answer_55a6940c_1#0": 11,
+          "answer_55a6940c_1#4": 9,
+          "answer_55a6940c_2#2": 29,
+          "answer_55a6940c_2#6": 16
+        },
+        "evidence_in_scores": true,
+        "evidence_max_score": 0.3434811982411668,
+        "evidence_well_ranked": [
+          "answer_55a6940c_3#0",
+          "answer_55a6940c_1#0",
+          "answer_55a6940c_1#4",
+          "answer_55a6940c_2#6"
+        ],
+        "evidence_selected": [
+          "answer_55a6940c_1#0",
+          "answer_55a6940c_1#4"
+        ],
+        "evidence_dropped_at_budget": [
+          "answer_55a6940c_3#0",
+          "answer_55a6940c_2#6",
+          "answer_55a6940c_2#2"
+        ],
+        "evidence_coverage": 0.5,
+        "well_ranked_k": 20
+      }
+    ],
+    "backend": "real",
+    "applied_transforms": []
+  },
+  "stopped": {
+    "iteration_id": "loop-001",
+    "reason": "no_optimizable_regime_remaining",
+    "remaining_regimes": [
+      "budget-truncation",
+      "assemble-internal"
+    ],
+    "named_wall": "no remaining failures"
+  },
+  "promotions": [
+    {
+      "iteration_id": "loop-001",
+      "name": "llm_reader_prompt_transform_assemble_internal",
+      "target_regime": "assemble-internal",
+      "overall_delta": 0.18000000000000005,
+      "target_delta": -7,
+      "confirm_delta": 0.040000000000000036
+    },
+    {
+      "iteration_id": "loop-001",
+      "name": "llm_score_transform_budget_truncation",
+      "target_regime": "budget-truncation",
+      "overall_delta": 0.039999999999999925,
+      "target_delta": -1,
+      "confirm_delta": 0.0
+    }
+  ],
+  "discards": [
+    {
+      "iteration_id": "loop-001",
+      "name": "llm_score_transform_budget_truncation",
+      "reasons": [
+        "target regime did not shrink: target_delta=0"
+      ],
+      "overall_delta": 0.0,
+      "target_delta": 0
+    },
+    {
+      "iteration_id": "loop-001",
+      "name": "llm_reader_prompt_transform_assemble_internal",
+      "reasons": [
+        "target regime did not shrink: target_delta=0",
+        "overall regressed by -0.0400"
+      ],
+      "overall_delta": -0.039999999999999925,
+      "target_delta": 0
+    },
+    {
+      "iteration_id": "loop-001",
+      "name": "llm_reader_prompt_transform_assemble_internal",
+      "reasons": [
+        "target regime did not shrink: target_delta=2",
+        "multi-session regressed by -0.0769",
+        "overall regressed by -0.1000"
+      ],
+      "overall_delta": -0.09999999999999998,
+      "target_delta": 2
+    },
+    {
+      "iteration_id": "loop-001",
+      "name": "llm_reader_prompt_transform_assemble_internal",
+      "reasons": [
+        "target regime did not shrink: target_delta=3",
+        "multi-session regressed by -0.0769",
+        "overall regressed by -0.1200"
+      ],
+      "overall_delta": -0.12,
+      "target_delta": 3
+    }
+  ],
+  "attributions": [
+    {
+      "iteration_id": "loop-001",
+      "name": "llm_reader_prompt_transform_assemble_internal",
+      "transitions": [
+        [
+          "8077ef71",
+          "assemble-internal",
+          "correct"
+        ],
+        [
+          "a3332713",
+          "budget-truncation",
+          "correct"
+        ],
+        [
+          "e25c3b8d",
+          "assemble-internal",
+          "correct"
+        ],
+        [
+          "fca70973",
+          "assemble-internal",
+          "correct"
+        ],
+        [
+          "gpt4_468eb064",
+          "assemble-internal",
+          "correct"
+        ],
+        [
+          "gpt4_5438fa52",
+          "assemble-internal",
+          "correct"
+        ],
+        [
+          "gpt4_8279ba03",
+          "assemble-internal",
+          "correct"
+        ],
+        [
+          "gpt4_98f46fc6",
+          "budget-truncation",
+          "correct"
+        ],
+        [
+          "gpt4_b0863698",
+          "assemble-internal",
+          "correct"
+        ],
+        [
+          "gpt4_f2262a51",
+          "budget-truncation",
+          "correct"
+        ]
+      ],
+      "n_recovered": 10,
+      "n_introduced": 0
+    },
+    {
+      "iteration_id": "loop-001",
+      "name": "llm_score_transform_budget_truncation",
+      "transitions": [
+        [
+          "b46e15ed",
+          "budget-truncation",
+          "correct"
+        ],
+        [
+          "eac54add",
+          "retrieval-signal-gap",
+          "correct"
+        ]
+      ],
+      "n_recovered": 2,
+      "n_introduced": 0
+    }
+  ],
+  "transform_log": [
+    {
+      "name": "llm_reader_prompt_transform_assemble_internal",
+      "target_regime": "assemble-internal",
+      "transform_type": "reader-prompt-transform",
+      "status": "promoted",
+      "overall_delta": 0.18000000000000005,
+      "target_delta": -7,
+      "confirm_delta": 0.040000000000000036,
+      "source": "def transform(prompt_parts: dict, question: str, question_date: str) -> dict:\n    import string\n\n    extra_instruction = (\n        \"\\n\\nCRITICAL INSTRUCTIONS FOR ANSWERING:\\n\"\n        \"1. The context contains ALL the evidence needed. Do NOT say the context lacks information if relevant sessions are present.\\n\"\n        \"2. For COUNTING questions (e.g., 'how many weddings', 'how many events'): carefully scan EVERY session chunk and count ALL matching items. Sum them up and state the total.\\n\"\n        \"3. For TEMPORAL questions (e.g., 'what day of the week', 'consecutive days', 'same day'): use the session dates and the question date to reason about days of the week and relative timing. If a session has a date, compute the day of the week from it.\\n\"\n        \"4. For PRICE/DETAIL questions: look for ALL mentions of the item across ALL sessions. If one session mentions a sale price and another mentions an original price, combine them.\\n\"\n        \"5. For PREFERENCE/PLANNING questions: extract specific details (names, places, preferences) from the context and use them directly in your answer.\\n\"\n        \"6. Do NOT hedge with 'I cannot find' or 'the context does not contain' if relevant session chunks are listed in the context. Trust the evidence.\\n\"\n        \"7. If multiple sessions mention the same topic, synthesize across ALL of them.\\n\"\n        \"8. For temporal reasoning: the question date is \" + str(question_date) + \". Use this to anchor relative time references like 'today', 'yesterday', 'this week'.\\n\"\n        \"9. Give a direct, specific answer. Avoid vague or non-committal responses.\\n\"\n    )\n\n    result = dict(prompt_parts)\n\n    if 'instruction' in result:\n        result['instruction'] = result['instruction'] + extra_instruction\n    elif 'context' in result:\n        result['context'] = result['context'] + extra_instruction\n    else:\n        # Add to the first available key\n        keys = list(result.keys())\n        if keys:\n            result[keys[0]] = result[keys[0]] + extra_instruction\n\n    return result",
+      "author": "claude-sonnet-4-6"
+    },
+    {
+      "name": "llm_score_transform_budget_truncation",
+      "target_regime": "budget-truncation",
+      "transform_type": "score-transform",
+      "status": "promoted",
+      "overall_delta": 0.039999999999999925,
+      "target_delta": -1,
+      "confirm_delta": 0.0,
+      "source": "import math\n\ndef transform(scores: dict, graph, question: str, question_date: str) -> dict:\n    if not scores:\n        return scores\n    \n    score_values = list(scores.values())\n    score_values_sorted = sorted(score_values, reverse=True)\n    n = len(score_values_sorted)\n    \n    # Compute basic statistics\n    mean_score = sum(score_values) / n\n    max_score = score_values_sorted[0]\n    min_score = min(score_values)\n    \n    # Compute median\n    mid = n // 2\n    if n % 2 == 0:\n        median_score = (score_values_sorted[mid - 1] + score_values_sorted[mid]) / 2.0\n    else:\n        median_score = score_values_sorted[mid]\n    \n    # Compute std dev\n    variance = sum((v - mean_score) ** 2 for v in score_values) / n\n    std_score = math.sqrt(variance) if variance > 0 else 1e-9\n    \n    # Group turns by conversation prefix (the part before '#')\n    # Turn id format: \"conversation_id#turn_index\"\n    conv_turns = {}\n    for turn_id in scores:\n        parts = turn_id.rsplit('#', 1)\n        if len(parts) == 2:\n            conv_id = parts[0]\n            try:\n                turn_idx = int(parts[1])\n            except ValueError:\n                turn_idx = 0\n        else:\n            conv_id = turn_id\n            turn_idx = 0\n        if conv_id not in conv_turns:\n            conv_turns[conv_id] = []\n        conv_turns[conv_id].append((turn_id, turn_idx, scores[turn_id]))\n    \n    # For each conversation, find the max score\n    conv_max = {}\n    for conv_id, turns in conv_turns.items():\n        conv_max[conv_id] = max(t[2] for t in turns)\n    \n    # Identify \"first turns\" (turn_idx == 0) - these are often gold evidence\n    # Also identify turns that are likely evidence based on score patterns\n    \n    # Strategy: boost turns that are:\n    # 1. First turns (#0) of conversations - often gold evidence\n    # 2. Have scores in a \"mid-range\" cluster that might be evidence\n    # 3. Are not already top-ranked non-evidence turns\n    \n    # Detect if this looks like a temporal-reasoning question\n    # (multiple conversations with first turns as evidence)\n    question_lower = question.lower()\n    \n    # Count conversations with multiple turns\n    multi_turn_convs = {cid: turns for cid, turns in conv_turns.items() if len(turns) > 1}\n    \n    # For each turn, compute a boost factor\n    new_scores = {}\n    \n    for turn_id, score in scores.items():\n        parts = turn_id.rsplit('#', 1)\n        if len(parts) == 2:\n            conv_id = parts[0]\n            try:\n                turn_idx = int(parts[1])\n            except ValueError:\n                turn_idx = 0\n        else:\n            conv_id = turn_id\n            turn_idx = 0\n        \n        # Z-score of this turn\n        z = (score - mean_score) / std_score if std_score > 0 else 0\n        \n        # Is this a first turn (#0)?\n        is_first_turn = (turn_idx == 0)\n        \n        # Is this turn's conversation one where the max score is much higher\n        # than this turn's score? (i.e., other turns in same conv dominate)\n        c_max = conv_max.get(conv_id, score)\n        within_conv_ratio = score / c_max if c_max > 0 else 1.0\n        \n        # How many turns does this conversation have?\n        conv_size = len(conv_turns.get(conv_id, []))\n        \n        # Boost logic:\n        # - First turns that are below median but not extremely low get a boost\n        # - The boost is stronger when the conversation has many turns\n        #   (suggesting the first turn is being crowded out by later turns)\n        # - We want to avoid boosting turns that are already top-ranked\n        \n        boost = 1.0\n        \n        if is_first_turn:\n            # First turns are often gold evidence in temporal-reasoning\n            # Boost them if they're below the top cluster\n            if score < max_score * 0.95:\n                # How far below the top?\n                gap_from_top = (max_score - score) / (max_score - min_score + 1e-9)\n                \n                # Stronger boost for first turns that are being crowded out\n                # by other turns in the same conversation\n                if conv_size > 1 and within_conv_ratio < 0.95:\n                    # This first turn is being outscored by siblings\n                    # Boost proportional to how much it's being suppressed\n                    suppression = 1.0 - within_conv_ratio\n                    boost = 1.0 + suppression * 0.8\n                    \n                    # Additional boost if score is in mid-range (not garbage)\n                    if score > mean_score * 0.7:\n                        boost *= 1.15\n                elif score > mean_score * 0.8:\n                    # Decent score but not first turn suppression\n                    boost = 1.0 + gap_from_top * 0.3\n        \n        # Also boost non-zero turns that look like they could be evidence\n        # but are ranked low due to budget pressure\n        # Look for turns with scores in a specific range that suggests\n        # they are relevant but not the \"chatty\" continuation turns\n        \n        # Penalize turns that are NOT first turns and have very high scores\n        # relative to their conversation's first turn\n        # (these are likely the \"budget winners\" that crowd out evidence)\n        if not is_first_turn and conv_size > 1:\n            # Find the first turn score for this conversation\n            first_turn_score = None\n            for t_id, t_idx, t_score in conv_turns.get(conv_id, []):\n                if t_idx == 0:\n                    first_turn_score = t_score\n                    break\n            \n            if first_turn_score is not None and score > first_turn_score * 1.05:\n                # This non-first turn is outscoring the first turn\n                # Slight penalty to help first turns survive\n                excess = (score - first_turn_score) / (first_turn_score + 1e-9)\n                penalty = 1.0 / (1.0 + excess * 0.2)\n                boost = min(boost, penalty)\n        \n        new_scores[turn_id] = score * boost\n    \n    return new_scores",
+      "author": "claude-sonnet-4-6"
+    },
+    {
+      "name": "llm_score_transform_budget_truncation",
+      "target_regime": "budget-truncation",
+      "transform_type": "score-transform",
+      "status": "discarded",
+      "reasons": [
+        "target regime did not shrink: target_delta=0"
+      ],
+      "overall_delta": 0.0,
+      "target_delta": 0,
+      "source": "import math\n\ndef transform(scores: dict, graph, question: str, question_date: str) -> dict:\n    if not scores:\n        return scores\n    \n    score_values = list(scores.values())\n    score_values_sorted = sorted(score_values, reverse=True)\n    n = len(score_values_sorted)\n    \n    if n == 0:\n        return scores\n    \n    # Compute basic statistics\n    mean_score = sum(score_values) / n\n    max_score = score_values_sorted[0]\n    min_score = score_values_sorted[-1]\n    score_range = max_score - min_score if max_score != min_score else 1.0\n    \n    # Identify clusters/sessions from turn_ids\n    # Turn IDs look like: \"session_name#turn_index\"\n    # Group turns by session prefix\n    session_map = {}\n    for turn_id in scores:\n        parts = turn_id.rsplit('#', 1)\n        if len(parts) == 2:\n            session = parts[0]\n            try:\n                turn_idx = int(parts[1])\n            except ValueError:\n                turn_idx = 0\n        else:\n            session = turn_id\n            turn_idx = 0\n        if session not in session_map:\n            session_map[session] = []\n        session_map[session].append((turn_id, turn_idx, scores[turn_id]))\n    \n    # For each session, find the max score turn\n    session_max = {}\n    for session, turns in session_map.items():\n        session_max[session] = max(t[2] for t in turns)\n    \n    # Compute session diversity bonus\n    # Sessions with high max scores but many turns competing against each other\n    # We want to boost turns that are from sessions that have a high-scoring anchor\n    # but whose non-anchor turns are crowding out other sessions' evidence\n    \n    # Strategy: \n    # 1. Identify the \"dominant\" sessions (those with many high-scoring turns)\n    # 2. Apply a mild penalty to non-top turns within dominant sessions\n    # 3. Apply a boost to turns that are isolated (only turn from their session in top ranks)\n    #    or are from sessions with few representatives\n    \n    # Count how many turns per session are in the top portion\n    top_k = min(20, max(5, n // 3))\n    top_turn_ids = set(tid for tid, _ in sorted(scores.items(), key=lambda x: x[1], reverse=True)[:top_k])\n    \n    session_top_count = {}\n    for turn_id in top_turn_ids:\n        parts = turn_id.rsplit('#', 1)\n        session = parts[0] if len(parts) == 2 else turn_id\n        session_top_count[session] = session_top_count.get(session, 0) + 1\n    \n    # For each session, find the best turn index (turn #0 is usually the most relevant)\n    # Non-zero turn indices within a session that score high may be crowding out other sessions\n    \n    new_scores = {}\n    \n    for turn_id, score in scores.items():\n        parts = turn_id.rsplit('#', 1)\n        if len(parts) == 2:\n            session = parts[0]\n            try:\n                turn_idx = int(parts[1])\n            except ValueError:\n                turn_idx = 0\n        else:\n            session = turn_id\n            turn_idx = 0\n        \n        sess_max = session_max.get(session, score)\n        sess_top_cnt = session_top_count.get(session, 0)\n        \n        # Normalized position within session\n        # If this turn is the top turn in its session, no penalty\n        is_session_top = (score == sess_max)\n        \n        # Penalty for non-top turns in sessions that dominate the top-k\n        # The more a session dominates, the more we penalize its non-top turns\n        dominance = sess_top_cnt  # number of this session's turns in top-k\n        \n        adjusted_score = score\n        \n        if not is_session_top and dominance >= 2:\n            # Apply a penalty proportional to dominance\n            # Penalty factor: reduce score slightly for each extra turn from same session\n            penalty_factor = 1.0 - (0.04 * (dominance - 1))\n            penalty_factor = max(0.7, penalty_factor)\n            adjusted_score = score * penalty_factor\n        \n        # Boost turns that are the sole representative of their session in top-k\n        # or turns with turn_idx > 0 that still score reasonably well\n        # (these might be evidence turns buried in a session)\n        if dominance == 1 and turn_id in top_turn_ids:\n            # Slight boost for unique session representatives\n            adjusted_score = score * 1.02\n        \n        # Additional boost for turns that score in a \"mid-range\" cluster\n        # relative to the overall distribution - these are likely to be at budget wall\n        # Detect if score is near the budget wall region\n        # The budget wall tends to be around the median of top scores\n        if n >= 10:\n            top_20_pct_idx = max(1, n // 5)\n            threshold_high = score_values_sorted[top_20_pct_idx] if top_20_pct_idx < n else score_values_sorted[-1]\n            top_40_pct_idx = max(1, 2 * n // 5)\n            threshold_low = score_values_sorted[top_40_pct_idx] if top_40_pct_idx < n else score_values_sorted[-1]\n            \n            # Turns near the budget wall (between 20th and 40th percentile of top scores)\n            if threshold_low <= score <= threshold_high:\n                # Small boost to help them survive budget cut\n                boost = 1.0 + 0.03 * ((score - threshold_low) / (threshold_high - threshold_low + 1e-9))\n                adjusted_score = adjusted_score * boost\n        \n        new_scores[turn_id] = adjusted_score\n    \n    # Normalize to preserve relative ordering of clear winners\n    # but ensure budget-wall candidates get a fighting chance\n    # Apply a mild compression toward the mean for very high scores\n    # to reduce the gap between top and mid-range\n    \n    final_scores = {}\n    new_max = max(new_scores.values()) if new_scores else 1.0\n    new_min = min(new_scores.values()) if new_scores else 0.0\n    \n    for turn_id, score in new_scores.items():\n        # Apply mild log-compression to reduce dominance of very high scores\n        # while preserving ranking\n        if new_max > new_min:\n            normalized = (score - new_min) / (new_max - new_min)\n            # Mild compression: sqrt brings low values up relative to high values\n            compressed = math.sqrt(normalized) * 0.15 + normalized * 0.85\n            # Map back to original range\n            final_score = new_min + compressed * (new_max - new_min)\n        else:\n            final_score = score\n        final_scores[turn_id] = final_score\n    \n    return final_scores",
+      "author": "claude-sonnet-4-6"
+    },
+    {
+      "name": "llm_score_transform_budget_truncation",
+      "target_regime": "budget-truncation",
+      "transform_type": "score-transform",
+      "status": "sandbox_rejected",
+      "reasons": [
+        "raised at probe 0: ValueError: math domain error"
+      ],
+      "source": "import math\n\ndef transform(scores: dict, graph, question: str, question_date: str) -> dict:\n    if not scores:\n        return scores\n\n    # Get all score values and compute statistics\n    all_scores = list(scores.values())\n    n = len(all_scores)\n    \n    if n == 0:\n        return scores\n    \n    sorted_scores = sorted(all_scores, reverse=True)\n    max_score = sorted_scores[0]\n    min_score = sorted_scores[-1]\n    score_range = max_score - min_score if max_score != min_score else 1.0\n    \n    # Compute mean and std\n    mean_score = sum(all_scores) / n\n    variance = sum((s - mean_score) ** 2 for s in all_scores) / n\n    std_score = math.sqrt(variance) if variance > 0 else 1.0\n    \n    # Parse turn_ids to understand structure\n    # turn_id format: \"session_id#turn_index\"\n    # We want to identify \"first turns\" (turn_index == 0) and boost them\n    # Also identify turns from sessions that have high-scoring turns\n    \n    # Group turns by session prefix\n    session_scores = {}  # session -> list of (turn_id, score, turn_idx)\n    \n    for turn_id, score in scores.items():\n        if '#' in turn_id:\n            parts = turn_id.rsplit('#', 1)\n            session = parts[0]\n            try:\n                turn_idx = int(parts[1])\n            except ValueError:\n                turn_idx = 0\n        else:\n            session = turn_id\n            turn_idx = 0\n        \n        if session not in session_scores:\n            session_scores[session] = []\n        session_scores[session].append((turn_id, score, turn_idx))\n    \n    # For each session, find the max score\n    session_max = {}\n    for session, turns in session_scores.items():\n        session_max[session] = max(s for _, s, _ in turns)\n    \n    # Compute a boost for turns that are:\n    # 1. Non-zero turn index but have relatively high scores compared to session max\n    # 2. Turns that appear to be \"scattered\" evidence (high rank but not top)\n    \n    # Strategy: Apply a mild compression that brings mid-range scores closer to top\n    # This helps turns ranked ~10-50 compete better without destroying top rankings\n    \n    # Key insight from failures:\n    # - Dropped turns have scores like 0.30-0.38 while budget winners have 0.38-0.46\n    # - We need to boost turns that are \"close enough\" to the median of top scores\n    \n    # Compute top-k statistics (top 20% or top 10 whichever is larger)\n    top_k = max(10, n // 5)\n    top_k = min(top_k, n)\n    top_scores = sorted_scores[:top_k]\n    top_mean = sum(top_scores) / len(top_scores)\n    \n    new_scores = {}\n    \n    for turn_id, score in scores.items():\n        if '#' in turn_id:\n            parts = turn_id.rsplit('#', 1)\n            session = parts[0]\n            try:\n                turn_idx = int(parts[1])\n            except ValueError:\n                turn_idx = 0\n        else:\n            session = turn_id\n            turn_idx = 0\n        \n        sess_max = session_max.get(session, score)\n        \n        # Normalized position in overall distribution\n        norm_score = (score - min_score) / score_range if score_range > 0 else 0.5\n        \n        # Z-score\n        z = (score - mean_score) / std_score if std_score > 0 else 0.0\n        \n        # Base boost: apply a sublinear transform that compresses the range\n        # This lifts lower scores more than higher scores\n        # Use sqrt-like compression in normalized space\n        \n        # For turns with turn_idx > 0 that have decent scores relative to session max\n        # give them a boost to help them survive budget cuts\n        \n        boost = 0.0\n        \n        # If this turn has a high score relative to its session's best turn,\n        # it might be important evidence from that session\n        if sess_max > 0:\n            relative_to_session = score / sess_max\n        else:\n            relative_to_session = 1.0\n        \n        # Boost turns that are:\n        # - Not the top turn in their session (turn_idx > 0 or relative < 1.0)\n        # - But still have decent absolute scores (above some threshold)\n        # - Specifically targeting the \"budget wall\" region\n        \n        # Identify if score is in the \"danger zone\" - below top mean but above bottom quartile\n        bottom_quartile_idx = min(3 * n // 4, n - 1)\n        bottom_quartile_score = sorted_scores[bottom_quartile_idx]\n        \n        # Turns in danger zone: score between bottom_quartile and top_mean\n        if bottom_quartile_score < score < top_mean:\n            # These are the turns most likely to be dropped at budget\n            # Apply a boost proportional to how close they are to top_mean\n            proximity_to_top = (score - bottom_quartile_score) / (top_mean - bottom_quartile_score) if (top_mean - bottom_quartile_score) > 0 else 0.5\n            boost += 0.02 * proximity_to_top\n        \n        # Additional boost for turns with non-zero index that have high relative session score\n        # These are likely continuation/evidence turns\n        if turn_idx > 0 and relative_to_session > 0.6:\n            boost += 0.015 * relative_to_session\n        \n        # For temporal-reasoning questions, boost turns more aggressively\n        # since evidence is spread across many sessions/turns\n        question_lower = question.lower()\n        temporal_keywords = ['when', 'date', 'time', 'year', 'month', 'day', 'before', 'after', \n                            'recent', 'latest', 'first', 'last', 'history', 'timeline', 'period',\n                            'since', 'until', 'ago', 'duration', 'how long']\n        is_temporal = any(kw in question_lower for kw in temporal_keywords)\n        \n        multi_keywords = ['compare', 'difference', 'between', 'versus', 'vs', 'both', 'all',\n                         'each', 'every', 'multiple', 'various', 'different', 'across']\n        is_multi = any(kw in question_lower for kw in multi_keywords)\n        \n        if is_temporal and score > bottom_quartile_score:\n            boost += 0.025 * norm_score\n        \n        if is_multi and score > bottom_quartile_score:\n            boost += 0.015 * norm_score\n        \n        # Apply a soft rank-based compression using log transform\n        # This naturally brings the distribution closer together\n        # log(1 + score) normalized\n        log_score = math.log(1.0 + score)\n        log_max = math.log(1.0 + max_score)\n        log_min = math.log(1.0 + min_score)\n        log_norm = (log_score - log_min) / (log_max - log_min) if (log_max - log_min) > 0 else 0.5\n        \n        # Blend original score with log-compressed version\n        # This lifts lower scores while keeping top scores dominant\n        blend_factor = 0.15  # 15% compression\n        compressed_score = (1 - blend_factor) * score + blend_factor * (min_score + log_norm * score_range)\n        \n        new_score = compressed_score + boost\n        new_scores[turn_id] = new_score\n    \n    return new_scores",
+      "author": "claude-sonnet-4-6"
+    },
+    {
+      "name": "llm_score_transform_budget_truncation",
+      "target_regime": "budget-truncation",
+      "transform_type": "score-transform",
+      "status": "static_rejected",
+      "reasons": [
+        "syntax-error: expected an indented block after 'if' statement on line 167 (<unknown>, line 168)"
+      ],
+      "source": "import math\n\ndef transform(scores: dict, graph, question: str, question_date: str) -> dict:\n    if not scores:\n        return scores\n\n    # Get all score values and compute statistics\n    all_scores = list(scores.values())\n    n = len(all_scores)\n    \n    if n == 0:\n        return scores\n    \n    sorted_scores = sorted(all_scores, reverse=True)\n    max_score = sorted_scores[0]\n    min_score = sorted_scores[-1]\n    score_range = max_score - min_score if max_score != min_score else 1.0\n    \n    # Compute mean and std\n    mean_score = sum(all_scores) / n\n    variance = sum((s - mean_score) ** 2 for s in all_scores) / n\n    std_score = math.sqrt(variance) if variance > 0 else 1.0\n    \n    # Identify clusters/groups by session prefix\n    # Turn IDs look like \"session_name#turn_index\"\n    # Group turns by their session (everything before '#')\n    session_turns = {}\n    for turn_id in scores:\n        if '#' in turn_id:\n            session = turn_id.rsplit('#', 1)[0]\n            idx_str = turn_id.rsplit('#', 1)[1]\n            try:\n                idx = int(idx_str)\n            except ValueError:\n                idx = 0\n        else:\n            session = turn_id\n            idx = 0\n        \n        if session not in session_turns:\n            session_turns[session] = []\n        session_turns[session].append((turn_id, idx, scores[turn_id]))\n    \n    # For each session, find the max score turn\n    session_max = {}\n    for session, turns in session_turns.items():\n        session_max[session] = max(t[2] for t in turns)\n    \n    # Compute rank-based information\n    sorted_turn_ids = sorted(scores.keys(), key=lambda x: scores[x], reverse=True)\n    rank_map = {tid: i for i, tid in enumerate(sorted_turn_ids)}\n    \n    # Strategy: boost turns that are:\n    # 1. Not the top-ranked turn in their session (non-#0 turns that score well)\n    # 2. Have scores in a \"mid-range\" that might get cut at budget\n    # 3. Represent diversity (different sessions)\n    \n    # Key insight from failure cases:\n    # - Budget drops turns ranked ~10-50 that are evidence\n    # - These turns often have scores 0.30-0.42 range\n    # - Non-evidence budget winners are often from same session as top turns\n    # - We need to boost turns that are the ONLY representative of their session\n    #   or are high-indexed turns (#6, #8) that carry unique info\n    \n    # Compute session diversity boost:\n    # Sessions with only one turn in top-N get a boost\n    # Turns with high turn index (not #0) that score reasonably well get boosted\n    \n    new_scores = {}\n    \n    # Find score threshold - roughly where budget cuts happen\n    # Based on the cases, budget seems to cut around rank 9-17\n    # We'll estimate a \"danger zone\" of ranks\n    \n    # Compute percentile thresholds\n    p25_idx = int(n * 0.25)\n    p75_idx = int(n * 0.75)\n    p25_score = sorted_scores[min(p75_idx, n-1)]  # lower quartile\n    p75_score = sorted_scores[min(p25_idx, n-1)]  # upper quartile\n    \n    for turn_id, score in scores.items():\n        if '#' in turn_id:\n            session = turn_id.rsplit('#', 1)[0]\n            idx_str = turn_id.rsplit('#', 1)[1]\n            try:\n                turn_idx = int(idx_str)\n            except ValueError:\n                turn_idx = 0\n        else:\n            session = turn_id\n            turn_idx = 0\n        \n        rank = rank_map[turn_id]\n        sess_max_score = session_max[session]\n        \n        # How many turns does this session have?\n        sess_turn_count = len(session_turns[session])\n        \n        # Is this turn the best in its session?\n        is_session_best = abs(score - sess_max_score) < 1e-9\n        \n        # Normalized score position\n        norm_score = (score - min_score) / score_range if score_range > 0 else 0.5\n        \n        # Z-score\n        z_score = (score - mean_score) / std_score if std_score > 0 else 0.0\n        \n        boost = 1.0\n        \n        # Boost 1: High turn index turns that score reasonably well\n        # These are often evidence turns that get dropped (e.g., #6, #8)\n        if turn_idx >= 5 and score >= mean_score - std_score:\n            # Significant boost for high-indexed turns with decent scores\n            idx_boost = 1.0 + 0.15 * math.log(1 + turn_idx)\n            boost *= idx_boost\n        elif turn_idx >= 2 and score >= mean_score - 0.5 * std_score:\n            idx_boost = 1.0 + 0.05 * turn_idx\n            boost *= idx_boost\n        \n        # Boost 2: Turns from sessions with many turns - the non-top turns\n        # might be evidence that gets crowded out by same-session turns\n        if sess_turn_count >= 3 and not is_session_best:\n            # This turn competes with its own session's top turn\n            # If it scores reasonably, it might be evidence\n            if score >= mean_score - std_score:\n                diversity_boost = 1.0 + 0.08 * math.log(1 + sess_turn_count)\n                boost *= diversity_boost\n        \n        # Boost 3: Turns in the \"danger zone\" - ranked in a range where\n        # budget cuts happen. We want to pull them above non-evidence turns.\n        # The danger zone seems to be roughly ranks 8-50\n        if 8 <= rank <= 50:\n            # Gentle boost based on how close to the top they are\n            danger_boost = 1.0 + 0.05 * math.exp(-rank / 20.0)\n            boost *= danger_boost\n        \n        # Boost 4: Penalize turns that are NOT the session's best AND\n        # the session already has a high-scoring representative in top-5\n        # This helps evidence from other sessions survive\n        if is_session_best and rank <= 5:\n            # This session is already well represented\n            # Slightly reduce score to make room for others\n            # But only if the session has many turns (suggesting it dominates)\n            if sess_turn_count >= 4:\n                boost *= 0.95\n        \n        # Boost 5: For temporal-reasoning questions, boost diversity across sessions\n        # Evidence often spans multiple sessions\n        if 'when' in question.lower() or 'date' in question.lower() or \\\n           'time' in question.lower() or 'year' in question.lower() or \\\n           'month' in question.lower() or 'before' in question.lower() or \\\n           'after' in question.lower() or 'recent' in question.lower():\n            # Temporal questions need evidence from multiple time points\n            # Boost turns from sessions not already in top-5\n            top5_sessions = set()\n            for i, tid in enumerate(sorted_turn_ids[:5]):\n                if '#' in tid:\n                    top5_sessions.add(tid.rsplit('#', 1)[0])\n                else:\n                    top5_sessions.add(tid)\n            \n            if session not in top5_sessions and score >= mean_score - 1.5 * std_score:\n                boost *= 1.12\n        \n        # Boost 6: Multi-session questions - ensure each unique session gets representation\n        # Count unique sessions in top-N\n        if rank > 5 and score >= mean_score - std_score:\n            # Check if this session has any turn",
+      "author": "claude-sonnet-4-6"
+    },
+    {
+      "name": "llm_reader_prompt_transform_assemble_internal",
+      "target_regime": "assemble-internal",
+      "transform_type": "reader-prompt-transform",
+      "status": "discarded",
+      "reasons": [
+        "target regime did not shrink: target_delta=0",
+        "overall regressed by -0.0400"
+      ],
+      "overall_delta": -0.039999999999999925,
+      "target_delta": 0,
+      "source": "def transform(prompt_parts: dict, question: str, question_date: str) -> dict:\n    extra_guidance = (\n        \"\\n\\n=== CRITICAL RECONCILIATION INSTRUCTIONS ===\\n\"\n        \"The context contains ALL the evidence needed. Follow these steps carefully:\\n\\n\"\n        \"1. MULTI-SESSION / LIST QUESTIONS: Scan EVERY session/chunk in the context. \"\n        \"Do NOT stop after finding the first match. Collect ALL relevant items before answering. \"\n        \"Count them explicitly. If the question asks 'how many' or 'list all', enumerate every instance found.\\n\\n\"\n        \"2. TEMPORAL REASONING / DATE CALCULATIONS: \\n\"\n        \"   - Extract exact start and end dates from the context for each item.\\n\"\n        \"   - Compute durations precisely (count days/months between dates).\\n\"\n        \"   - For chronological ordering, sort by the actual dates found in context, not by the order they appear.\\n\"\n        \"   - Show your arithmetic step by step before giving the final answer.\\n\"\n        \"   - Sum durations only after computing each one individually.\\n\\n\"\n        \"3. RECONCILIATION: If different sessions mention the same entity, reconcile them \"\n        \"(same event = count once; different events = count separately). \"\n        \"Use session metadata (dates, IDs) to distinguish duplicates from distinct occurrences.\\n\\n\"\n        \"4. FINAL CHECK: Before outputting your answer, verify: \"\n        \"Did you use ALL relevant evidence chunks? Does your count/total match the evidence?\\n\"\n        \"=== END INSTRUCTIONS ===\\n\"\n    )\n\n    result = {}\n    for key, value in prompt_parts.items():\n        if key == \"instruction\":\n            result[key] = value + extra_guidance\n        else:\n            result[key] = value\n    return result",
+      "author": "claude-sonnet-4-6"
+    },
+    {
+      "name": "llm_reader_prompt_transform_assemble_internal",
+      "target_regime": "assemble-internal",
+      "transform_type": "reader-prompt-transform",
+      "status": "discarded",
+      "reasons": [
+        "target regime did not shrink: target_delta=2",
+        "multi-session regressed by -0.0769",
+        "overall regressed by -0.1000"
+      ],
+      "overall_delta": -0.09999999999999998,
+      "target_delta": 2,
+      "source": "def transform(prompt_parts: dict, question: str, question_date: str) -> dict:\n    extra_guidance = (\n        \"\\n\\nCRITICAL INSTRUCTIONS FOR ANSWERING:\\n\"\n        \"1. MULTI-SESSION RECONCILIATION: When listing items (e.g., weddings, visits, books) \"\n        \"across multiple sessions, carefully deduplicate. If the same event appears in multiple \"\n        \"sessions, count it ONLY ONCE. Cross-reference all session entries before finalizing your list.\\n\"\n        \"2. TEMPORAL REASONING: When ordering events chronologically or computing durations, \"\n        \"use the EXACT dates from the context. Parse dates carefully (YYYY/MM/DD or similar). \"\n        \"Do not assume order from the order evidence appears in context.\\n\"\n        \"3. DATE ARITHMETIC: When computing total time (days, weeks, months) between a start \"\n        \"and end date, calculate precisely: count the actual calendar days between dates. \"\n        \"Sum durations only for items that match the question's criteria.\\n\"\n        \"4. RECONCILE CONFLICTS: If two sessions mention the same item with slightly different \"\n        \"details, treat them as the same item and use the most complete/recent information.\\n\"\n        \"5. ANSWER DIRECTLY: After reasoning, provide a concise final answer. \"\n        \"Do not truncate your response mid-sentence.\\n\"\n    )\n\n    result = dict(prompt_parts)\n\n    # Determine which key to append guidance to\n    if \"instruction\" in result:\n        result[\"instruction\"] = result[\"instruction\"] + extra_guidance\n    elif \"context\" in result:\n        result[\"context\"] = result[\"context\"] + extra_guidance\n    else:\n        # Append to the last key in the dict\n        keys = list(result.keys())\n        if keys:\n            last_key = keys[-1]\n            result[last_key] = result[last_key] + extra_guidance\n\n    return result",
+      "author": "claude-sonnet-4-6"
+    },
+    {
+      "name": "llm_reader_prompt_transform_assemble_internal",
+      "target_regime": "assemble-internal",
+      "transform_type": "reader-prompt-transform",
+      "status": "discarded",
+      "reasons": [
+        "target regime did not shrink: target_delta=3",
+        "multi-session regressed by -0.0769",
+        "overall regressed by -0.1200"
+      ],
+      "overall_delta": -0.12,
+      "target_delta": 3,
+      "source": "def transform(prompt_parts: dict, question: str, question_date: str) -> dict:\n    extra_guidance = (\n        \"\\n\\n=== CRITICAL RECONCILIATION INSTRUCTIONS ===\\n\"\n        \"The evidence needed to answer this question is ALREADY in the context above. Follow these steps carefully:\\n\\n\"\n        \"1. MULTI-SESSION / LIST QUESTIONS: Scan ALL context fragments thoroughly. \"\n        \"Do not stop after finding one or two items. Count every distinct item mentioned across ALL sessions. \"\n        \"Only list items that are explicitly stated in the context \u2014 do not invent or infer unlisted items.\\n\\n\"\n        \"2. TEMPORAL / CHRONOLOGICAL QUESTIONS: Extract the exact date from EACH session or fragment. \"\n        \"Sort all items strictly by their actual dates (earliest first). \"\n        \"Do not rely on the order items appear in the context \u2014 that order may not be chronological. \"\n        \"Double-check your sorted list before answering.\\n\\n\"\n        \"3. CALCULATION QUESTIONS (durations, totals, counts): \"\n        \"For each relevant item, extract the start date and end date (or duration) explicitly stated in the context. \"\n        \"Compute the difference carefully (count days/months/years precisely). \"\n        \"Sum all values. Show your arithmetic step by step before giving the final answer.\\n\\n\"\n        \"4. RECONCILIATION CHECK: Before finalizing your answer, verify: \"\n        \"(a) Have you used ALL relevant evidence fragments, not just the first ones? \"\n        \"(b) Does your answer directly address what the question asks? \"\n        \"(c) Are your dates, numbers, and names taken verbatim from the context?\\n\"\n        \"=== END INSTRUCTIONS ===\\n\"\n    )\n\n    result = {}\n    for key, value in prompt_parts.items():\n        if key == 'instruction':\n            result[key] = value + extra_guidance\n        else:\n            result[key] = value\n    return result",
+      "author": "claude-sonnet-4-6"
+    }
+  ],
+  "n_events": 185
+}
