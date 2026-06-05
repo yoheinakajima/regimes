@@ -174,13 +174,12 @@ flipped question. It runs cleanly against all three saved reports; for the two
 05-30 reports it prints `no per-question CONFIRM outcomes` because those runs
 predate per-question CONFIRM persistence (see below).
 
-> **There is no `scripts/significance.py` in the repo.** The McNemar test
-> referenced in the paper is not implemented by any committed script (no
-> `mcnemar` / `binom` / `significance` code exists anywhere in the tree). The
-> McNemar number can be checked by hand from the flip counts (see
-> *Results summary*), but it cannot be reproduced by running a committed
-> script. This is a reproducibility gap to close before publishing.
-
+> **Significance is reproducible.** `scripts/significance.py` recomputes every
+> reported McNemar p-value (per-split and pooled) directly from the committed
+> per-question CONFIRM outcomes, using only the standard library (`math.comb`).
+> Run: `python3 scripts/significance.py results/run_seed5/report.json` plus the
+> other four reports. It reproduces the per-split values (seed 7: 0.039, seed 5:
+> 0.006) and the descriptive pooled value, and omits the two aggregate-only runs.
 ---
 
 ## Repo layout
