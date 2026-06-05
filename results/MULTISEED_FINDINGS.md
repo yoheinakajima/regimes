@@ -11,5 +11,5 @@
 Pooled (final state, all 5): w→r=43 r→w=13 → McNemar exact p = 7.3e-05
 Sensitivity A (excl seed101 over-promote): w→r=36 r→w=7 → p = 9.0e-06
 All draws promoted only assemble-internal reader-prompt transforms.
-All budget-truncation score-transforms discarded across all seeds.
+Budget-truncation score-transforms were discarded in every split except seed 101, where one was promoted (+0.05 held-out, later eroded to the 0.79 final state by reader-prompt over-promotion).
 seed101 = over-promotion finding (high baseline, loop promoted noise after gains plateaued).
