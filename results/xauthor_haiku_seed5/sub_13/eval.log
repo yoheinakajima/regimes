@@ -1,0 +1,718 @@
+$ /Users/yoheinakajima/aglongmem/ag-run/regimes/.venv/bin/python3 /Users/yoheinakajima/aglongmem/ag-run/activegraph-longmemeval/third_party/longmemeval/src/evaluation/evaluate_qa.py gpt-4o /Users/yoheinakajima/aglongmem/ag-run/regimes/results/xauthor_haiku_seed5/sub_13/hypotheses.jsonl /Users/yoheinakajima/aglongmem/ag-run/regimes/results/xauthor_haiku_seed5/sub_13/references.json
+[cwd] /Users/yoheinakajima/aglongmem/ag-run/activegraph-longmemeval
+
+--- stdout ---
+{
+    "question": "How much did I spend on each coffee mug for my coworkers?",
+    "answer": "$12",
+    "hypothesis": "Based on the context, you spent **$60 total** on coffee mugs for your coworkers. From the later session, it's mentioned that you purchased **5 coffee mugs** (one for each coworker), which means you spent **$12 per mug**.",
+    "autoeval_label": true
+}
+{
+    "question": "What should I serve for dinner this weekend with my homegrown ingredients?",
+    "answer": "The user would prefer dinner suggestions that incorporate their homegrown cherry tomatoes and herbs like basil and mint, highlighting recipes that showcase their garden produce. They might not prefer suggestions that do not utilize these specific ingredients or do not emphasize the use of homegrown elements.",
+    "hypothesis": "Based on the context provided, I can see that you mentioned having **fresh basil**, **fresh mint**, and **homegrown cherry tomatoes** from your garden (from the session on 2023/05/23).\n\nHere are some dinner ideas using those homegrown ingredients:\n\n1. **Caprese Salad** \u2013 Use your cherry tomatoes with fresh mozzarella and basil, dressed with olive oil and balsamic glaze.\n2. **Pesto Pasta** \u2013 Blend your fresh basil with garlic, pine nuts, Parmesan, and olive oil, then toss with pasta and your cherry tomatoes.\n3. **Thai-Style Basil and Mint Stir-Fry** \u2013 Use both your basil and mint with chicken or tofu, chilies, and lemongrass, served with rice.\n4. **Middle Eastern-Style Salad** \u2013 Combine your cherry tomatoes, chopped basil, and mint with bulgur, cucumber, feta, and a lemon-tahini dressing.\n5. **Veggie-Packed Pasta Primavera** \u2013 Saut\u00e9 your cherry tomatoes with bell peppers, onions, and mushrooms, tossed with whole-grain pasta.\n\nThese options make great use of the homegrown ingredients you've mentioned across your conversations. Would you like more details on any of these recipes?",
+    "autoeval_label": true
+}
+{
+    "question": "Where do I initially keep my old sneakers?",
+    "answer": "under my bed",
+    "hypothesis": "Based on the context, you initially kept your old sneakers **under your bed** for storage (as mentioned in the first session from 2023/08/11). Later, by the second session (2023/11/30), you were planning to move them to a **shoe rack in your closet**.",
+    "autoeval_label": true
+}
+{
+    "question": "How many days had passed since I finished reading 'The Seven Husbands of Evelyn Hugo' when I attended the book reading event at the local library, where the author of 'The Silent Patient' is discussing her latest thriller novel?",
+    "answer": "18 days. 19 days (including the last day) is also acceptable.",
+    "hypothesis": "## Calculating the Days Between Events\n\nBased on the context provided, I can identify the two relevant dates:\n\n1. **Finishing \"The Seven Husbands of Evelyn Hugo\"**: The user stated *\"I just finished reading this Taylor Jenkins Reid book today\"* in the session dated **2022/12/28 (Wednesday)**.\n\n2. **Attending the book reading event at the local library**: The user stated *\"I just attended a book reading event at the local library today\"* in the session dated **2023/01/15 (Sunday)**.\n\n## Calculation\n\nFrom **December 28, 2022** to **January 15, 2023**:\n- December 28 \u2192 December 31 = **3 days**\n- January 1 \u2192 January 15 = **15 days**\n- **Total = 18 days**\n\n**18 days** had passed between finishing \"The Seven Husbands of Evelyn Hugo\" and attending the book reading event at the local library.",
+    "autoeval_label": true
+}
+{
+    "question": "How many days did I spend attending workshops, lectures, and conferences in April?",
+    "answer": "3 days",
+    "hypothesis": "Based on the provided context, I can identify the following events attended in April:\n\n1. **April 10th** \u2013 A lecture on sustainable development at the public library (1 day)\n2. **April 17th and 18th** \u2013 A 2-day workshop on machine learning/data science topics (2 days)\n\n**Total: 3 days** spent attending workshops and lectures in April.",
+    "autoeval_label": true
+}
+{
+    "question": "How many largemouth bass did I catch with Alex on the earlier fishing trip to Lake Michigan before the 7/22 trip?",
+    "answer": "7",
+    "hypothesis": "Based on the context, the earlier fishing trip to Lake Michigan was on **7/10**, when you caught **7 largemouth bass** with Alex. This is mentioned in the Session answer_67be2c38_1 (2023/08/11) conversation, where you noted: \"I caught 7 largemouth bass on my trip to Lake Michigan with Alex on 7/10 - that was a great day!\"\n\nThis trip preceded the later 7/22 trip (referenced in Session answer_67be2c38_2), where you and Alex caught 9 largemouth bass.",
+    "autoeval_label": true
+}
+{
+    "question": "I'm looking back at our previous conversation about the Seco de Cordero recipe from Ancash. You mentioned using a light or medium-bodied beer, but I was wondering if you could remind me what type of beer you specifically recommended?",
+    "answer": "I recommended using a Pilsner or Lager for the recipe.",
+    "hypothesis": "Based on the context provided, the specific beer type recommended for the Seco de Cordero recipe was a **Pilsner or Lager**. The recommendation was to use a light or medium-bodied beer to avoid overpowering the flavors of the lamb and spices, with a Pilsner or lager cited as working well. It was also suggested that you could use a **local beer from Ancash** to give the dish a more authentic touch.\n\nNotably, in a follow-up message, you yourself confirmed you would try the recipe with a **Pilsner**, which aligns with the recommendation given.",
+    "autoeval_label": true
+}
+{
+    "question": "I think we discussed work from home jobs for seniors earlier. Can you remind me what was the 7th job in the list you provided?",
+    "answer": "Transcriptionist.",
+    "hypothesis": "Based on the context provided, yes, we did discuss work from home jobs for seniors. The 7th job in the list provided was **Transcriptionist**.",
+    "autoeval_label": true
+}
+{
+    "question": "I've been thinking about making a cocktail for an upcoming get-together, but I'm not sure which one to choose. Any suggestions?",
+    "answer": "Considering their mixology class background, the user would prefer cocktail suggestions that build upon their existing skills and interests, such as creative variations of classic cocktails or innovative twists on familiar flavors. They might appreciate recommendations that incorporate their experience with refreshing summer drinks like Pimm's Cup. The user would not prefer overly simplistic or basic cocktail recipes, and may not be interested in suggestions that don't take into account their mixology class background.",
+    "hypothesis": "Based on the context provided, you've previously shown interest in making a **Pimm's Cup with a Twist** using Hendrick's gin, which you were planning to experiment with. From our previous conversation, you had already worked out several key details for this cocktail:\n\n- **Base**: Hendrick's gin with Pimm's No. 1\n- **Syrup**: Ruby Red Grapefruit simple syrup for a balanced flavor and lovely pink hue\n- **Technique**: Muddling cucumber slices for added flavor and texture\n- **Garnishes**: Options like cucumber slices, grapefruit wedges, mint sprigs, and edible flowers\n- **Glassware**: A Collins glass to showcase the layers of color and garnishes\n\nThis could be a great choice for your get-together, as you've already done the planning work for it! It's a visually stunning, refreshing summer cocktail that would be perfect for entertaining.\n\nHowever, the context doesn't provide details about your upcoming get-together (e.g., the season, number of guests, or preferences), so if you'd like suggestions tailored to those specifics, feel free to share more details!",
+    "autoeval_label": true
+}
+{
+    "question": "What is the difference in price between my luxury boots and the similar pair found at the budget store?",
+    "answer": "$750",
+    "hypothesis": "Based on the context provided:\n\n- The luxury boots were purchased for **$800** (mentioned in Session answer_d8454588_1)\n- A similar pair was found at a budget store for **$50** (mentioned in Session answer_d8454588_2)\n\nThe difference in price is **$750**.",
+    "autoeval_label": true
+}
+{
+    "question": "Where does my sister Emily live?",
+    "answer": "Denver",
+    "hypothesis": "Based on the context provided, your sister Emily lives in **Denver**.\n\nThis is mentioned in the session from 2023/05/20, where you stated: *\"I'm thinking of visiting my sister Emily in Denver soon.\"*",
+    "autoeval_label": true
+}
+{
+    "question": "How long have I been living in my current apartment in Harajuku?",
+    "answer": "3 months",
+    "hypothesis": "Based on the context, I need to synthesize information from two sessions to answer this accurately.\n\n- In **Session 1 (April 11, 2023)**, you mentioned you had been living in your Harajuku studio apartment for **one month**.\n- In **Session 2 (October 15, 2023)**, you mentioned you had been living in Harajuku for **3 months**.\n\nThe most recent information (from October 15, 2023) indicates that you have been living in your Harajuku apartment for **3 months**.",
+    "autoeval_label": true
+}
+{
+    "question": "How many largemouth bass did I catch on my fishing trip to Lake Michigan?",
+    "answer": "12",
+    "hypothesis": "Based on the context provided, you caught **12 largemouth bass** on your last fishing trip to Lake Michigan. This was mentioned in the session from 2023/05/21, where you stated: *\"I caught 12 largemouth bass on my last trip there.\"*",
+    "autoeval_label": true
+}
+{
+    "question": "How many pages do I have left to read in 'The Nightingale'?",
+    "answer": "190",
+    "hypothesis": "Based on the context provided, I can piece together the answer from two different sessions:\n\n- In **Session answer_bf633415_2 (May 28)**, you mentioned that \"The Nightingale\" has **440 pages** total, and that you had \"just got back to reading\" it.\n- In **Session answer_bf633415_1 (May 30)**, you stated that you are **currently on page 250** of 'The Nightingale'.\n\nUsing the most recent information (May 30), you have:\n\n**440 - 250 = 190 pages remaining** in 'The Nightingale'.",
+    "autoeval_label": true
+}
+{
+    "question": "How often do I see Dr. Johnson?",
+    "answer": "The information provided is not enough. You mentioned seeing Dr. Smith but not Dr. Johnson.",
+    "hypothesis": "Based on the provided context, there is no mention of a \"Dr. Johnson\" anywhere. The therapist referenced throughout the conversations is **Dr. Smith**. According to the context, there are slightly conflicting details about the frequency of sessions with Dr. Smith:\n\n- In one session (2023/05/21), it was mentioned that therapy sessions with Dr. Smith occur **every two weeks**.\n- In a later session (2023/05/24), it was mentioned that Dr. Smith is seen **every week**.\n\nThe context does not contain any information about a Dr. Johnson.",
+    "autoeval_label": true
+}
+{
+    "question": "I'm going back to our previous conversation about music theory. You mentioned some online resources for learning music theory. Can you remind me of the website you recommended for free lessons and exercises?",
+    "answer": "MusicTheory.net",
+    "hypothesis": "Based on the context provided, the website recommended for free lessons and exercises on music theory was **MusicTheory.net**. It was described as offering free lessons and exercises covering topics such as **rhythm, chords, and scales**.\n\nThis was mentioned in the session from 2023/05/20, and you also indicated at the end of that conversation that you planned to start with MusicTheory.net along with some YouTube channels.",
+    "autoeval_label": true
+}
+{
+    "question": "How much time do I dedicate to practicing violin every day?",
+    "answer": "You did not mention this information. You mentioned practing guitar everyday, but not violin.",
+    "hypothesis": "The context does not contain any information about practicing violin. The only musical instruments mentioned in the context are guitar (practiced for 30 minutes daily) and harmonica. There is no mention of violin practice at all.",
+    "autoeval_label": true
+}
+{
+    "question": "What is the total amount of money I earned from selling my products at the markets?",
+    "answer": "$495",
+    "hypothesis": "Based on the context provided, I can identify the following sales mentioned across the sessions:\n\n1. **Homemade and Handmade Market (May 29th)**: Sold 15 jars of homemade jam, earning **$225**\n2. **Summer Solstice Market**: Sold 20 potted herb plants at $7.50 each, earning **$150**\n3. **Farmers' Market (May 15th)**: Sold 12 bunches of fresh organic herbs, earning **$120**\n\n**Total earnings: $225 + $150 + $120 = $495**",
+    "autoeval_label": true
+}
+{
+    "question": "I was going through our previous chat and I wanted to clarify something about the prayer of beginners in Tanqueray's Spiritual Life treatise. Can you remind me which chapter of the second part discusses vocal prayer and meditation?",
+    "answer": "Chapter 4 of Book 1, titled 'Vocal Prayer and Meditation'.",
+    "hypothesis": "Based on the context provided, the chapter in the second part of Adolphe Tanqueray's *Spiritual Life* treatise that discusses vocal prayer and meditation \u2014 specifically in relation to the prayer of beginners \u2014 is **Chapter 4 of Book 1**, titled **\"Vocal Prayer and Meditation.\"**\n\nIn that chapter, Tanqueray covers:\n- The importance of **vocal prayer** (e.g., the Our Father, Hail Mary, Glory Be) for providing structure and focus for beginners\n- **Meditation** as a more advanced but still accessible form of prayer, including simple reflections on Scripture or aspects of God's nature\n- The value of **regular discipline** in prayer, including set times and the use of a prayer book\n- The role of **spiritual reading** as a complement to prayer",
+    "autoeval_label": true
+}
+{
+    "question": "How many days did it take me to finish 'The Nightingale' by Kristin Hannah?",
+    "answer": "21 days. 22 days (including the last day) is also acceptable.",
+    "hypothesis": "Based on the provided context, I can determine the following:\n\n- On **January 10, 2023**, the user stated they had **just started** \"The Nightingale\" by Kristin Hannah.\n- On **January 31, 2023**, the user stated they had **just finished** \"The Nightingale\" by Kristin Hannah.\n\nThis means it took approximately **21 days** to finish \"The Nightingale.\"",
+    "autoeval_label": true
+}
+{
+    "question": "What is the total number of days I spent in Japan and Chicago?",
+    "answer": "11 days (or 12 days, if April 15th to 22nd is considered as 8 days)",
+    "hypothesis": "Based on the context provided:\n\n1. **Japan**: The user mentioned visiting Japan from **April 15th to 22nd**, which is **7 days**.\n\n2. **Chicago**: The user mentioned a previous **4-day trip** to Chicago.\n\n**Total: 7 + 4 = 11 days** spent in Japan and Chicago combined.",
+    "autoeval_label": true
+}
+{
+    "question": "Do I have a spare screwdriver for opening up my laptop?",
+    "answer": "Yes",
+    "hypothesis": "Based on the context, **yes, you do have a spare screwdriver** for opening up your laptop. In the session from 2023/08/15 (Tue), you confirmed that you \"actually have a spare screwdriver that I picked up when I organized my computer desk a while back,\" and stated you were \"all set\" for cleaning the laptop fans.\n\nThis is an update from the earlier session on 2023/08/11 (Fri), where you had mentioned misplacing your small screwdriver and needing to pick one up.",
+    "autoeval_label": true
+}
+{
+    "question": "I'm planning to go back to the Natural Park of Moncayo mountain in Arag\u00f3n and I was wondering, what was the name of that hiking trail you recommended that takes you through the park's most stunning landscapes and offers panoramic views of the surrounding mountainside?",
+    "answer": "The GR-90 trail.",
+    "hypothesis": "Based on the context provided, the hiking trail recommended for stunning landscapes and panoramic views in the Natural Park of the Moncayo mountain in Arag\u00f3n was the **GR-90**. It is a circular hiking trail that runs for approximately 36 kilometers, takes between two to three days to complete, and highlights include reaching the summit of Moncayo mountain and experiencing the beautiful Fuenfr\u00eda waterfall.",
+    "autoeval_label": true
+}
+{
+    "question": "I was looking back at our previous chat and I wanted to confirm, how many times did the Chiefs play the Jaguars at Arrowhead Stadium?",
+    "answer": "The Chiefs played the Jaguars 12 times at Arrowhead Stadium.",
+    "hypothesis": "Based on the context provided, the Kansas City Chiefs and the Jacksonville Jaguars played **12 games** at Arrowhead Stadium in Kansas City, Missouri. Of those 12 games, the Chiefs won 10 and the Jaguars won 2.\n\nPlease note that this information is based on regular season games only (not including playoffs) and reflects data up to the 2021 knowledge cut-off date.",
+    "autoeval_label": true
+}
+{
+    "question": "How many antique items did I inherit or acquire from my family members?",
+    "answer": "5",
+    "hypothesis": "Based on the context provided across all sessions, I can identify the following antique/vintage items acquired from family members:\n\n1. **Antique tea set** - from cousin Rachel (Session 2023/05/25)\n2. **Vintage typewriter** - belonged to dad (Session 2023/05/25)\n3. **Vintage diamond necklace** - from grandmother (Session 2023/05/30)\n4. **Antique music box** - from great-aunt (Session 2023/05/30)\n5. **Depression-era glassware** - from mom (Session 2023/05/30)\n\nIn total, you acquired **5 antique/vintage items** from various family members across the two sessions.",
+    "autoeval_label": true
+}
+{
+    "question": "What time do I stop checking work emails and messages?",
+    "answer": "7 pm",
+    "hypothesis": "Based on the context provided, you stop checking work emails and messages by **7 pm**. This was mentioned in the session from 2023/05/29, where you described stopping work emails and messages by 7 pm to separate your work and personal life, noting that it has helped you relax and not think about work during your personal time.",
+    "autoeval_label": true
+}
+{
+    "question": "I was thinking about rearranging the furniture in my bedroom this weekend. Any tips?",
+    "answer": "The user would prefer responses that take into account their existing plans to replace the bedroom dresser and their interest in mid-century modern style, suggesting furniture layouts that accommodate the new dresser and incorporate elements of this design aesthetic. They might not prefer general furniture arrangement tips or suggestions that do not consider their specific design preferences.",
+    "hypothesis": "The provided context does not contain any information about rearranging bedroom furniture. The context covers topics such as cable management, bathroom mirrors, bathroom light fixtures, bathroom cabinet organization, and mid-century modern dresser design, but nothing specifically about tips for rearranging bedroom furniture.\n\nI cannot provide an answer based solely on the provided context.",
+    "autoeval_label": false
+}
+{
+    "question": "What company is Rachel, an old colleague from my previous company, currently working at?",
+    "answer": "TechCorp",
+    "hypothesis": "Based on the context, specifically from **Session answer_b0f3dfff_2 (2023/05/26 (Fri) 20:48)**, Rachel is currently working at **TechCorp**.",
+    "autoeval_label": true
+}
+{
+    "question": "How many months ago did I attend the photography workshop?",
+    "answer": 3,
+    "hypothesis": "Based on the context, the user mentioned attending a 3-day photography workshop in Session answer\\_c18d480b\\_1, which was dated **2023/11/01 (Wed)**.\n\nThe question\\_date is not explicitly provided, but based on the latest session in the context (also 2023/11/01), the workshop was attended **today** (on the same date as the session), meaning it was **0 months ago** \u2014 it was attended the same day as that conversation.\n\nIf you are asking from a later date, the context does not provide enough information to calculate the exact number of months ago relative to your current date.",
+    "autoeval_label": false
+}
+{
+    "question": "How many dinner parties have I attended in the past month?",
+    "answer": "three",
+    "hypothesis": "Based on the provided context, I can identify the following dinner parties attended within the relevant timeframe (around May 2023):\n\n1. **Alex's place** \u2013 A low-key potluck dinner party where different cuisines from around the world were tried (mentioned on 2023/05/21).\n2. **Mike's place** \u2013 A BBQ where a football game was watched together (mentioned on 2023/05/21).\n3. **Sarah's place** \u2013 An Italian feast followed by board games played late into the night (mentioned on 2023/05/22).\n\nThat accounts for **at least 3 dinner parties** attended in the past month, based on the information provided in the context. It's worth noting that the context may not capture every dinner party attended, so the actual number could be higher.",
+    "autoeval_label": true
+}
+{
+    "question": "How many times have I tried making a Negroni at home since my friend Emma showed me how to make it?",
+    "answer": "10",
+    "hypothesis": "Based on the provided context, I can see this information appears across multiple sessions:\n\n- In **Session 1 (August 11, 2023)**, you mentioned having tried making a Negroni at home **5 times** since Emma taught you how to make it.\n- In **Session 2 (November 30, 2023)**, you mentioned having tried making a Negroni at home **10 times** since Emma showed you how to make it (this is referenced multiple times within that session).\n\nSince the November 30, 2023 session is the most recent, the most up-to-date count is that you have tried making a Negroni at home **10 times** since your friend Emma showed you how to make it.",
+    "autoeval_label": true
+}
+{
+    "question": "For the coffee-to-water ratio in my French press, did I switch to more water per tablespoon of coffee, or less?",
+    "answer": "You switched to less water (5 ounces) per tablespoon of coffee.",
+    "hypothesis": "Based on the context, I can track the change in your French press ratio across two sessions:\n\n- **Session 1 (February 11, 2023)**: You mentioned using **1 tablespoon of coffee for every 6 ounces of water**.\n- **Session 2 (June 30, 2023)**: You mentioned using **1 tablespoon of coffee for every 5 ounces of water**.\n\nYou switched to **less water per tablespoon of coffee** (from 6 oz down to 5 oz), meaning your brew became **stronger** over time.",
+    "autoeval_label": true
+}
+{
+    "question": "How many days did it take for my laptop backpack to arrive after I bought it?",
+    "answer": "5 days. 6 days (including the last day) is also acceptable.",
+    "hypothesis": "Based on the context provided, I can answer this question by combining information from two sessions:\n\n- **Session answer_e0956e0a_1**: The backpack was purchased on **January 15th** (bought from Amazon on 1/15).\n- **Session answer_e0956e0a_2**: The backpack arrived on **January 20th** (it arrived on 1/20).\n\nTherefore, it took **5 days** for the laptop backpack to arrive after it was purchased.",
+    "autoeval_label": true
+}
+{
+    "question": "How much faster did I finish the 5K run compared to my previous year's time?",
+    "answer": "10 minutes",
+    "hypothesis": "Based on the context provided:\n\n- **Previous year's 5K time**: 45 minutes\n- **Recent 5K time**: 35 minutes (mentioned in the session from 2023/10/01 at 11:48, where the user stated \"I just got back into running and recently finished a 5K in 35 minutes\")\n\n**You finished 10 minutes faster** than your previous year's time. That's a significant improvement, going from 45 minutes down to 35 minutes!",
+    "autoeval_label": true
+}
+{
+    "question": "How many months before my anniversary did Rachel get engaged?",
+    "answer": "2",
+    "hypothesis": "Based on the context provided:\n\n- **Rachel's engagement date**: May 15th (mentioned in the session from 2023/07/07)\n- **Your wedding anniversary**: July 22nd (mentioned in the same session)\n\nBoth dates are in the same year (2023). From May 15th to July 22nd is approximately **2 months and 7 days** \u2014 so Rachel got engaged roughly **2 months** before your anniversary.",
+    "autoeval_label": true
+}
+{
+    "question": "How many days did I take social media breaks in total?",
+    "answer": "17 days",
+    "hypothesis": "Based on the context provided, you mentioned two separate social media breaks:\n\n1. **A week-long break (7 days)** in mid-January (mentioned in Session answer_a4204937_1)\n2. **A 10-day break** in mid-February (mentioned in Session answer_a4204937_2)\n\n**In total, you took 17 days of social media breaks.**",
+    "autoeval_label": true
+}
+{
+    "question": "How many weeks have I been taking sculpting classes when I invested in my own set of sculpting tools?",
+    "answer": 3,
+    "hypothesis": "Based on the context, I can answer this by cross-referencing two pieces of information:\n\n1. From **Session answer_88841f26_1 (2023/02/11)**, the user mentions they **just started** taking sculpting classes that day (February 11, 2023).\n\n2. From the same session, later in the conversation, the user mentions they have been taking classes for **about 6 weeks**.\n\n3. From **Session answer_88841f26_2 (2023/03/04)**, the user mentions they **got their own set of sculpting tools today**.\n\nCalculating the time between February 11, 2023 and March 4, 2023, that is approximately **3 weeks** after starting classes \u2014 not 6 weeks.\n\nHowever, the most directly relevant information comes from the **6-week mention** in Session answer_88841f26_1, which appears to be stated in the same session context. The tool purchase occurred on **March 4, 2023**, which is approximately **3 weeks** after the classes began on February 11, 2023.\n\nTherefore, when the user invested in their own sculpting tools, they had been taking classes for approximately **3 weeks**.",
+    "autoeval_label": true
+}
+{
+    "question": "How many episodes of the Science series have I completed on Crash Course?",
+    "answer": "50",
+    "hypothesis": "Based on the context, there are two data points about your Crash Course Science series progress:\n\n1. **Session 1 (2023/05/24)**: You mentioned being on **episode 10** of the Science series.\n2. **Session 2 (2023/05/29)**: You mentioned having completed **50 episodes** of the Science series.\n\nSince the second session is more recent, the most up-to-date information indicates that you have completed **50 episodes** of Crash Course's Science series.",
+    "autoeval_label": true
+}
+{
+    "question": "How much did I spend on a designer handbag?",
+    "answer": "$800",
+    "hypothesis": "Based on the context provided, you spent **$800** on a designer handbag. This was mentioned in the session from 2023/05/23, where you noted you had bought a designer handbag \"for a pretty penny - $800, to be exact\" while reflecting on your credit card spending and luxury item purchases.",
+    "autoeval_label": true
+}
+{
+    "question": "I've been sneezing quite a bit lately. Do you think it might be my living room?",
+    "answer": "The user would prefer responses that consider the potential impact of their cat, Luna, and her shedding on their sneezing, as well as the recent deep clean of the living room and its possible effect on stirring up dust. They might not prefer responses that fail to take into account these specific details previously mentioned, such as generic suggestions or unrelated factors.",
+    "hypothesis": "Based on the provided context, there is a relevant connection I can draw. In one of the sessions (answer_8ee04a2e, 2023/05/26), you mentioned having **a cat that sheds a lot** in your living room, and there were discussions about keeping the living room dust-free, managing pet dander, and improving air quality.\n\nIt's possible that your sneezing could be related to:\n- **Cat dander and shedding** in your living room\n- **Dust accumulation** in the space\n\nThe context shows you were already planning to address this by:\n- Getting a **spider plant or snake plant** to help purify the air\n- Using strategies to keep the living room **dust-free**\n\nHowever, the context does **not** contain any specific information about you sneezing or a confirmed diagnosis of what might be causing it. I cannot definitively say your living room is the cause. I would recommend consulting a medical professional for a proper assessment of your symptoms.",
+    "autoeval_label": true
+}
+{
+    "question": "How long have I been sticking to my daily tidying routine?",
+    "answer": "4 weeks",
+    "hypothesis": "Based on the context provided, there are two mentions of your daily tidying routine duration:\n\n1. **Session 1 (June 11, 2023)**: You mentioned sticking to your daily tidying routine for **3 weeks**.\n2. **Session 2 (September 30, 2023)**: You mentioned sticking to your daily tidying routine for **4 weeks**.\n\nSince the September 30, 2023 session is the most recent information available, the most up-to-date answer is that you have been sticking to your daily tidying routine for **4 weeks**.",
+    "autoeval_label": true
+}
+{
+    "question": "I'm looking back at our previous chat about the DHL Wellness Retreats campaign. Can you remind me how much was allocated for influencer marketing in the campaign plan?",
+    "answer": "$2,000",
+    "hypothesis": "Based on the context provided, the budget allocated for influencer marketing in the DHL Wellness Retreats campaign plan was **$2,000**.",
+    "autoeval_label": true
+}
+{
+    "question": "I'm planning my trip to Amsterdam again and I was wondering, what was the name of that hostel near the Red Light District that you recommended last time?",
+    "answer": "International Budget Hostel",
+    "hypothesis": "Based on the context provided, the hostel near the Red Light District that was mentioned is the **International Budget Hostel**. It was described as being situated near the famous Red Light District and offering affordable dormitory-style rooms and private rooms, along with a fully equipped kitchen and a lounge area.",
+    "autoeval_label": true
+}
+{
+    "question": "How many days ago did I attend a networking event?",
+    "answer": "26 days. 27 days (including the last day) is also acceptable.",
+    "hypothesis": "Based on the context, the user mentioned attending a networking event that ran from 6 PM to 8 PM on the same day as Session answer_0dd54b7c_1, which was dated **2022/03/09 (Wed)**.\n\nThe question is being asked in the context of the same session, so the networking event was attended **today** (the same day, March 9, 2022) \u2014 meaning it was **0 days ago** (earlier that same day).",
+    "autoeval_label": false
+}
+{
+    "question": "How old was I when my grandma gave me the silver necklace?",
+    "answer": "18",
+    "hypothesis": "Based on the context provided, you were **18 years old** when your grandma gave you the silver necklace \u2014 it was a gift on your **18th birthday**.",
+    "autoeval_label": true
+}
+{
+    "question": "Where did I buy my new bookshelf from?",
+    "answer": "IKEA",
+    "hypothesis": "Based on the context provided, you bought your new bookshelf from **IKEA**. You mentioned that you were really happy with it and that it was exactly what you needed to get your books organized.",
+    "autoeval_label": true
+}
+{
+    "question": "What book am I currently reading?",
+    "answer": "The Seven Husbands of Evelyn Hugo",
+    "hypothesis": "Based on the context, you are currently reading **\"The Seven Husbands of Evelyn Hugo\"**, as mentioned in the session from 2023/05/23. You described it as hard to put down and said you were \"devouring\" it.",
+    "autoeval_label": true
+}
+{
+    "question": "I remember you provided a list of 100 prompt parameters that I can specify to influence your output. Can you remind me what was the 27th parameter on that list?",
+    "answer": "The 27th parameter was 'Sound effects (e.g., ambient, diegetic, non-diegetic, etc.)'.",
+    "hypothesis": "Based on the context provided, the **27th parameter** on the list of 100 prompt parameters was:\n\n**27. Sound effects (e.g., ambient, diegetic, non-diegetic, etc.)**\n\nThis was part of the list provided in the session from **2023/05/22 (Mon) 18:23**.",
+    "autoeval_label": true
+}
+{
+    "question": "How much have I made from selling eggs this month?",
+    "answer": "$120",
+    "hypothesis": "Based on the context provided, the user mentioned selling **40 dozen eggs** at a price of **$3 a dozen** (the price mentioned in the May 26 session).\n\nThat would calculate to **$120 total** from egg sales.\n\nHowever, I should note a caveat: the $3/dozen price was mentioned in the May 26 session, while the 40 dozen eggs sold was mentioned in the May 22 session. The context does not explicitly state the price per dozen at the time the 40 dozen eggs were sold, so while $120 is the most reasonable calculation based on combining the available information, the context does not directly confirm this total as a stated figure.",
+    "autoeval_label": true
+}
+{
+    "question": "How many times did I bake egg tarts in the past two weeks?",
+    "answer": "The information provided is not enough. You did not mention baking egg tarts.",
+    "hypothesis": "Based on the provided context, there is no mention of baking egg tarts at any point across any of the sessions. The baking activities discussed include a fruit tart (with an all-purpose flour crust), a whole wheat baguette, sourdough bread, a chocolate cake, cookies, and plans for a rustic Italian bread \u2014 but **egg tarts are never mentioned**.\n\nTherefore, I cannot answer how many times you baked egg tarts, as the context contains no information about this.",
+    "autoeval_label": true
+}
+{
+    "question": "How many bikes do I currently own?",
+    "answer": "4",
+    "hypothesis": "Based on the context, I can trace the evolution of the user's bike collection across sessions:\n\n- **Session 1 (February 2023):** The user mentions owning **three bikes** \u2014 a road bike, a mountain bike, and a commuter bike.\n- **Session 2 (October 2023):** The user states they \"just got a new one recently\" \u2014 a **hybrid bike** \u2014 bringing the total to **four bikes**.\n\nSince the most recent information (October 2023) reflects an update to the collection, you currently own **4 bikes**:\n1. A **road bike**\n2. A **mountain bike**\n3. A **commuter bike**\n4. A **hybrid bike** (newly purchased)",
+    "autoeval_label": true
+}
+{
+    "question": "What is the total number of siblings I have?",
+    "answer": "4",
+    "hypothesis": "Based on the context provided, you mentioned having **3 sisters** (Session answer_477ae455_1) and **1 brother** (Session answer_477ae455_2), giving you a total of **4 siblings**.",
+    "autoeval_label": true
+}
+{
+    "question": "How long have I been working in my current role?",
+    "answer": "1 year and 5 months",
+    "hypothesis": "Based on the context, there are two pieces of information about your time in marketing/your current role that need to be reconciled:\n\n1. From **Session answer_6cb8f792_1 (2023/05/27)**: You mentioned starting as a Marketing Coordinator and working your way up to **Senior Marketing Specialist after 2 years and 4 months**.\n\n2. From **Session answer_6cb8f792_2 (2023/05/29)**: You mentioned having **3 years and 9 months of experience in the company**.\n\nSince the second session is more recent and refers specifically to your total time **in the company**, it appears you have been with the company for **3 years and 9 months**, with your time as a Senior Marketing Specialist being a portion of that (having been promoted after the first 2 years and 4 months).",
+    "autoeval_label": false
+}
+{
+    "question": "How often do I attend yoga classes to help with my anxiety?",
+    "answer": "Three times a week.",
+    "hypothesis": "Based on the context provided, you attend yoga classes **twice a week**. This was mentioned in the session from 2023/08/11, where you stated: *\"I've been doing yoga twice a week, which has really been helping me relax and focus.\"*\n\nIt was also noted that your yoga practice has been helping you feel more grounded and centered, especially on days when you're feeling anxious.",
+    "autoeval_label": false
+}
+{
+    "question": "I'm getting excited about my visit to the music store this weekend. Any tips on what to look for in a new guitar?",
+    "answer": "The user would prefer responses that highlight the differences between Fender Stratocaster and Gibson Les Paul electric guitars, such as the feel of the neck, weight, and sound profile. They might not prefer general tips on buying an electric guitar or suggestions that do not take into account their current guitar and desired upgrade.",
+    "hypothesis": "Based on the provided context, I can see that there were conversations about guitars \u2014 specifically about the Fender Stratocaster vs. Gibson Les Paul, open D tuning, and related topics \u2014 but **the context does not contain any mention of a planned visit to a music store this weekend**. There is no prior discussion about what the user is specifically looking for in a new guitar purchase tied to such a visit.\n\nThat said, drawing from the guitar-related discussions **that are present in the context**, here are some relevant considerations that were touched upon:\n\n1. **Tone preferences**: Consider whether you prefer a brighter, more versatile sound (like a Stratocaster) or a warmer, fuller tone (like a Les Paul).\n2. **Playability**: Think about neck profile, body weight, and comfort.\n3. **Electronics/pickups**: Single-coil vs. humbucker pickups offer very different sounds. A **coil-tap or coil-splitting feature** was also mentioned as a way to get more tonal flexibility.\n4. **Tuning versatility**: If you're interested in alternate tunings like **open D**, consider how the guitar's setup (string gauge, action) might accommodate that.\n\nHowever, I want to be transparent: **the context does not directly address a planned music store visit**, so I cannot provide a fully tailored answer based solely on the provided information.",
+    "autoeval_label": false
+}
+{
+    "question": "How many followers do I have on Instagram now?",
+    "answer": 1300,
+    "hypothesis": "Based on the context provided, the most recent information about your follower count comes from the **second session (2023/05/25 at 09:28)**, where you mentioned you think you're **close to 1300 followers** now.\n\nThis is an update from the earlier mention in the first session (2023/05/25 at 05:26), where you had **1,250 followers**. So your follower count has grown since then, and you are currently nearing **1,300 followers**.",
+    "autoeval_label": true
+}
+{
+    "question": "How many hours do I work in a typical week during peak campaign seasons?",
+    "answer": "50",
+    "hypothesis": "Based on the context, during peak campaign seasons, you typically work **50 hours per week**. This is derived from your standard 40-hour work week, plus the additional 10 hours you mentioned increasing your work hours by during peak campaign seasons (as stated in the session from 2023/05/29).",
+    "autoeval_label": true
+}
+{
+    "question": "How many shirts did I pack for my 5-day trip to Costa Rica?",
+    "answer": "7",
+    "hypothesis": "Based on the context provided, the trip to Costa Rica is not described as a **5-day trip** \u2014 the duration of the trip is not mentioned at all. What the context does state is that you packed **7 shirts** for your trip to Costa Rica, but only ended up wearing 3 of them.\n\nThe context does not contain any information about the trip being 5 days long.",
+    "autoeval_label": true
+}
+{
+    "question": "How many months have passed since I participated in two charity events in a row, on consecutive days?",
+    "answer": 2,
+    "hypothesis": "Based on the context, I need to identify if there were two charity events on consecutive days.\n\nLooking at the evidence:\n\n- **February 14, 2023**: The user participated in the **\"24-Hour Bike Ride\"** charity event (cycling 4 hours non-stop for a local children's hospital).\n- **March 19, 2023**: The user participated in the **\"Walk for Hunger\"** event.\n\nThese two events were **not on consecutive days** \u2014 they were about a month apart. The context does not mention any two charity events that occurred on consecutive days.\n\nTherefore, I cannot answer this question as asked, because the context does not contain evidence of two charity events happening on consecutive days.",
+    "autoeval_label": false
+}
+{
+    "question": "What charity event did I participate in a month ago?",
+    "answer": "the 'Walk for Hunger' charity event",
+    "hypothesis": "Based on the context, the question is asked with a reference point. The sessions show two charity events:\n\n1. **January 30, 2023**: Attended a **charity gala organized by the Cancer Research Foundation** at a fancy hotel downtown, which raised over $100,000 for cancer research.\n2. **March 19, 2023**: Participated in the **\"Walk for Hunger\"** charity event, walking 5 kilometers to raise money for the local food bank.\n\nSince the \"Walk for Hunger\" event took place on **March 19, 2023**, \"a month ago\" from that date would point back to approximately **January 30, 2023** \u2014 which corresponds to the **Cancer Research Foundation charity gala** at a fancy hotel downtown.\n\nTherefore, approximately a month before the March 19 session, you attended the **Cancer Research Foundation charity gala**, where the event raised over **$100,000 for cancer research**.",
+    "autoeval_label": false
+}
+{
+    "question": "How long did I take to finish 'The Seven Husbands of Evelyn Hugo' and 'The Nightingale' combined?",
+    "answer": "5.5 weeks",
+    "hypothesis": "Based on the context provided, I can find both pieces of information:\n\n- **\"The Seven Husbands of Evelyn Hugo\"** took you **two and a half weeks** to finish (mentioned in Session answer_5e3bb940_2)\n- **\"The Nightingale\"** took you **three weeks** to finish (mentioned in Session answer_5e3bb940_3)\n\n**Combined, you spent approximately five and a half weeks (5.5 weeks) finishing both books.**",
+    "autoeval_label": true
+}
+{
+    "question": "How many days before the 'Rack Fest' did I participate in the 'Turbocharged Tuesdays' event?",
+    "answer": "4 days.",
+    "hypothesis": "Based on the context provided:\n\n- **\"Turbocharged Tuesdays\"** event took place on **June 14th**\n- **\"Rack Fest\"** event took place on **June 18th**\n\nThe \"Turbocharged Tuesdays\" event occurred **4 days before** the \"Rack Fest\" event.",
+    "autoeval_label": true
+}
+{
+    "question": "What is the total weight of the new feed I purchased in the past two months?",
+    "answer": "70 pounds",
+    "hypothesis": "Based on the context provided, I can identify two feed purchases mentioned:\n\n1. **50 pounds of layer feed** (Session answer_92147866_1, 2023/05/22) \u2014 purchased for $120 before a 10% discount.\n2. **20 pounds of organic scratch grains** (Session answer_92147866_2, 2023/05/22) \u2014 mentioned in the second session on the same day.\n\n**Total weight = 50 + 20 = 70 pounds** of feed purchased.\n\nBoth purchases were mentioned within the May 22, 2023 sessions, which fall within a two-month window relative to the question context.",
+    "autoeval_label": true
+}
+{
+    "question": "What did I bake for my niece's birthday party?",
+    "answer": "a lemon blueberry cake",
+    "hypothesis": "Based on the context provided, you baked a **lemon blueberry cake** for your niece's birthday party. You mentioned that it was a huge hit, and that the combination of the tangy lemon and sweet blueberries was perfect, even though you were a bit nervous about how it would turn out.",
+    "autoeval_label": true
+}
+{
+    "question": "What time do I usually get home from work on weeknights?",
+    "answer": "6:30 pm",
+    "hypothesis": "Based on the context provided, you usually get home from work around **6:30 pm** on weekdays. This was mentioned in the session from 2023/05/23, where you described your evening routine of getting home, making dinner, doing yoga, and dedicating time to language learning on Tuesdays and Thursdays.",
+    "autoeval_label": true
+}
+{
+    "question": "Did I mostly recently increase or decrease the limit on the number of cups of coffee in the morning?",
+    "answer": "You increased the limit (from one cup to two cups)",
+    "hypothesis": "Based on the context, you **increased** your morning coffee limit. In the earlier session (2023/05/25), you mentioned having cut back to **one cup** in the morning. Then in the later session (2023/05/26), you stated you were thinking of changing your limit to **two cups**, and subsequently confirmed: *\"I have increased the limit to two cups.\"*",
+    "autoeval_label": true
+}
+{
+    "question": "For my daily commute, how much more expensive was the taxi ride compared to the train fare?",
+    "answer": "$6",
+    "hypothesis": "Based on the context provided:\n\n- **Taxi ride cost**: $12 (when the user missed the train by 5 minutes last Wednesday)\n- **Daily train fare**: $6 (explicitly confirmed by the user in the session from 2023/05/28)\n\nTherefore, the taxi ride was **$6 more expensive** than the daily train fare ($12 - $6 = $6).",
+    "autoeval_label": true
+}
+{
+    "question": "I wanted to follow up on our previous conversation about front-end and back-end development. Can you remind me of the specific back-end programming languages you recommended I learn?",
+    "answer": "I recommended learning Ruby, Python, or PHP as a back-end programming language.",
+    "hypothesis": "Based on the context provided, specifically from the session on front-end and back-end development (Session answer_ultrachat_374124, 2023/05/26), the back-end programming languages that were recommended are:\n\n1. **Ruby**\n2. **Python**\n3. **PHP**\n\nThese were mentioned in the tip: *\"Learn a back-end programming language: Once you've got a good grasp of front-end development, start learning a back-end programming language, such as Ruby, Python, or PHP.\"*\n\nAdditionally, in the resources section of that same conversation, **Node.js** was highlighted as a popular back-end technology, and courses on **Java** were also mentioned alongside web frameworks like Spring and Hibernate.",
+    "autoeval_label": true
+}
+{
+    "question": "What is the name of the music streaming service have I been using lately?",
+    "answer": "Spotify",
+    "hypothesis": "Based on the context provided, you mentioned that you have been listening to music on **Spotify**. This was stated in the session from 2023/05/20, where you said: *\"I've been listening to their songs a lot on Spotify lately\"* (referring to Arctic Monkeys and The Neighbourhood).",
+    "autoeval_label": true
+}
+{
+    "question": "What day of the week do I take a cocktail-making class?",
+    "answer": "Friday",
+    "hypothesis": "Based on the context, there is a contradiction between two sessions:\n\n- In **Session answer_73540165_1 (2023/06/16)**, the user mentions having a cocktail-making class on **Thursday**.\n- In **Session answer_73540165_2 (2023/06/30)**, the user repeatedly refers to a cocktail-making class on **Friday**.\n\nSince the more recent session (June 30) consistently mentions **Friday** as the day of the cocktail-making class, and the user appears to have updated or corrected this information, the most current answer is that you take your cocktail-making class on **Fridays**.",
+    "autoeval_label": true
+}
+{
+    "question": "In our previous chat, you suggested 'sexual compulsions' and a few other options for alternative terms for certain behaviors. Can you remind me what the other four options were?",
+    "answer": "I suggested 'sexual fixations', 'problematic sexual behaviors', 'sexual impulsivity', and 'compulsive sexuality'.",
+    "hypothesis": "Based on the context provided, I can answer this directly. In the session from **2023/05/27**, the following four alternative terms were suggested alongside \"sexual compulsions\":\n\n1. **Sexual fixations** - described as implying a strong preoccupation with sexual thoughts or behaviors that may interfere with other areas of life.\n2. **Problematic sexual behaviors** - described as a straightforward phrase that describes behaviors that cause problems or difficulties in an individual's life.\n3. **Sexual impulsivity** - described as emphasizing the impulsive or compulsive nature of certain sexual behaviors and the difficulties individuals may face in controlling them.\n4. **Compulsive sexuality** - described as emphasizing the compulsive nature of certain sexual behaviors and the difficulties individuals may face in breaking free from them.",
+    "autoeval_label": true
+}
+{
+    "question": "How many different types of food delivery services have I used recently?",
+    "answer": 3,
+    "hypothesis": "Based on the context provided, you have mentioned **3 different food delivery services**:\n\n1. **Domino's Pizza** \u2013 mentioned in the session from 2023/05/22, where you noted ordering from them three times in one week.\n2. **Uber Eats** \u2013 mentioned in the session from 2023/05/27, described as a \"lifesaver\" for your weekends.\n3. **Fresh Fusion** \u2013 mentioned in the session from 2023/05/30, described as a new delivery service you found that offers pre-made meals.",
+    "autoeval_label": true
+}
+{
+    "question": "How long have my parents been staying with me in the US?",
+    "answer": "nine months",
+    "hypothesis": "Based on the context, there are two mentions of how long your parents have been staying with you:\n\n1. **Session from 2023/07/16**: Your parents had been staying with you for **six months**.\n2. **Session from 2023/10/20**: Your parents had been staying with you for **nine months**.\n\nSince the most recent information comes from the **October 2023 session**, the most up-to-date answer is that your parents have been staying with you for **nine months**. This progression also makes chronological sense, as the duration increased from six months (July 2023) to nine months (October 2023).",
+    "autoeval_label": true
+}
+{
+    "question": "What degree did I graduate with?",
+    "answer": "Business Administration",
+    "hypothesis": "Based on the context, you graduated with a degree in **Business Administration**.",
+    "autoeval_label": true
+}
+{
+    "question": "How many weeks did it take me to watch all the Marvel Cinematic Universe movies and the main Star Wars films?",
+    "answer": "3.5 weeks",
+    "hypothesis": "Based on the context provided, here is the information about both marathons:\n\n- **MCU Marathon**: The user watched all 22 MCU movies in **about two weeks** (mentioned in both Session 1 and Session 2).\n- **Star Wars Marathon**: The user watched all the main Star Wars films in **a week and a half** (mentioned in Session 2).\n\n**Combined total**: Approximately **2 weeks + 1.5 weeks = 3.5 weeks** to complete both marathons.\n\nHowever, it's worth noting that these were separate marathons done at different times \u2014 the MCU binge was described as happening \"a while back,\" while the Star Wars marathon was more recent (just completed around May 25, 2023).",
+    "autoeval_label": true
+}
+{
+    "question": "How many days did I spend in total traveling in Hawaii and in Seattle?",
+    "answer": "The information provided is not enough. You mentioned traveling for 10 days in Hawaii but did not mention abything about the trip to Seattle.",
+    "hypothesis": "Based on the provided context, I can only find information about a **10-day trip to Hawaii** with family.\n\nThere is **no mention of any trip to Seattle** in the provided context. Therefore, I cannot calculate a total number of days combining Hawaii and Seattle travel.\n\nWhat I can confirm from the context:\n- **Hawaii**: 10-day island-hopping trip with family (mentioned in the May 23, 2023 session)\n- **Seattle**: No information found in the context",
+    "autoeval_label": true
+}
+{
+    "question": "How many fish are there in my 30-gallon tank?",
+    "answer": "The information provided is not enough. You did not mention that you have a 30-gallon tank.",
+    "hypothesis": "Based on the provided context, there is no mention of a 30-gallon tank. The context only references a **10-gallon tank** (housing Bubbles the betta fish) and a **20-gallon tank** (housing neon tetras, golden honey gouramis, a pleco catfish, and potentially other fish being considered). There is no information about a 30-gallon tank in any of the sessions provided.",
+    "autoeval_label": true
+}
+{
+    "question": "Where did I buy my new tennis racket from?",
+    "answer": "the sports store downtown",
+    "hypothesis": "Based on the context provided, you bought your new tennis racket from a **sports store downtown**.\n\nThis was mentioned in the session from 2023/05/25, where you stated: *\"I'm really happy with my new tennis racket, which I got from a sports store downtown.\"*",
+    "autoeval_label": true
+}
+{
+    "question": "I am planning another theme park weekend; do you have any suggestions?",
+    "answer": "The user would prefer theme park suggestions that cater to their interest in both thrill rides and special events, utilizing their previous experiences at Disneyland, Knott's Berry Farm, Six Flags Magic Mountain, and Universal Studios Hollywood as a reference point. They would also appreciate recommendations that highlight unique food experiences and nighttime shows. The user might not prefer suggestions that focus solely on one aspect of theme parks, such as only thrill rides or only family-friendly attractions, and may not be interested in parks that lack special events or unique dining options.",
+    "hypothesis": "Based on the context provided, I can see that you have previously visited **Disneyland, Knott's Berry Farm, Six Flags Magic Mountain, and Universal Studios Hollywood**. Given your interest in theme parks and the upcoming seasonal events mentioned in the context, here are some suggestions based on the information available:\n\n1. **Halloween Horror Nights at Universal Studios Hollywood** - You showed particular interest in this event, including inquiring about the VIP Experience's Gourmet Buffet. This could be a great option for your next visit.\n\n2. **Knott's Scary Farm at Knott's Berry Farm** - This popular Halloween event features haunted mazes, scare zones, and live entertainment running through the fall.\n\n3. **Fright Fest at Six Flags Magic Mountain** - Running from late September to early November, this event includes haunted mazes, scare zones, and themed rides.\n\n4. **Halloween Time at Disneyland** - Starting mid-September, featuring the Halloween-themed parade and 'Oogie Boogie Bash.'\n\nHowever, I should note that the context does **not contain specific details** about your personal preferences beyond the parks you've already visited and your interest in Halloween-themed events and food experiences. For more tailored suggestions, it would help to know your preferred dates, budget, and what type of experience you're looking for!",
+    "autoeval_label": true
+}
+{
+    "question": "Which grocery store did I spend the most money at in the past month?",
+    "answer": "Thrive Market",
+    "hypothesis": "Based on the context provided, here are the grocery shopping expenses mentioned:\n\n1. **Thrive Market** (online order, last month): ~**$150** on organic and sustainable products\n2. **Walmart** (last Saturday, ~a week before May 26): ~**$120**\n3. **Publix** (via Instacart, last week before May 30): ~**$60** (plus $10 delivery fee)\n4. **Trader Joe's** (the week before last, before May 29): ~**$80** split between you and your sister\n\nBased on this information, **Thrive Market** is where you spent the most money, at approximately **$150**.",
+    "autoeval_label": true
+}
+{
+    "question": "How many health-related devices do I use in a day?",
+    "answer": "4",
+    "hypothesis": "Based on the context provided, I can identify the following health-related devices mentioned:\n\n1. **Fitbit Versa 3** - used for tracking activity levels (steps), sleep patterns, heart rate, and guided breathing sessions.\n2. **Accu-Chek Aviva Nano** - used for testing blood sugar levels three times a day.\n\nSo, based on the information provided across all sessions, you use **at least 2 health-related devices** in a day. There may be others not mentioned in the context (such as a planner or medication tools), but only these two devices are explicitly identified.",
+    "autoeval_label": false
+}
+{
+    "question": "How many years in total did I spend in formal education from high school to the completion of my Bachelor's degree?",
+    "answer": "10 years",
+    "hypothesis": "Based on the context provided, I can piece together the following timeline:\n\n1. **High School**: Attended Arcadia High School from **2010 to 2014** (4 years)\n\n2. **Associate's Degree**: Earned an Associate's degree in Computer Science from Pasadena City College (PCC) in **May 2016**, which would have been approximately **2 years** after high school (2014\u20132016)\n\n3. **Bachelor's Degree**: Graduated with a Bachelor's in Computer Science from UCLA in **2020**, which took **four years** to complete (2016\u20132020)\n\n**Total years in formal education from high school through Bachelor's degree:**\n- High School: 4 years (2010\u20132014)\n- PCC (Associate's): ~2 years (2014\u20132016)\n- UCLA (Bachelor's): 4 years (2016\u20132020)\n\n**Total = 10 years** (from 2010 to 2020)",
+    "autoeval_label": true
+}
+{
+    "question": "Who did I meet with during the lunch last Tuesday?",
+    "answer": "Emma",
+    "hypothesis": "Based on the context provided, the session from 2023/04/11 (Tuesday) mentions that you caught up with **Emma, a freelance writer**, over lunch. She is described as a potential collaborator for a project you were working on.",
+    "autoeval_label": true
+}
+{
+    "question": "Which event happened first, my participation in the #PlankChallenge or my post about vegan chili recipe?",
+    "answer": "You posted a recipe for vegan chili on Instagram using the hashtag #FoodieAdventures first.",
+    "hypothesis": "Based on the context provided:\n\n- The **vegan chili recipe post** was shared on **2023/03/09 (Thu)** \u2014 referenced in the session dated 2023/03/10 (Fri), where the user mentions sharing it \"yesterday.\"\n- The **#PlankChallenge** participation occurred on **2023/03/15 (Wed)**, as stated in that session.\n\nTherefore, the **vegan chili recipe post came first**, preceding the #PlankChallenge by approximately six days.",
+    "autoeval_label": true
+}
+{
+    "question": "Which task did I complete first, fixing the fence or trimming the goats' hooves?",
+    "answer": "Fixing the fence",
+    "hypothesis": "Based on the context provided, here is the chronological analysis:\n\n- **Fence repair**: Fixed **three weeks ago** (from the session dated 2023/05/25)\n- **Hoof trimming**: Done **two weeks ago** (from the session dated 2023/05/25)\n\nTherefore, **fixing the fence was completed first**, as it was done three weeks ago, compared to the hoof trimming which was done two weeks ago.",
+    "autoeval_label": true
+}
+{
+    "question": "How much total money did I spend on attending workshops in the last four months?",
+    "answer": "$720",
+    "hypothesis": "Based on the context provided, I can identify the following workshop costs mentioned:\n\n1. **Digital marketing workshop** (March 15-16, city convention center): **$500** (mentioned in Session answer_826d51da_2)\n2. **Mindfulness workshop** (December 12, yoga studio): **$20** (mentioned in Session answer_826d51da_3)\n3. **Two-day writing workshop** at a literary festival (November): **$200** (mentioned in Session answer_826d51da_4)\n\n**Total: $720**\n\nHowever, it's worth noting a few caveats:\n- The user mentioned attending **five workshops in the last three months**, but costs are only explicitly provided for three of them. The costs of the remaining workshops (including the entrepreneurship/startup workshop and the photography workshop) are **not mentioned** in the context.\n- Therefore, the **minimum total** that can be confirmed from the provided context is **$720**, but the actual total is likely higher given the unaccounted workshops.",
+    "autoeval_label": true
+}
+{
+    "question": "Which event happened first, the narrator losing their phone charger or the narrator receiving their new phone case?",
+    "answer": "Receiving the new phone case",
+    "hypothesis": "Based on the context provided, I can determine the chronological order of these two events:\n\n1. **New phone case**: The user mentioned getting it \"about a month ago\" (relative to the session date of 2023/05/26).\n2. **Lost phone charger**: The user mentioned losing it \"about two weeks ago\" at the gym (relative to the session date of 2023/05/26).\n\n**The narrator received their new phone case first**, approximately one month before the session date, while the phone charger was lost approximately two weeks before the session date \u2014 meaning the phone case was acquired roughly two weeks before the charger was lost.",
+    "autoeval_label": true
+}
+{
+    "question": "How many days ago did I go on a whitewater rafting trip in the Oregon mountains?",
+    "answer": "3 days ago. 4 days (including the last day) is also acceptable.",
+    "hypothesis": "Based on the context, you went on a whitewater rafting trip in the Oregon mountains on **2023/06/17 (Saturday)**. However, since the question does not specify a \"current date\" for reference, I cannot calculate exactly how many days ago that was from your perspective today.\n\nWhat the context does confirm is that on June 17, 2023, you stated you had **just got back** from the trip **that day**.",
+    "autoeval_label": false
+}
+{
+    "question": "How many days ago did I buy a smoker?",
+    "answer": "10 days ago. 11 days (including the last day) is also acceptable.",
+    "hypothesis": "Based on the provided context, the user mentioned **\"I just got a smoker today\"** in the session dated **2023/03/15 (Wed) at 06:05**.\n\nThe question does not specify a reference date for \"how many days ago,\" but based on the context, the smoker was purchased **on the same day as that session \u2014 March 15, 2023**. If you are asking from that same date, it would be **0 days ago (today)**. If you are asking from a later date, the exact number of days would depend on your current date, which is not provided in the context.",
+    "autoeval_label": false
+}
+{
+    "question": "What kitchen appliance did I buy 10 days ago?",
+    "answer": "a smoker",
+    "hypothesis": "Based on the provided context, I can see that the user mentioned getting a **smoker** on 2023/03/15, and the question would be asked around that date. However, to answer \"10 days ago,\" I would need to know the exact date the question is being asked, which isn't explicitly provided.\n\nThat said, looking at the context, the only kitchen appliance purchase mentioned is a **smoker**, acquired on March 15, 2023 (Session answer_56521e66_1). If the question is being asked around March 25, 2023, that would align with \"10 days ago.\"\n\nThe context does not contain any other kitchen appliance purchase that clearly fits the \"10 days ago\" timeframe. The smoker is the most likely answer based on the available information.",
+    "autoeval_label": true
+}
+{
+    "question": "Which event did I participate in first, the charity gala or the charity bake sale?",
+    "answer": "I participated in the charity bake sale first.",
+    "hypothesis": "Based on the context provided, I cannot definitively determine the exact timing of the **charity gala** relative to the **charity bake sale**.\n\nWhat the context does show is:\n\n- The **charity bake sale** was discussed in a session dated **March 15, 2023**, where you were planning and preparing for it (suggesting it was upcoming or around that time).\n- The **charity gala** is mentioned in a session dated **March 28, 2023**, where it is referred to as happening **\"tonight\"**, meaning it occurred on March 28, 2023.\n\nBased on this, the **charity bake sale** appears to have come **first** (around March 15, 2023), followed by the **charity gala** on March 28, 2023. However, the context doesn't explicitly confirm the exact date the bake sale took place, only that it was being discussed on March 15, 2023.",
+    "autoeval_label": true
+}
+{
+    "question": "How many weeks in total do I spent on reading 'The Nightingale' and listening to 'Sapiens: A Brief History of Humankind' and 'The Power'?",
+    "answer": "2 weeks for 'The Nightingale', 4 weeks for 'Sapiens: A Brief History of Humankind', and 2 weeks for 'The Power', so a total of 8 weeks.",
+    "hypothesis": "## Calculating the Reading/Listening Duration\n\nBased on the context provided, I can identify the **start dates** for each book, but **no end dates** are mentioned for any of them:\n\n1. **'The Nightingale'** by Kristin Hannah - Started: **January 1, 2022**\n2. **'Sapiens: A Brief History of Humankind'** by Yuval Noah Harari - Started: **February 1, 2022**\n3. **'The Power'** by Naomi Alderman - Started: **March 6, 2022**\n\nThe context does **not contain any information** about when you finished reading or listening to any of these books. Without end dates, it is **impossible to calculate the total number of weeks spent** on these books.\n\nIf you could provide the dates when you completed each book, I would be happy to calculate the total time spent!",
+    "autoeval_label": false
+}
+{
+    "question": "Where did I attend the religious activity last week?",
+    "answer": "the Episcopal Church",
+    "hypothesis": "Based on the context, you attended a **Maundy Thursday service at the Episcopal Church** last week (referenced in the session from 2023/04/06).",
+    "autoeval_label": true
+}
+{
+    "question": "How many days ago did I attend the Maundy Thursday service at the Episcopal Church?",
+    "answer": "4 days.",
+    "hypothesis": "Based on the context, the user mentioned attending the Maundy Thursday service at the Episcopal Church on **2023/04/06 (Thu)** (the date of that session).\n\nHowever, the question does not provide a specific \"today's date\" for me to calculate how many days ago that was. Without knowing the current date from which to measure, I cannot give an exact number of days ago.\n\nIf you can provide today's date, I can calculate the exact number of days since April 6, 2023.",
+    "autoeval_label": false
+}
+{
+    "question": "Which project did I start first, the Ferrari model or the Porsche 991 Turbo S model?",
+    "answer": "The information provided is not enough. You did not mention starting the Porsche 991 Turbo S model.",
+    "hypothesis": "Based on the provided context, there is **no mention of a Porsche 991 Turbo S model** anywhere in the sessions. The context only references two projects:\n\n1. A **Ferrari 288 GTO** model (started about three weeks ago on a Sunday afternoon, as mentioned in session answer_d8e33f5c_abs_1)\n2. A **1/48 scale Japanese Zero fighter plane** (started about a month ago, as mentioned in session answer_d8e33f5c_abs_2)\n\nTherefore, I cannot answer the question about a Porsche 991 Turbo S model, as it does not appear in the provided context.",
+    "autoeval_label": true
+}
+{
+    "question": "How many times did I ride rollercoasters across all the events I attended from July to October?",
+    "answer": "10 times",
+    "hypothesis": "Based on the context provided, here is a synthesis of all rollercoaster rides mentioned across the sessions:\n\n1. **Revenge of the Mummy** at Universal Studios Hollywood on **October 15th** \u2014 ridden **3 times in a row**\n2. **Xcelerator** at Knott's Berry Farm on **October 8th** \u2014 ridden **1 time** (mentioned as a favorite, no specific count beyond the single visit implied)\n3. **Space Mountain: Ghost Galaxy** at Disneyland on **September 24th** \u2014 ridden **3 times**\n4. **Mako, Kraken, and Manta** at SeaWorld San Diego in **July** \u2014 **3 separate rollercoasters**, each ridden at least once (1 time each implied, totaling **3 rides**)\n\n**Total count:**\n- 3 (Revenge of the Mummy) + 1 (Xcelerator) + 3 (Space Mountain: Ghost Galaxy) + 3 (SeaWorld coasters) = **10 rollercoaster rides**\n\nHowever, it's worth noting that the exact number of rides on the Xcelerator and the SeaWorld coasters is not explicitly stated beyond a single visit/night, so the minimum confirmed total is **10 rides**, assuming one ride each for those where no repeat count was given.",
+    "autoeval_label": true
+}
+{
+    "question": "I mentioned participating in a sports event two weeks ago. What was the event?",
+    "answer": "The company's annual charity soccer tournament.",
+    "hypothesis": "Based on the context, the question was asked with a reference to \"two weeks ago.\" The session dates provided help me determine the timeline.\n\nThe most recent session in the context is from **2023/06/17 (Sat)**. Two weeks prior to that would be approximately **2023/06/02 (Fri)**.\n\nOn **2023/06/02**, the user mentioned: *\"I just completed the **Spring Sprint Triathlon** today, which included a 20K bike ride.\"*\n\nTherefore, the sports event participated in two weeks ago was the **Spring Sprint Triathlon**.",
+    "autoeval_label": false
+}
+{
+    "question": "What is the order of airlines I flew with from earliest to latest before today?",
+    "answer": "JetBlue, Delta, United, American Airlines",
+    "hypothesis": "Based on the context provided, here is the chronological order of airlines you flew with, from earliest to latest:\n\n1. **American Airlines** \u2013 Flight from New York to Los Angeles (mentioned in Session 2023/01/28 as a recent past experience at that time)\n2. **United Airlines** \u2013 Flight from Boston to Chicago (mentioned on 2023/01/28, described as happening \"today\" in that session)\n3. **American Airlines** \u2013 Flight from LAX to JFK, delayed 2 hours due to bad weather (mentioned on 2023/02/14 as a recent experience, described as \"my American Airlines flight from LAX to JFK\")\n\nNote: The context does not provide an exact date for the American Airlines NY to LA flight, only that it had already occurred before January 28, 2023. The question also does not specify what \"today\" refers to, so I cannot determine which flights occurred before your current date. Additionally, the booked JetBlue (BOS to FLL) and Delta (FLL to BOS) flights appear to be future bookings made during the February 14, 2023 session, so they would not count as flights already taken.",
+    "autoeval_label": false
+}
+{
+    "question": "What is the artist that I started to listen to last Friday?",
+    "answer": "a bluegrass band that features a banjo player",
+    "hypothesis": "Based on the context provided, the question date appears to be around 2023/03/31 (Friday). Looking at the sessions, on **2023/03/31 (Fri)**, the user mentioned discovering a **bluegrass band that features a banjo player** and started enjoying their music that day.\n\nHowever, the context does not explicitly name the specific bluegrass band/artist that was discovered on that Friday. The user only describes them as \"a bluegrass band that features a banjo player\" without providing the artist's name.",
+    "autoeval_label": true
+}
+{
+    "question": "Who became a parent first, Rachel or Alex?",
+    "answer": "Alex",
+    "hypothesis": "Based on the context provided:\n\n- **Alex** adopted a baby girl from China in **January** (2023).\n- **Rachel** (the user's sister-in-law) gave birth to twins Jackson and Julia on **February 12th** (2023).\n\nTherefore, **Alex** became a parent first, as the adoption was completed in January, before Rachel's twins were born on February 12th.",
+    "autoeval_label": true
+}
+Accuracy: 0.85
+	single-session-preference: 0.6667 (6)
+	single-session-user: 1.0 (14)
+	multi-session: 0.9259 (27)
+	temporal-reasoning: 0.6154 (26)
+	knowledge-update: 0.9375 (16)
+	single-session-assistant: 1.0 (11)
+Saved to /Users/yoheinakajima/aglongmem/ag-run/regimes/results/xauthor_haiku_seed5/sub_13/hypotheses.jsonl.eval-results-gpt-4o
+
+--- stderr ---
+
+  0%|          | 0/100 [00:00<?, ?it/s]
+  1%|          | 1/100 [00:01<03:00,  1.82s/it]
+  2%|▏         | 2/100 [00:02<01:54,  1.17s/it]
+  3%|▎         | 3/100 [00:03<01:24,  1.15it/s]
+  4%|▍         | 4/100 [00:03<01:06,  1.45it/s]
+  5%|▌         | 5/100 [00:04<01:00,  1.56it/s]
+  6%|▌         | 6/100 [00:04<00:53,  1.77it/s]
+  7%|▋         | 7/100 [00:05<00:57,  1.63it/s]
+  8%|▊         | 8/100 [00:05<00:57,  1.60it/s]
+  9%|▉         | 9/100 [00:06<00:51,  1.75it/s]
+ 10%|█         | 10/100 [00:06<00:49,  1.83it/s]
+ 11%|█         | 11/100 [00:07<00:47,  1.88it/s]
+ 12%|█▏        | 12/100 [00:07<00:43,  2.03it/s]
+ 13%|█▎        | 13/100 [00:08<00:39,  2.21it/s]
+ 14%|█▍        | 14/100 [00:08<00:41,  2.06it/s]
+ 15%|█▌        | 15/100 [00:08<00:37,  2.26it/s]
+ 16%|█▌        | 16/100 [00:09<00:38,  2.19it/s]
+ 17%|█▋        | 17/100 [00:09<00:35,  2.35it/s]
+ 18%|█▊        | 18/100 [00:10<00:34,  2.35it/s]
+ 19%|█▉        | 19/100 [00:10<00:34,  2.33it/s]
+ 20%|██        | 20/100 [00:11<00:35,  2.26it/s]
+ 21%|██        | 21/100 [00:11<00:33,  2.39it/s]
+ 22%|██▏       | 22/100 [00:11<00:34,  2.23it/s]
+ 23%|██▎       | 23/100 [00:12<00:34,  2.25it/s]
+ 24%|██▍       | 24/100 [00:12<00:32,  2.31it/s]
+ 25%|██▌       | 25/100 [00:13<00:32,  2.29it/s]
+ 26%|██▌       | 26/100 [00:13<00:32,  2.25it/s]
+ 27%|██▋       | 27/100 [00:14<00:31,  2.34it/s]
+ 28%|██▊       | 28/100 [00:14<00:36,  2.00it/s]
+ 29%|██▉       | 29/100 [00:15<00:37,  1.91it/s]
+ 30%|███       | 30/100 [00:15<00:32,  2.15it/s]
+ 31%|███       | 31/100 [00:15<00:28,  2.45it/s]
+ 32%|███▏      | 32/100 [00:16<00:25,  2.65it/s]
+ 33%|███▎      | 33/100 [00:16<00:28,  2.37it/s]
+ 34%|███▍      | 34/100 [00:17<00:27,  2.41it/s]
+ 35%|███▌      | 35/100 [00:17<00:27,  2.38it/s]
+ 36%|███▌      | 36/100 [00:18<00:27,  2.32it/s]
+ 37%|███▋      | 37/100 [00:18<00:27,  2.33it/s]
+ 38%|███▊      | 38/100 [00:18<00:26,  2.38it/s]
+ 39%|███▉      | 39/100 [00:19<00:24,  2.49it/s]
+ 40%|████      | 40/100 [00:19<00:21,  2.76it/s]
+ 41%|████      | 41/100 [00:20<00:23,  2.48it/s]
+ 42%|████▏     | 42/100 [00:20<00:23,  2.51it/s]
+ 43%|████▎     | 43/100 [00:20<00:23,  2.44it/s]
+ 44%|████▍     | 44/100 [00:21<00:23,  2.43it/s]
+ 45%|████▌     | 45/100 [00:21<00:20,  2.73it/s]
+ 46%|████▌     | 46/100 [00:21<00:20,  2.59it/s]
+ 47%|████▋     | 47/100 [00:22<00:24,  2.16it/s]
+ 48%|████▊     | 48/100 [00:23<00:24,  2.12it/s]
+ 49%|████▉     | 49/100 [00:23<00:22,  2.30it/s]
+ 50%|█████     | 50/100 [00:23<00:19,  2.54it/s]
+ 51%|█████     | 51/100 [00:24<00:19,  2.49it/s]
+ 52%|█████▏    | 52/100 [00:24<00:23,  2.03it/s]
+ 53%|█████▎    | 53/100 [00:25<00:23,  2.02it/s]
+ 54%|█████▍    | 54/100 [00:25<00:20,  2.22it/s]
+ 55%|█████▌    | 55/100 [00:26<00:19,  2.28it/s]
+ 56%|█████▌    | 56/100 [00:26<00:20,  2.17it/s]
+ 57%|█████▋    | 57/100 [00:27<00:20,  2.09it/s]
+ 58%|█████▊    | 58/100 [00:27<00:18,  2.26it/s]
+ 59%|█████▉    | 59/100 [00:27<00:18,  2.19it/s]
+ 60%|██████    | 60/100 [00:28<00:17,  2.26it/s]
+ 61%|██████    | 61/100 [00:28<00:17,  2.20it/s]
+ 62%|██████▏   | 62/100 [00:29<00:18,  2.04it/s]
+ 63%|██████▎   | 63/100 [00:29<00:18,  2.02it/s]
+ 64%|██████▍   | 64/100 [00:30<00:17,  2.11it/s]
+ 65%|██████▌   | 65/100 [00:30<00:17,  2.01it/s]
+ 66%|██████▌   | 66/100 [00:31<00:16,  2.07it/s]
+ 67%|██████▋   | 67/100 [00:31<00:15,  2.16it/s]
+ 68%|██████▊   | 68/100 [00:32<00:14,  2.22it/s]
+ 69%|██████▉   | 69/100 [00:32<00:12,  2.41it/s]
+ 70%|███████   | 70/100 [00:32<00:12,  2.46it/s]
+ 71%|███████   | 71/100 [00:33<00:12,  2.38it/s]
+ 72%|███████▏  | 72/100 [00:33<00:12,  2.30it/s]
+ 73%|███████▎  | 73/100 [00:34<00:11,  2.38it/s]
+ 74%|███████▍  | 74/100 [00:34<00:11,  2.36it/s]
+ 75%|███████▌  | 75/100 [00:35<00:11,  2.22it/s]
+ 76%|███████▌  | 76/100 [00:35<00:10,  2.30it/s]
+ 77%|███████▋  | 77/100 [00:35<00:09,  2.42it/s]
+ 78%|███████▊  | 78/100 [00:36<00:08,  2.46it/s]
+ 79%|███████▉  | 79/100 [00:36<00:09,  2.22it/s]
+ 80%|████████  | 80/100 [00:37<00:08,  2.32it/s]
+ 81%|████████  | 81/100 [00:37<00:09,  2.05it/s]
+ 82%|████████▏ | 82/100 [00:38<00:08,  2.17it/s]
+ 83%|████████▎ | 83/100 [00:38<00:07,  2.18it/s]
+ 84%|████████▍ | 84/100 [00:39<00:07,  2.06it/s]
+ 85%|████████▌ | 85/100 [00:39<00:06,  2.16it/s]
+ 86%|████████▌ | 86/100 [00:40<00:07,  1.93it/s]
+ 87%|████████▋ | 87/100 [00:40<00:06,  2.01it/s]
+ 88%|████████▊ | 88/100 [00:41<00:05,  2.10it/s]
+ 89%|████████▉ | 89/100 [00:41<00:05,  2.18it/s]
+ 90%|█████████ | 90/100 [00:42<00:04,  2.28it/s]
+ 91%|█████████ | 91/100 [00:42<00:04,  2.21it/s]
+ 92%|█████████▏| 92/100 [00:42<00:03,  2.22it/s]
+ 93%|█████████▎| 93/100 [00:43<00:03,  2.32it/s]
+ 94%|█████████▍| 94/100 [00:43<00:02,  2.36it/s]
+ 95%|█████████▌| 95/100 [00:44<00:01,  2.52it/s]
+ 96%|█████████▌| 96/100 [00:44<00:01,  2.33it/s]
+ 97%|█████████▋| 97/100 [00:45<00:01,  2.29it/s]
+ 98%|█████████▊| 98/100 [00:45<00:00,  2.28it/s]
+ 99%|█████████▉| 99/100 [00:46<00:00,  2.14it/s]
+100%|██████████| 100/100 [00:46<00:00,  2.17it/s]
+100%|██████████| 100/100 [00:46<00:00,  2.15it/s]
+
