@@ -1,0 +1,718 @@
+[
+  {
+    "question_id": "01493427",
+    "question": "How many new postcards have I added to my collection since I started collecting again?",
+    "answer": "25",
+    "question_type": "knowledge-update",
+    "answer_session_ids": [
+      "answer_a7b44747_1",
+      "answer_a7b44747_2"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_a7b44747_1#6",
+      "answer_a7b44747_2#6"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "06f04340",
+    "question": "What should I serve for dinner this weekend with my homegrown ingredients?",
+    "answer": "The user would prefer dinner suggestions that incorporate their homegrown cherry tomatoes and herbs like basil and mint, highlighting recipes that showcase their garden produce. They might not prefer suggestions that do not utilize these specific ingredients or do not emphasize the use of homegrown elements.",
+    "question_type": "single-session-preference",
+    "answer_session_ids": [
+      "answer_92d5f7cd"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_92d5f7cd#4"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "09ba9854",
+    "question": "How much will I save by taking the train from the airport to my hotel instead of a taxi?",
+    "answer": "$50",
+    "question_type": "multi-session",
+    "answer_session_ids": [
+      "answer_96c743d0_2",
+      "answer_96c743d0_1"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_96c743d0_2#4",
+      "answer_96c743d0_1#6"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "0db4c65d",
+    "question": "How many days had passed since I finished reading 'The Seven Husbands of Evelyn Hugo' when I attended the book reading event at the local library, where the author of 'The Silent Patient' is discussing her latest thriller novel?",
+    "answer": "18 days. 19 days (including the last day) is also acceptable.",
+    "question_type": "temporal-reasoning",
+    "answer_session_ids": [
+      "answer_b9e32ff8_1",
+      "answer_b9e32ff8_2"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_b9e32ff8_1#0",
+      "answer_b9e32ff8_2#0"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "15745da0",
+    "question": "How long have I been collecting vintage cameras?",
+    "answer": "three months",
+    "question_type": "single-session-user",
+    "answer_session_ids": [
+      "answer_586de428"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_586de428#4"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "1f2b8d4f",
+    "question": "What is the difference in price between my luxury boots and the similar pair found at the budget store?",
+    "answer": "$750",
+    "question_type": "multi-session",
+    "answer_session_ids": [
+      "answer_d8454588_1",
+      "answer_d8454588_2"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_d8454588_1#0",
+      "answer_d8454588_2#2"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "2311e44b",
+    "question": "How many pages do I have left to read in 'The Nightingale'?",
+    "answer": "190",
+    "question_type": "multi-session",
+    "answer_session_ids": [
+      "answer_bf633415_2",
+      "answer_bf633415_1"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_bf633415_2#0",
+      "answer_bf633415_1#8"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "37d43f65",
+    "question": "How much RAM did I upgrade my laptop to?",
+    "answer": "16GB",
+    "question_type": "single-session-user",
+    "answer_session_ids": [
+      "answer_55161935"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_55161935#2"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "38146c39",
+    "question": "I've been feeling like my chocolate chip cookies need something extra. Any advice?",
+    "answer": "The user would prefer responses that build upon their previous experimentation with turbinado sugar, suggesting ingredients or techniques that complement its richer flavor. They might not prefer generic cookie-making advice or suggestions that don't take into account their existing use of turbinado sugar.",
+    "question_type": "single-session-preference",
+    "answer_session_ids": [
+      "answer_772472c8"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_772472c8#0"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "3d86fd0a",
+    "question": "Where did I meet Sophia?",
+    "answer": "a coffee shop in the city",
+    "question_type": "single-session-user",
+    "answer_session_ids": [
+      "answer_19c24c11"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_19c24c11#2"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "3e321797",
+    "question": "I wanted to follow up on our previous conversation about natural remedies for dark circles under the eyes. You mentioned applying tomato juice mixed with lemon juice, how long did you say I should leave it on for?",
+    "answer": "10 minutes",
+    "question_type": "single-session-assistant",
+    "answer_session_ids": [
+      "answer_ultrachat_94624"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_ultrachat_94624#1"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "3fe836c9",
+    "question": "How much more was the pre-approval amount than the final sale price of the house?",
+    "answer": "$25,000",
+    "question_type": "multi-session",
+    "answer_session_ids": [
+      "answer_1bb63ea5_2",
+      "answer_1bb63ea5_1"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_1bb63ea5_2#0",
+      "answer_1bb63ea5_1#0"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "4adc0475",
+    "question": "What is the total number of goals and assists I have in the recreational indoor soccer league?",
+    "answer": "5",
+    "question_type": "multi-session",
+    "answer_session_ids": [
+      "answer_6efce493_1",
+      "answer_6efce493_2"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_6efce493_1#2",
+      "answer_6efce493_2#6"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "4d6b87c8",
+    "question": "How many titles are currently on my to-watch list?",
+    "answer": "25",
+    "question_type": "knowledge-update",
+    "answer_session_ids": [
+      "answer_766ab8da_1",
+      "answer_766ab8da_2"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_766ab8da_1#2",
+      "answer_766ab8da_2#2"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "4dfccbf8",
+    "question": "What did I do with Rachel on the Wednesday two months ago?",
+    "answer": "I started taking ukulele lessons with Rachel.",
+    "question_type": "temporal-reasoning",
+    "answer_session_ids": [
+      "answer_4bebc783_1",
+      "answer_4bebc783_2"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_4bebc783_1#4"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "4fd1909e",
+    "question": "Where did I attend the Imagine Dragons concert?",
+    "answer": "Xfinity Center",
+    "question_type": "single-session-user",
+    "answer_session_ids": [
+      "answer_2952aee4"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_2952aee4#2"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "51b23612",
+    "question": "I was going through our previous conversation about political propaganda and humor, and I was wondering if you could remind me of that Soviet cartoon you mentioned that mocked Western culture?",
+    "answer": "Nu, pogodi!",
+    "question_type": "single-session-assistant",
+    "answer_session_ids": [
+      "answer_ultrachat_427265"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_ultrachat_427265#1"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "61f8c8f8",
+    "question": "How much faster did I finish the 5K run compared to my previous year's time?",
+    "answer": "10 minutes",
+    "question_type": "multi-session",
+    "answer_session_ids": [
+      "answer_872e8da2_2",
+      "answer_872e8da2_1"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_872e8da2_2#0",
+      "answer_872e8da2_1#2"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "69fee5aa",
+    "question": "How many pre-1920 American coins do I have in my collection?",
+    "answer": "38",
+    "question_type": "knowledge-update",
+    "answer_session_ids": [
+      "answer_d6028d6e_1",
+      "answer_d6028d6e_2"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_d6028d6e_1#8",
+      "answer_d6028d6e_2#0"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "6f9b354f",
+    "question": "What color did I repaint my bedroom walls?",
+    "answer": "a lighter shade of gray",
+    "question_type": "single-session-user",
+    "answer_session_ids": [
+      "answer_feb5200f"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_feb5200f#2"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "7024f17c",
+    "question": "How many hours of jogging and yoga did I do last week?",
+    "answer": "0.5 hours",
+    "question_type": "multi-session",
+    "answer_session_ids": [
+      "answer_a21f3697_1",
+      "answer_a21f3697_2",
+      "answer_a21f3697_3"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_a21f3697_1#0",
+      "answer_a21f3697_2#0"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "71a3fd6b",
+    "question": "I'm planning my trip to Speyer again and I wanted to confirm, what's the phone number of the Speyer tourism board that you provided me earlier?",
+    "answer": "+49 (0) 62 32 / 14 23 - 0",
+    "question_type": "single-session-assistant",
+    "answer_session_ids": [
+      "answer_ultrachat_417348"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_ultrachat_417348#3"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "852ce960",
+    "question": "What was the amount I was pre-approved for when I got my mortgage from Wells Fargo?",
+    "answer": "$400,000",
+    "question_type": "knowledge-update",
+    "answer_session_ids": [
+      "answer_3a6f1e82_1",
+      "answer_3a6f1e82_2"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_3a6f1e82_1#2",
+      "answer_3a6f1e82_2#0"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "853b0a1d",
+    "question": "How old was I when my grandma gave me the silver necklace?",
+    "answer": "18",
+    "question_type": "single-session-user",
+    "answer_session_ids": [
+      "answer_69811d4a"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_69811d4a#4"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "89941a93",
+    "question": "How many bikes do I currently own?",
+    "answer": "4",
+    "question_type": "knowledge-update",
+    "answer_session_ids": [
+      "answer_e1403127_1",
+      "answer_e1403127_2"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_e1403127_1#4",
+      "answer_e1403127_2#4"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "8a2466db",
+    "question": "Can you recommend some resources where I can learn more about video editing?",
+    "answer": "The user would prefer responses that suggest resources specifically tailored to Adobe Premiere Pro, especially those that delve into its advanced settings. They might not prefer general video editing resources or resources related to other video editing software.",
+    "question_type": "single-session-preference",
+    "answer_session_ids": [
+      "answer_edb03329"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_edb03329#0"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "8aef76bc",
+    "question": "I'm going back to our previous conversation about DIY home decor projects using recycled materials. Can you remind me what sealant you recommended for the newspaper flower vase?",
+    "answer": "Mod Podge or another sealant",
+    "question_type": "single-session-assistant",
+    "answer_session_ids": [
+      "answer_ultrachat_563222"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_ultrachat_563222#1"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "9d25d4e0",
+    "question": "How many pieces of jewelry did I acquire in the last two months?",
+    "answer": 3,
+    "question_type": "multi-session",
+    "answer_session_ids": [
+      "answer_fcff2dc4_2",
+      "answer_fcff2dc4_1",
+      "answer_fcff2dc4_3"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_fcff2dc4_2#0",
+      "answer_fcff2dc4_2#8",
+      "answer_fcff2dc4_1#0",
+      "answer_fcff2dc4_1#8",
+      "answer_fcff2dc4_3#0"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "9ee3ecd6",
+    "question": "How many points do I need to earn to redeem a free skincare product at Sephora?",
+    "answer": "100",
+    "question_type": "multi-session",
+    "answer_session_ids": [
+      "answer_66c23110_1",
+      "answer_66c23110_2"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_66c23110_1#0",
+      "answer_66c23110_2#6"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "a96c20ee_abs",
+    "question": "At which university did I present a poster for my undergrad course research project?",
+    "answer": "The information provided is not enough. You did not mention presenting a poster for your undergrad course research project.",
+    "question_type": "multi-session",
+    "answer_session_ids": [
+      "answer_ef84b994_abs_1",
+      "answer_ef84b994_abs_2"
+    ],
+    "gold_evidence_turn_ids": [],
+    "is_abstention": true
+  },
+  {
+    "question_id": "ba61f0b9",
+    "question": "How many women are on the team led by my former manager Rachel?",
+    "answer": "6",
+    "question_type": "knowledge-update",
+    "answer_session_ids": [
+      "answer_f377cda7_1",
+      "answer_f377cda7_2"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_f377cda7_1#2",
+      "answer_f377cda7_2#0"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "bc8a6e93_abs",
+    "question": "What did I bake for my uncle's birthday party?",
+    "answer": "You did not mention this information. You mentioned baking for your niece's birthday party but not your uncle's",
+    "question_type": "single-session-user",
+    "answer_session_ids": [
+      "answer_e6143162_abs"
+    ],
+    "gold_evidence_turn_ids": [],
+    "is_abstention": true
+  },
+  {
+    "question_id": "c8090214_abs",
+    "question": "How many days before I bought my iPad did I attend the Holiday Market?",
+    "answer": "The information provided is not enough. You mentioned getting the iPhone 13 Pro and attending the market, but you did not mention buying an iPad.",
+    "question_type": "temporal-reasoning",
+    "answer_session_ids": [
+      "answer_70dc7d08_abs_1",
+      "answer_70dc7d08_abs_2"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_70dc7d08_abs_1#0",
+      "answer_70dc7d08_abs_1#8"
+    ],
+    "is_abstention": true
+  },
+  {
+    "question_id": "d01c6aa8",
+    "question": "How old was I when I moved to the United States?",
+    "answer": "27",
+    "question_type": "temporal-reasoning",
+    "answer_session_ids": [
+      "answer_991d55e5_1",
+      "answer_991d55e5_2"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_991d55e5_1#0",
+      "answer_991d55e5_2#6"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "d596882b",
+    "question": "I'm planning another trip to New York City and I was wondering if you could remind me of that vegan eatery you recommended last time, the one with multiple locations throughout the city?",
+    "answer": "By Chloe",
+    "question_type": "single-session-assistant",
+    "answer_session_ids": [
+      "answer_ultrachat_252214"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_ultrachat_252214#5"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "d6062bb9",
+    "question": "What is the total number of views on my most popular videos on YouTube and TikTok?",
+    "answer": "1,998",
+    "question_type": "multi-session",
+    "answer_session_ids": [
+      "answer_23f3a657_2",
+      "answer_23f3a657_1"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_23f3a657_2#0",
+      "answer_23f3a657_1#0"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "d905b33f",
+    "question": "What percentage discount did I get on the book from my favorite author?",
+    "answer": "20%",
+    "question_type": "multi-session",
+    "answer_session_ids": [
+      "answer_85a77c48_2",
+      "answer_85a77c48_1"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_85a77c48_2#2",
+      "answer_85a77c48_1#6"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "dcfa8644",
+    "question": "How many days had passed since I bought my Adidas running shoes when I realized one of the shoelaces on my old Converse sneakers had broken?",
+    "answer": "14 days. 15 days (including the last day) is also acceptable.",
+    "question_type": "temporal-reasoning",
+    "answer_session_ids": [
+      "answer_5e3eeb12_2",
+      "answer_5e3eeb12_1"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_5e3eeb12_2#0",
+      "answer_5e3eeb12_1#0"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "e61a7584",
+    "question": "How long have I had my cat, Luna?",
+    "answer": "9 months",
+    "question_type": "knowledge-update",
+    "answer_session_ids": [
+      "answer_f25c32f5_1",
+      "answer_f25c32f5_2"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_f25c32f5_1#10",
+      "answer_f25c32f5_2#6"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "f685340e_abs",
+    "question": "How often do I play table tennis with my friends at the local park?",
+    "answer": "The information provided is not enough. You mentioned playing tennis but not table tennis.",
+    "question_type": "knowledge-update",
+    "answer_session_ids": [
+      "answer_25df025b_abs_1",
+      "answer_25df025b_abs_2"
+    ],
+    "gold_evidence_turn_ids": [],
+    "is_abstention": true
+  },
+  {
+    "question_id": "gpt4_0b2f1d21",
+    "question": "Which event happened first, the purchase of the coffee maker or the malfunction of the stand mixer?",
+    "answer": "The malfunction of the stand mixer",
+    "question_type": "temporal-reasoning",
+    "answer_session_ids": [
+      "answer_c4e5d969_2",
+      "answer_c4e5d969_1"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_c4e5d969_2#0",
+      "answer_c4e5d969_1#0"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "gpt4_18c2b244",
+    "question": "What is the order of the three events: 'I signed up for the rewards program at ShopRite', 'I used a Buy One Get One Free coupon on Luvs diapers at Walmart', and 'I redeemed $12 cashback for a $10 Amazon gift card from Ibotta'?",
+    "answer": "First, I used a Buy One Get One Free coupon on Luvs diapers at Walmart. Then, I redeemed $12 cashback for a $10 Amazon gift card from Ibotta. Finally, I signed up for the rewards program at ShopRite.",
+    "question_type": "temporal-reasoning",
+    "answer_session_ids": [
+      "answer_c862f65a_2",
+      "answer_c862f65a_3",
+      "answer_c862f65a_1"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_c862f65a_2#0",
+      "answer_c862f65a_3#0",
+      "answer_c862f65a_1#0"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "gpt4_213fd887",
+    "question": "Which event did I participate in first, the volleyball league or the charity 5K run to raise money for a local children's hospital?",
+    "answer": "volleyball league",
+    "question_type": "temporal-reasoning",
+    "answer_session_ids": [
+      "answer_53582e7e_2",
+      "answer_53582e7e_1"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_53582e7e_2#0",
+      "answer_53582e7e_1#2"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "gpt4_21adecb5",
+    "question": "How many months passed between the completion of my undergraduate degree and the submission of my master's thesis?",
+    "answer": "6 months",
+    "question_type": "temporal-reasoning",
+    "answer_session_ids": [
+      "answer_1e2369c9_1",
+      "answer_1e2369c9_2"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_1e2369c9_1#0",
+      "answer_1e2369c9_2#0"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "gpt4_2f8be40d",
+    "question": "How many weddings have I attended in this year?",
+    "answer": "I attended three weddings. The couples were Rachel and Mike, Emily and Sarah, and Jen and Tom.",
+    "question_type": "multi-session",
+    "answer_session_ids": [
+      "answer_e7b0637e_2",
+      "answer_e7b0637e_1",
+      "answer_e7b0637e_3"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_e7b0637e_2#0",
+      "answer_e7b0637e_1#0",
+      "answer_e7b0637e_3#0"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "gpt4_76048e76",
+    "question": "Which vehicle did I take care of first in February, the bike or the car?",
+    "answer": "bike",
+    "question_type": "temporal-reasoning",
+    "answer_session_ids": [
+      "answer_b535969f_1",
+      "answer_b535969f_2"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_b535969f_1#0",
+      "answer_b535969f_2#0"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "gpt4_7ddcf75f",
+    "question": "How many days ago did I go on a whitewater rafting trip in the Oregon mountains?",
+    "answer": "3 days ago. 4 days (including the last day) is also acceptable.",
+    "question_type": "temporal-reasoning",
+    "answer_session_ids": [
+      "answer_ad8a76cb_1"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_ad8a76cb_1#0"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "gpt4_b5700ca0",
+    "question": "Where did I attend the religious activity last week?",
+    "answer": "the Episcopal Church",
+    "question_type": "temporal-reasoning",
+    "answer_session_ids": [
+      "answer_a17423e8_1"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_a17423e8_1#6"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "gpt4_d31cdae3",
+    "question": "Which trip did the narrator take first, the solo trip to Europe or the family road trip across the American Southwest?",
+    "answer": "The family road trip across the American Southwest",
+    "question_type": "temporal-reasoning",
+    "answer_session_ids": [
+      "answer_8464304d_1",
+      "answer_8464304d_2"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_8464304d_1#10",
+      "answer_8464304d_2#0"
+    ],
+    "is_abstention": false
+  },
+  {
+    "question_id": "gpt4_fe651585",
+    "question": "Who became a parent first, Rachel or Alex?",
+    "answer": "Alex",
+    "question_type": "temporal-reasoning",
+    "answer_session_ids": [
+      "answer_65600ff6_2",
+      "answer_65600ff6_1"
+    ],
+    "gold_evidence_turn_ids": [
+      "answer_65600ff6_2#0",
+      "answer_65600ff6_1#8"
+    ],
+    "is_abstention": false
+  }
+]
