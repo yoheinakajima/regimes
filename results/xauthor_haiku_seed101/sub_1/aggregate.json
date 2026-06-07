@@ -1,0 +1,18 @@
+{
+  "version": "regimes-eval-real-v1",
+  "n": 50,
+  "overall_accuracy": 0.88,
+  "per_type_accuracy": {
+    "knowledge-update": 1.0,
+    "multi-session": 0.8461538461538461,
+    "single-session-assistant": 1.0,
+    "single-session-preference": 1.0,
+    "single-session-user": 1.0,
+    "temporal-reasoning": 0.7142857142857143
+  },
+  "n_truncated": 50,
+  "n_errors": 0,
+  "mean_context_tokens": 2491.66,
+  "n_embedding_errors": 0,
+  "n_questions_with_embedding_errors": 0
+}
