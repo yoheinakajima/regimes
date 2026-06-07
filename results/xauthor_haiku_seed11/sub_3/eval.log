@@ -1,0 +1,368 @@
+$ /Users/yoheinakajima/aglongmem/ag-run/regimes/.venv/bin/python3 /Users/yoheinakajima/aglongmem/ag-run/activegraph-longmemeval/third_party/longmemeval/src/evaluation/evaluate_qa.py gpt-4o /Users/yoheinakajima/aglongmem/ag-run/regimes/results/xauthor_haiku_seed11/sub_3/hypotheses.jsonl /Users/yoheinakajima/aglongmem/ag-run/regimes/results/xauthor_haiku_seed11/sub_3/references.json
+[cwd] /Users/yoheinakajima/aglongmem/ag-run/activegraph-longmemeval
+
+--- stdout ---
+{
+    "question": "How much will I save by taking the train from the airport to my hotel instead of a taxi?",
+    "answer": "$50",
+    "hypothesis": "Based on the context provided, here is what can be determined:\n\n- **Taxi cost**: The user was quoted approximately **$60** for a taxi from the airport to the hotel.\n- **Train cost**: The cheapest train option (Keisei Electric Railway commuter train) from Narita Airport to Shinjuku Station costs around **\u00a51,000\u20131,200 (approximately $9\u201311 USD)**, though this does not include the cost of getting from the station to the hotel.\n\nBased on these figures, taking the train would save approximately **$49\u2013$51** compared to taking a taxi, though the exact savings depend on any additional transportation costs from the train station to the hotel.",
+    "autoeval_label": true
+}
+{
+    "question": "I mentioned visiting a museum two months ago. Did I visit with a friend or not?",
+    "answer": "No, you did not visit with a friend.",
+    "hypothesis": "Based on the context, yes, you visited the Science Museum with a friend \u2014 specifically, a friend who is a chemistry professor. This was mentioned consistently across multiple messages in the October 2022 session.",
+    "autoeval_label": false
+}
+{
+    "question": "How much more miles per gallon was my car getting a few months ago compared to now?",
+    "answer": "2",
+    "hypothesis": "Based on the context, the user's car was getting **30 miles per gallon** in the city a few months ago (mentioned in Session 1), compared to **28 miles per gallon** currently (mentioned in Session 2). That is a difference of **2 miles per gallon**.",
+    "autoeval_label": true
+}
+{
+    "question": "Can you suggest a hotel for my upcoming trip to Miami?",
+    "answer": "The user would prefer suggestions of hotels in Miami that offer great views, possibly of the ocean or the city skyline, and have unique features such as a rooftop pool or a hot tub on the balcony. They may not prefer suggestions of basic or budget hotels without these features.",
+    "hypothesis": "The context does not contain any information about hotels in Miami. The entire conversation is focused on hotels in Seattle. I cannot provide a recommendation for Miami based solely on the provided context.",
+    "autoeval_label": false
+}
+{
+    "question": "I'm going back to our previous chat about the Lost Temple of the Djinn one-shot. Can you remind me how many mummies the party will face in the temple?",
+    "answer": "4",
+    "hypothesis": "Based on the context provided, the party will face **4 mummies** in the Lost Temple of the Djinn one-shot.",
+    "autoeval_label": true
+}
+{
+    "question": "How long was I in Korea for?",
+    "answer": "You did not mention this information. You mentioned staying in Japan, but not in Korea.",
+    "hypothesis": "The provided context does not contain any information about how long you were or plan to be in Korea. The duration of your trip was never mentioned in any of the sessions.",
+    "autoeval_label": true
+}
+{
+    "question": "I wanted to follow up on our previous conversation about mindfulness techniques. You mentioned some great resources for guided imagery exercises, can you remind me of the website that had free exercises like 'The Mountain Meditation' and 'The Body Scan Meditation'?",
+    "answer": "Mindful.org.",
+    "hypothesis": "Based on the provided context, the website that had free guided imagery exercises like \"The Mountain Meditation\" and \"The Body Scan Meditation\" is **Mindful.org**.",
+    "autoeval_label": true
+}
+{
+    "question": "How long have I been living in my current apartment in Shinjuku?",
+    "answer": "The information provided is not enough. You mentioned living in Harajuku but not Shinjuku.",
+    "hypothesis": "The context does not mention an apartment in Shinjuku. According to the provided context, the user lives in **Harajuku**, not Shinjuku. The context does not contain information about any apartment in Shinjuku.",
+    "autoeval_label": true
+}
+{
+    "question": "How many largemouth bass did I catch on my fishing trip to Lake Michigan?",
+    "answer": "12",
+    "hypothesis": "Based on the context, you caught **12 largemouth bass** on your last trip to Lake Michigan. This was mentioned in Session answer_1e6d4567 on 2023/05/21.",
+    "autoeval_label": true
+}
+{
+    "question": "How often do I see my therapist, Dr. Smith?",
+    "answer": "every week",
+    "hypothesis": "Based on the context, there is a discrepancy across sessions:\n\n- In the **first session (April 2023)**, you mentioned seeing Dr. Smith **every two weeks**.\n- In a **later session (November 2023)**, you mentioned seeing Dr. Smith **every week**.\n\nThe most recent evidence (November 2023) indicates you see Dr. Smith **weekly**.",
+    "autoeval_label": true
+}
+{
+    "question": "What is the total amount of money I earned from selling my products at the markets?",
+    "answer": "$495",
+    "hypothesis": "Based on the context provided, I can identify two specific sales figures mentioned:\n\n1. **Homemade and Handmade Market (May 29th)**: $225 from selling 15 jars of homemade jam\n2. **Summer Solstice Market**: $150 from selling 20 potted herb plants at $7.50 each\n3. **Farmers' Market (May 15th)**: $120 from selling 12 bunches of fresh organic herbs\n\n**Total: $495**\n\nNote: These are the only sales figures explicitly stated in the context. The sessions mention these three transactions consistently without contradiction.",
+    "autoeval_label": true
+}
+{
+    "question": "How many different art-related events did I attend in the past month?",
+    "answer": 4,
+    "hypothesis": "Based on the provided context, I can identify **2** art-related events you attended:\n\n1. The **\"Women in Art\" exhibition** at which you saw Rachel Lee's work, attended on **February 10th**.\n2. The **\"The Evolution of Street Art\" lecture** at the Art Gallery, attended on **March 3rd**.\n\nThese are the only two events explicitly mentioned in the context.",
+    "autoeval_label": false
+}
+{
+    "question": "What type of vehicle model am I currently working on?",
+    "answer": "Ford F-150 pickup truck",
+    "hypothesis": "Based on the most recent session (Session answer_cd345582_2, 2023/05/26), the user is currently working on a **Ford F-150 pickup truck** model. This replaced the previous project, which was a Ford Mustang Shelby GT350R, as the user explicitly stated \"I have just wrapped up a model and switched to a Ford F-150 pickup truck.\"",
+    "autoeval_label": true
+}
+{
+    "question": "How much more was the pre-approval amount than the final sale price of the house?",
+    "answer": "$25,000",
+    "hypothesis": "Based on the context:\n\n- Final sale price: **$325,000** (mentioned in Session answer_1bb63ea5_2)\n- Pre-approval amount: **$350,000** (mentioned in Session answer_1bb63ea5_1)\n\nThe pre-approval amount was **$25,000 more** than the final sale price.",
+    "autoeval_label": true
+}
+{
+    "question": "I was looking back at our previous chat and I wanted to confirm, how many times did the Chiefs play the Jaguars at Arrowhead Stadium?",
+    "answer": "The Chiefs played the Jaguars 12 times at Arrowhead Stadium.",
+    "hypothesis": "Based on the provided context, the Chiefs played the Jaguars at Arrowhead Stadium **12 times**.",
+    "autoeval_label": true
+}
+{
+    "question": "Where did I redeem a $5 coupon on coffee creamer?",
+    "answer": "Target",
+    "hypothesis": "Based on the context, you redeemed a **$5 coupon on coffee creamer** that you found in your **email inbox**, last Sunday.",
+    "autoeval_label": false
+}
+{
+    "question": "How much screen time have I been averaging on Instagram per day?",
+    "answer": "2 hours",
+    "hypothesis": "Based on the context, you have been averaging **2 hours of screen time on Instagram per day** for the past two weeks.",
+    "autoeval_label": true
+}
+{
+    "question": "What was my previous occupation?",
+    "answer": "Marketing specialist at a small startup",
+    "hypothesis": "The context does not contain this information. There is no mention of the user's previous occupation in any of the provided sessions.\n\n(Note: Session answer_235eb6fb mentions someone being a \"senior marketing analyst\" in a \"new role\" and having worked at a \"startup\" managing interns, but this is not clearly identified as belonging to the user asking the current question, and the context does not explicitly state it as \"your previous occupation.\")",
+    "autoeval_label": true
+}
+{
+    "question": "How many pre-1920 American coins do I have in my collection?",
+    "answer": "38",
+    "hypothesis": "Based on the context, you have **37** pre-1920 American coins in your collection. This was mentioned in the first session (2023/05/27), and a 1915-S Barber quarter was added in the second session (2023/05/29), which would bring the total to **38**.\n\nHowever, to be precise: the explicitly stated count was 37, and while a new coin was added later, the updated total was never explicitly confirmed in the context. The most accurate answer based on available information is that you started with **37** and added at least one more (the 1915-S Barber quarter), making it at least **38**.",
+    "autoeval_label": true
+}
+{
+    "question": "I was going through our previous conversation about the impact of the political climate in Catalonia on its literature and music. Can you remind me of the example you gave of a Spanish-Catalan singer-songwriter who supports unity between Catalonia and Spain?",
+    "answer": "Manolo Garc\u00eda",
+    "hypothesis": "Based on the context provided, the Spanish-Catalan singer/songwriter mentioned who supports unity between Catalonia and Spain is **Manolo Garc\u00eda**. He has spoken publicly about his belief that Catalonia is an integral part of Spain and that the two should work together to resolve their differences.",
+    "autoeval_label": true
+}
+{
+    "question": "I'm looking back at our previous chat about the DHL Wellness Retreats campaign. Can you remind me how much was allocated for influencer marketing in the campaign plan?",
+    "answer": "$2,000",
+    "hypothesis": "Based on the provided context, the budget allocated for influencer marketing in the DHL Wellness Retreats campaign plan was **$2,000**.",
+    "autoeval_label": true
+}
+{
+    "question": "How many different museums or galleries did I visit in December?",
+    "answer": "0. You did not mention visitng any museum in December",
+    "hypothesis": "The context does not contain any information about visits to museums or galleries in December. The only museum visit mentioned is to the Natural History Museum on 2/8 (February 8th), which is not in December.",
+    "autoeval_label": true
+}
+{
+    "question": "What was the approximate increase in Instagram followers I experienced in two weeks?",
+    "answer": "100",
+    "hypothesis": "Based on the context, the user started with information that after **two weeks of posting regularly**, they had around **350 followers on Instagram**. Additionally, from a later session, it was mentioned that they started the year with **250 followers**.\n\nThe most directly relevant fact to answer this question comes from Session answer_c69ee1f9_2, where the user specifically noted gaining approximately **350 followers in two weeks** of regular posting. However, the context does not explicitly state the starting number of followers before those two weeks began, so the exact *increase* cannot be precisely calculated from the two-week period alone.\n\nWhat is directly stated is that they reached **350 followers after two weeks** of posting regularly.",
+    "autoeval_label": false
+}
+{
+    "question": "I've got some free time tonight, any documentary recommendations?",
+    "answer": "The user would prefer documentary recommendations that are similar in style and theme to 'Our Planet', 'Free Solo', and 'Tiger King', which they have previously enjoyed. They might not prefer recommendations of documentaries that are vastly different in tone or subject matter from these titles. The preferred response utilizes the user's previously mentioned viewing history to suggest documentaries that cater to their tastes.",
+    "hypothesis": "Based on the context, you've recently watched and enjoyed \"Our Planet\", \"Free Solo\", and \"Tiger King\" on Netflix (as of May 28, 2023). You also expressed specific interest in nature and wildlife documentaries, asking for more details about \"Dynasties\" and \"Chasing Coral.\"\n\nBased on that, I'd recommend starting with **Dynasties** or **Chasing Coral**, as you already showed particular interest in those two. Beyond those, other recommendations previously suggested that align with your interests include:\n\n- **Planet Earth** (nature/wildlife)\n- **Blue Planet** (marine wildlife)\n- **The Keepers** or **The Staircase** (true crime, similar to Tiger King)\n- **Fyre: The Greatest Party That Never Happened** (compelling real-life story)\n\nAll of these are available on Netflix or other streaming platforms. Would you like more details about any of them?",
+    "autoeval_label": true
+}
+{
+    "question": "How many days did I spend on camping trips in the United States this year?",
+    "answer": "8 days.",
+    "hypothesis": "Based on the provided context, I can identify the following camping trips mentioned:\n\n1. **Yellowstone National Park**: 5-day camping trip (mentioned in Session answer_a8b4290f_1)\n2. **Big Sur**: 3-day solo camping trip in early April (mentioned in Session answer_a8b4290f_2)\n\nThe 7-day Utah family road trip (Session answer_a8b4290f_3) explicitly states **no camping** was done on that trip.\n\n**Total: 8 days** spent on camping trips in the United States this year.",
+    "autoeval_label": true
+}
+{
+    "question": "How many women are on the team led by my former manager Rachel?",
+    "answer": "6",
+    "hypothesis": "Based on the context, there are **two different values** mentioned across sessions:\n\n- In **Session answer_f377cda7_1 (2023/01/18)**, Rachel's team has **5 women** out of 10 people (50%).\n- In **Session answer_f377cda7_2 (2023/07/20)**, the user states Rachel's team has **6 women** out of 10 people.\n\nThe most recent session (July 20, 2023) states **6 women**, which represents the latest update provided by the user.",
+    "autoeval_label": true
+}
+{
+    "question": "What is the total weight of the new feed I purchased in the past two months?",
+    "answer": "70 pounds",
+    "hypothesis": "Based on the context provided, there are two feed purchases mentioned:\n\n1. A **50-pound batch of layer feed** (Session answer_92147866_1, 2023/05/22)\n2. **20 pounds of organic scratch grains** (Session answer_92147866_2, 2023/05/22)\n\nThe total weight of feed purchased is **70 pounds**.",
+    "autoeval_label": true
+}
+{
+    "question": "How many days before I bought my iPad did I attend the Holiday Market?",
+    "answer": "The information provided is not enough. You mentioned getting the iPhone 13 Pro and attending the market, but you did not mention buying an iPad.",
+    "hypothesis": "The context does not contain any mention of an iPad purchase. Therefore, I cannot answer this question based on the provided context.",
+    "autoeval_label": true
+}
+{
+    "question": "How many playlists do I have on Spotify?",
+    "answer": "20",
+    "hypothesis": "Based on the context, the user mentioned having **20 playlists** on Spotify. This was stated in Session answer_e05e4612 on 2023/05/20, and there is no subsequent session that contradicts or updates this number.",
+    "autoeval_label": true
+}
+{
+    "question": "How much time do I dedicate to coding exercises each day?",
+    "answer": "about two hours",
+    "hypothesis": "Based on the most recent evidence in the context, in Session answer_a5b68517_2 (2023/05/29), the user states they dedicate **two hours each day** to coding exercises. This is an update from the earlier Session answer_a5b68517_1 (2023/05/20), where they mentioned dedicating **about an hour each day**.",
+    "autoeval_label": true
+}
+{
+    "question": "How old was I when I moved to the United States?",
+    "answer": "27",
+    "hypothesis": "The provided context does not contain information about when the user moved to the United States. We only know that the user (from Session answer_991d55e5_2) has been **living in the United States for the past five years on a work visa**, but their age at the time of moving is not mentioned anywhere in the context.",
+    "autoeval_label": false
+}
+{
+    "question": "I'm thinking of inviting my colleagues over for a small gathering. Any tips on what to bake?",
+    "answer": "The user would prefer baking suggestions that take into account their previous success with the lemon poppyseed cake, such as variations of that recipe or other desserts that share similar qualities. They might prefer suggestions that balance impressiveness with manageability, considering their previous experience. The user may not prefer overly complex or unfamiliar recipes, or suggestions that do not build upon their existing baking experience.",
+    "hypothesis": "Based on the context provided, I can draw on some relevant information from the sessions, though there is no direct answer to your specific question about baking for a colleague gathering.\n\nFrom the context, the following baking-related suggestions can be pulled:\n\n**Cookies:**\n- Oatmeal raisin with nuts\n- Cranberry White Chocolate Chip\n- Peanut Butter Banana\n- Dark Chocolate Cherry\n- Chocolate chip cookies (mentioned as being brought to a party)\n\n**Cakes:**\n- Lemon Poppyseed Cake (specifically noted as having been made for a **colleague's going-away party** and described as \"a hit\")\n\nGiven that the lemon poppyseed cake was explicitly mentioned as a success in a colleague-related context, that would be the most directly supported recommendation from the provided context.\n\nHowever, I should be transparent: **the context does not contain specific advice tailored to baking for a small colleague gathering**. The suggestions above are the closest relevant information available from the provided sessions.",
+    "autoeval_label": false
+}
+{
+    "question": "How much money did I raise for charity in total?",
+    "answer": "$3,750",
+    "hypothesis": "Based on the context provided, here are the fundraising amounts mentioned:\n\n1. **Charity bake sale** \u2013 over $1,000 for a local children's hospital\n2. **\"Run for Hunger\" charity run** (March 12th) \u2013 $250 for a local food bank\n3. **Charity fitness challenge** (February) \u2013 $500 for the American Cancer Society\n4. **Local animal shelter** (January 20th) \u2013 $2,000\n\n**Total: over $3,750**\n\n(Note: The $1,000 figure is stated as \"over $1,000,\" so the actual total could be higher.)",
+    "autoeval_label": true
+}
+{
+    "question": "What day of the week did I meet with my previous language exchange tutor Juan?",
+    "answer": "Wednesday",
+    "hypothesis": "Based on the context, you met with your previous language exchange tutor Juan on **Wednesday evening**.\n\nThis was explicitly stated in Session answer_35d6c0be_1: \"We meet every Wednesday evening, and he helps me with my Spanish pronunciation and grammar while I assist him with his English vocabulary.\"",
+    "autoeval_label": true
+}
+{
+    "question": "Where did I go on a week-long trip with my family?",
+    "answer": "Hawaii",
+    "hypothesis": "Based on the context, you went to **Hawaii** on a week-long trip with your family. This is stated in Session answer_5ca6cd28, where you mentioned \"I loved it so much when I went with my family for a week last month!\"",
+    "autoeval_label": true
+}
+{
+    "question": "How long had I been a member of 'Book Lovers Unite' when I attended the meetup?",
+    "answer": "Two weeks",
+    "hypothesis": "Based on the provided context, this question cannot be fully answered with certainty.\n\nHere's what the context tells us:\n- In Session answer_cf425855_1, the user mentions joining the Facebook group \"Book Lovers Unite\" **three weeks ago**.\n- In Session answer_cf425855_2, the user mentions attending a meetup organized by a group (referred to as \"Book Lovers Unite\" in the first message) **last week**.\n\nHowever, these are from **different sessions**, and it is not explicitly stated that the meetup attended \"last week\" occurred after joining \"three weeks ago.\" The context does not directly confirm the relationship between these two events or calculate the exact duration of membership at the time of the meetup.",
+    "autoeval_label": true
+}
+{
+    "question": "How much discount will I get on my next purchase at FreshMart?",
+    "answer": "$5",
+    "hypothesis": "Based on the context, there are two different values mentioned for the FreshMart discount threshold:\n\n- In Session answer_430d0a87_1 (May 24), the user stated that 500 points is the **minimum points required for a discount**.\n- In Session answer_430d0a87_2 (May 27), the user clarified that **every 100 points = $1 discount**, and that **500 points = $5 discount**.\n\nThe most recent and more detailed session (May 27) provides the clearest answer: **500 points gets you a $5 discount** on your next purchase at FreshMart, based on the rate of 100 points = $1.",
+    "autoeval_label": true
+}
+{
+    "question": "What was my previous personal best time for the charity 5K run?",
+    "answer": "27 minutes and 45 seconds",
+    "hypothesis": "Based on the context, there are conflicting pieces of information across sessions:\n\n- In **Session 1 (2023/04/11)**, the user mentioned a personal best 5K time of **27 minutes and 45 seconds**.\n- In **Session 2 (2023/07/30)**, the user mentioned beating their personal best by shaving off \"about a minute and a half,\" and later in the same session claimed their personal best was **26 minutes and 30 seconds**.\n\nThe most recently stated personal best time, as explicitly claimed by the user in Session 2, was **26 minutes and 30 seconds**. However, this is inconsistent with the earlier record of 27:45 from Session 1, and the math from the \"minute and a half improvement\" mention does not perfectly align either.",
+    "autoeval_label": true
+}
+{
+    "question": "Who did I meet first, the woman selling jam at the farmer's market or the tourist from Australia?",
+    "answer": "the woman selling jam at the farmer's market",
+    "hypothesis": "Based on the context provided, the user met the **tourist from Australia \"last Thursday\"** (referenced in Session answer_a68db5db_2) and met the **jam maker at the farmer's market \"two weeks ago on a Saturday morning\"** (referenced in Session answer_a68db5db_1).\n\nTherefore, the **jam maker at the farmer's market** was met first, as two weeks ago precedes last Thursday chronologically.",
+    "autoeval_label": true
+}
+{
+    "question": "Which event happened first, the meeting with Rachel or the pride parade?",
+    "answer": "The meeting with Rachel",
+    "hypothesis": "Based on the context provided:\n\n- The meeting with Rachel (the user's mentor) took place on **April 10th**.\n- The pride parade was attended on **May 1st**.\n\nTherefore, the **meeting with Rachel** happened first.",
+    "autoeval_label": true
+}
+{
+    "question": "Which grocery store did I spend the most money at in the past month?",
+    "answer": "Thrive Market",
+    "hypothesis": "Based on the context provided, here are the grocery shopping amounts mentioned across sessions:\n\n- **Thrive Market** (online): ~$150 (mentioned in Session answer_6a3b5c13_3)\n- **Walmart**: ~$120 (mentioned in Session answer_6a3b5c13_1)\n- **Publix** (via Instacart): ~$60 (mentioned in Session answer_6a3b5c13_4)\n- **Trader Joe's**: ~$80 (mentioned in Session answer_6a3b5c13_2)\n\nBased on the context, **Thrive Market** is where the most money was spent, at approximately **$150**.",
+    "autoeval_label": true
+}
+{
+    "question": "What is the order of the sports events I watched in January?",
+    "answer": "First, I attended a NBA game at the Staples Center, then I watched the College Football National Championship game, and finally, I watched the NFL playoffs.",
+    "hypothesis": "Based on the context, the sports events watched in January are:\n\n1. **NBA game (Lakers vs. Chicago Bulls)** \u2013 watched on January 5, 2023 (mentioned in Session answer_e6c20e52_3)\n2. **College Football National Championship (Georgia vs. Alabama, 33-18)** \u2013 watched on January 14, 2023 (mentioned in Session answer_e6c20e52_2, stated as \"yesterday\" on January 15)\n\nThese are the only two sports events explicitly mentioned as being watched in January, in that order.",
+    "autoeval_label": false
+}
+{
+    "question": "How many weeks have I been accepted into the exchange program when I started attending the pre-departure orientation sessions?",
+    "answer": "one week",
+    "hypothesis": "Based on the context provided:\n\n- The user was **accepted into the exchange program on March 20th**\n- The user **started attending pre-departure orientation sessions on March 27th**\n\nThat means the user had been accepted for **1 week** when they started attending the pre-departure orientation sessions (7 days between March 20th and March 27th).",
+    "autoeval_label": true
+}
+{
+    "question": "Which pair of shoes did I clean last month?",
+    "answer": "white Adidas sneakers",
+    "hypothesis": "Based on the context, you cleaned your **white Adidas sneakers** last month. They had gotten dirty and stained, particularly after an outdoor music festival you attended.",
+    "autoeval_label": true
+}
+{
+    "question": "How many weeks passed between the time I sold homemade baked goods at the Farmers' Market for the last time and the time I participated in the Spring Fling Market?",
+    "answer": "3 weeks",
+    "hypothesis": "Based on the context provided:\n\n- The Farmers' Market sale occurred on **2023/02/26 (Sunday)**\n- The Spring Fling Market took place **yesterday** relative to the session dated **2023/03/21 (Tuesday)**, meaning it occurred on **2023/03/20 (Monday)**\n\nThe time between these two events is approximately **3 weeks** (specifically about 3 weeks and 1 day, from February 26 to March 20).\n\nHowever, it's important to note that the context only mentions **one** instance of selling at the Farmers' Market, so it is treated as the last (and only) such occurrence mentioned.",
+    "autoeval_label": true
+}
+{
+    "question": "Which event happened first, my participation in the #PlankChallenge or my post about vegan chili recipe?",
+    "answer": "You posted a recipe for vegan chili on Instagram using the hashtag #FoodieAdventures first.",
+    "hypothesis": "Based on the context, the post about the vegan chili recipe happened first. It was mentioned in Session answer_9793daa3_2 on **2023/03/10 (Fri)**, while the participation in the #PlankChallenge was mentioned in Session answer_9793daa3_1 on **2023/03/15 (Wed)**.",
+    "autoeval_label": true
+}
+{
+    "question": "Who graduated first, second and third among Emma, Rachel and Alex?",
+    "answer": "Emma graduated first, followed by Rachel and then Alex.",
+    "hypothesis": "Based on the context provided:\n\n1. **First: Emma** \u2013 graduated on Friday, May 27, 2022 (the user attended her graduation on Saturday, May 28, 2022, and mentioned it was \"yesterday\").\n2. **Second: Rachel** \u2013 completed her master's degree graduation ceremony on Tuesday, June 21, 2022 (the user mentioned on June 22 that it was \"yesterday\").\n3. **Third: Alex (John/cousin)** \u2013 graduated with a degree in engineering on June 22, 2022 (described as \"today\" in Session 2), which is confirmed by Session 3 noting he graduated \"about two weeks ago\" from July 15.",
+    "autoeval_label": true
+}
+{
+    "question": "What is the order of the three sports events I participated in during the past month, from earliest to latest?",
+    "answer": "I first completed the Spring Sprint Triathlon, then took part in the Midsummer 5K Run, and finally participated in the company's annual charity soccer tournament.",
+    "hypothesis": "Based on the context, the three sports events mentioned are:\n\n1. **Spring Sprint Triathlon** (including a 20K bike ride) \u2013 completed on **June 2, 2023**\n2. **Midsummer 5K Run** (personal best of 27 minutes and 42 seconds) \u2013 completed on **June 10, 2023**\n3. **Company's Annual Charity Soccer Tournament** \u2013 participated on **June 17, 2023**\n\nSo the order from earliest to latest is: **Spring Sprint Triathlon \u2192 Midsummer 5K Run \u2192 Charity Soccer Tournament**.",
+    "autoeval_label": true
+}
+{
+    "question": "How many different doctors did I visit?",
+    "answer": "I visited three different doctors: a primary care physician, an ENT specialist, and a dermatologist.",
+    "hypothesis": "Based on the context provided, the user mentioned the following doctors:\n\n1. **Dr. Lee** \u2013 for a biopsy follow-up on a suspicious mole\n2. **Dr. Smith** \u2013 primary care physician (diagnosed UTI)\n3. **Dr. Patel** \u2013 related to sinusitis/UTI discussion\n\nThat is **3 different doctors** mentioned across the sessions.",
+    "autoeval_label": true
+}
+{
+    "question": "What is the artist that I started to listen to last Friday?",
+    "answer": "a bluegrass band that features a banjo player",
+    "hypothesis": "The context does not contain information about the user listening to a specific artist \"last Friday.\" The most recent session is from 2023/03/31 (Friday), but it only mentions the user discovering a bluegrass band featuring a banjo player, without naming the specific artist.",
+    "autoeval_label": true
+}
+Accuracy: 0.84
+	knowledge-update: 1.0 (8)
+	single-session-preference: 0.3333 (3)
+	single-session-assistant: 1.0 (5)
+	single-session-user: 0.8571 (7)
+	multi-session: 0.8462 (13)
+	temporal-reasoning: 0.7857 (14)
+Saved to /Users/yoheinakajima/aglongmem/ag-run/regimes/results/xauthor_haiku_seed11/sub_3/hypotheses.jsonl.eval-results-gpt-4o
+
+--- stderr ---
+
+  0%|          | 0/50 [00:00<?, ?it/s]
+  2%|▏         | 1/50 [00:02<01:55,  2.36s/it]
+  4%|▍         | 2/50 [00:02<01:00,  1.26s/it]
+  6%|▌         | 3/50 [00:03<00:45,  1.04it/s]
+  8%|▊         | 4/50 [00:03<00:34,  1.31it/s]
+ 10%|█         | 5/50 [00:04<00:29,  1.54it/s]
+ 12%|█▏        | 6/50 [00:04<00:25,  1.74it/s]
+ 14%|█▍        | 7/50 [00:05<00:30,  1.42it/s]
+ 16%|█▌        | 8/50 [00:07<00:44,  1.05s/it]
+ 18%|█▊        | 9/50 [00:07<00:34,  1.18it/s]
+ 20%|██        | 10/50 [00:08<00:27,  1.45it/s]
+ 22%|██▏       | 11/50 [00:08<00:24,  1.59it/s]
+ 24%|██▍       | 12/50 [00:09<00:22,  1.69it/s]
+ 26%|██▌       | 13/50 [00:09<00:20,  1.83it/s]
+ 28%|██▊       | 14/50 [00:10<00:19,  1.82it/s]
+ 30%|███       | 15/50 [00:10<00:18,  1.88it/s]
+ 32%|███▏      | 16/50 [00:12<00:25,  1.35it/s]
+ 34%|███▍      | 17/50 [00:12<00:23,  1.41it/s]
+ 36%|███▌      | 18/50 [00:13<00:20,  1.59it/s]
+ 38%|███▊      | 19/50 [00:13<00:17,  1.75it/s]
+ 40%|████      | 20/50 [00:13<00:15,  1.96it/s]
+ 42%|████▏     | 21/50 [00:14<00:13,  2.08it/s]
+ 44%|████▍     | 22/50 [00:14<00:14,  1.95it/s]
+ 46%|████▌     | 23/50 [00:15<00:14,  1.86it/s]
+ 48%|████▊     | 24/50 [00:15<00:13,  1.97it/s]
+ 50%|█████     | 25/50 [00:16<00:12,  1.99it/s]
+ 52%|█████▏    | 26/50 [00:17<00:13,  1.82it/s]
+ 54%|█████▍    | 27/50 [00:17<00:12,  1.83it/s]
+ 56%|█████▌    | 28/50 [00:18<00:11,  1.98it/s]
+ 58%|█████▊    | 29/50 [00:18<00:13,  1.58it/s]
+ 60%|██████    | 30/50 [00:19<00:13,  1.53it/s]
+ 62%|██████▏   | 31/50 [00:20<00:11,  1.65it/s]
+ 64%|██████▍   | 32/50 [00:20<00:09,  1.81it/s]
+ 66%|██████▌   | 33/50 [00:20<00:08,  1.97it/s]
+ 68%|██████▊   | 34/50 [00:21<00:08,  1.82it/s]
+ 70%|███████   | 35/50 [00:22<00:07,  1.94it/s]
+ 72%|███████▏  | 36/50 [00:23<00:09,  1.51it/s]
+ 74%|███████▍  | 37/50 [00:23<00:07,  1.63it/s]
+ 76%|███████▌  | 38/50 [00:24<00:07,  1.66it/s]
+ 78%|███████▊  | 39/50 [00:25<00:07,  1.40it/s]
+ 80%|████████  | 40/50 [00:26<00:07,  1.30it/s]
+ 82%|████████▏ | 41/50 [00:26<00:05,  1.52it/s]
+ 84%|████████▍ | 42/50 [00:27<00:06,  1.30it/s]
+ 86%|████████▌ | 43/50 [00:28<00:05,  1.20it/s]
+ 88%|████████▊ | 44/50 [00:29<00:05,  1.16it/s]
+ 90%|█████████ | 45/50 [00:29<00:03,  1.34it/s]
+ 92%|█████████▏| 46/50 [00:30<00:02,  1.46it/s]
+ 94%|█████████▍| 47/50 [00:30<00:01,  1.58it/s]
+ 96%|█████████▌| 48/50 [00:31<00:01,  1.71it/s]
+ 98%|█████████▊| 49/50 [00:31<00:00,  1.86it/s]
+100%|██████████| 50/50 [00:32<00:00,  1.88it/s]
+100%|██████████| 50/50 [00:32<00:00,  1.55it/s]
+
