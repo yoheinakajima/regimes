@@ -235,10 +235,16 @@ pytest -q
 
 ```
 src/regimes/
-  split.py                   # load_split() + invariant guard
+  split.py                   # load_split() + OPTIMIZE∩CONFIRM=∅ invariant guard
+  target.py                  # Target / ActionSpace / RegimeTaxonomy interfaces
   agent/                     # runtime-native four-behavior retrieval agent
-  eval/                      # RealEval wrapper (LME harness bridge)
-  loop/
+    transforms.py            # score-transform seam (between scoring and assembly)
+    reader_transforms.py     # reader-prompt transform seam
+    embedders.py             # HashEmbedder (tests) / OpenAIEmbedder (live)
+  eval/
+    real.py                  # AnthropicReader, LMEJudge, FakeReader/FakeJudge bridge
+    types.py                 # Outcome / EvalResult contract
+  loop/                      # the target-agnostic loop
     events.py                # loop event vocabulary
     regimes.py               # taxonomy + deterministic detectors + histogram
     hypothesize.py           # StubAuthor + LLMAuthor (Claude); reader-prompt + score transforms
@@ -246,9 +252,13 @@ src/regimes/
     attribute.py             # structural diff over two EvalResults
     behaviors.py             # one @behavior per loop phase; held-out promotion gate
     runner.py                # run_loop(): seed -> drain -> report
-config/                      # frozen OPTIMIZE+CONFIRM splits; committed
+  targets/
+    longmemeval/             # LME target: target, action_space, taxonomy, transform_types
+    sql/                     # text-to-SQL target: target, action_space, taxonomy, agent/, exec, eval
+config/                      # frozen OPTIMIZE+CONFIRM splits (seed 42 + seed{5,7,11,23,101}); committed
 results/                     # committed per-question outcomes + analysis outputs
-scripts/                     # build_split, run_loop, significance, extract_confirm_tables
+fixtures/                    # synthetic_lme.json, synthetic_sql.json
+scripts/                     # build_split, run_loop, significance, extract_confirm_tables (+ SQL variants)
 tests/                       # pytest
 ```
 
